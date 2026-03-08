@@ -9,15 +9,12 @@ MODULE_DESCRIPTION("A Simple High Resolution Timers Example");
 #define MAX_SAMPLE 20
 static u64 timestams[MAX_SAMPLE];
 static int index;
-
 static struct hrtimer my_hrtimer;
 u64 start_time;
-
 static ktime_t period;
 
-static enum hrtimer_restart	hrtimer_callback(struct hrtimer *timer){
-
-    if(index < MAX_SAMPLE)
+static enum hrtimer_restart	hrtimer_callback(struct hrtimer *timer) {
+    if (index < MAX_SAMPLE)
         timestams[index++] = ktime_get_ns();
 
     hrtimer_forward_now(timer, period);
@@ -25,7 +22,7 @@ static enum hrtimer_restart	hrtimer_callback(struct hrtimer *timer){
     return HRTIMER_RESTART;
 }
 
-static int __init my_init(void){
+static int __init my_init(void) {
     hrtimer_init(&my_hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
     my_hrtimer.function = &hrtimer_callback;
 
@@ -39,10 +36,10 @@ static int __init my_init(void){
     return 0;
 }
 
-static void __exit my_exit(void){
+static void __exit my_exit(void) {
     hrtimer_cancel(&my_hrtimer);
 
-    for(int i=1; i < index; i++){
+    for(int i=1; i < index; i++) {
         pr_info("Delta %d: %llu ns \n", i, timestams[i] - timestams[i - 1]);
     }
 

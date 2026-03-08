@@ -4,54 +4,50 @@
 [![Youtube Video](https://img.youtube.com/vi/r5IYB4xjk2o/0.jpg)](https://www.youtube.com/watch?v=r5IYB4xjk2o)
 
 # 1️⃣ Introduction
+- I²C is a synchronous serial communication protocol that uses a simple two-wire interface to connect low-speed peripheral devices. It is commonly used to communicate with devices such as sensors, EEPROMs, real-time clocks, ADCs, DACs, and power-management ICs.
 
-I²C is a synchronous serial communication protocol that uses a simple two-wire interface to connect low-speed peripheral devices. It is commonly used to communicate with devices such as sensors, EEPROMs, real-time clocks, ADCs, DACs, and power-management ICs.
-
-The protocol was originally developed by Philips, and today it is supported by almost all major IC manufacturers.
+- The protocol was originally developed by Philips, and today it is supported by almost all major IC manufacturers.
 
 *In Linux-based embedded systems, I²C plays a very important role because many external peripherals are connected using this bus.*
 
 **Widely used devices:**    
-* Sensors
-* EEPROMs
-* RTCs
-* Power-management ICs
+*   Sensors
+*   EEPROMs
+*   RTCs
+*   Power-management ICs
 
 **Linux I2C:**   
-Linux provides a generic I²C framework that abstracts the hardware details.
+- Linux provides a generic I²C framework that abstracts the hardware details.
 
-This means that as driver developers, we do not directly control the I²C hardware. Instead, we interact with the Linux I²C subsystem, which handles communication in a standardized way.
+- This means that as driver developers, we do not directly control the I²C hardware. Instead, we interact with the Linux I²C subsystem, which handles communication in a standardized way.
 
 # 2️⃣ I2C Bus Basics
 
 ![](i2c_bus.jpg)    
 
-The I²C bus is a two-wire bus consisting of SDA and SCL lines.  
-SDA is the data line, and SCL is the clock line. Both lines are open-drain and require pull-up resistors.   
-I²C supports multi-master and multi-slave configurations. Each device connected to the bus has a unique address, which can be either 7-bit or 10-bit.
+- The I²C bus is a two-wire bus consisting of SDA and SCL lines.  
+- SDA is the data line, and SCL is the clock line. Both lines are open-drain and require pull-up resistors.   
+- I²C supports multi-master and multi-slave configurations. Each device connected to the bus has a unique address, which can be either 7-bit or 10-bit.
 
 
-During an I²C transaction, the master device generates the clock on the SCL line and initiates either a read or write operation. After every 8 bits of data, the receiver sends an ACK or NACK bit to indicate whether the transfer was successful.
+- During an I²C transaction, the master device generates the clock on the SCL line and initiates either a read or write operation. After every 8 bits of data, the receiver sends an ACK or NACK bit to indicate whether the transfer was successful.
 
 ![](i2c_start_stop.png)
 ![](i2c_data_transfer.png)
 
-* Single bus shared by multiple devices
-* Masters and slaves connected in parallel
-* Pull-up resistors on SDA and SCL
-* Only one master controls the bus at a time
+*   Single bus shared by multiple devices
+*   Masters and slaves connected in parallel
+*   Pull-up resistors on SDA and SCL
+*   Only one master controls the bus at a time
 
 # 3️⃣ Linux I2C Subsystem
-
-Now let’s look at how Linux models this I²C bus internally.
-
-The Linux I²C subsystem is the interface through which the kernel communicates with devices connected to the I²C bus. In Linux, the kernel always acts as the I²C master.
+- Now let’s look at how Linux models this I²C bus internally.
+- The Linux I²C subsystem is the interface through which the kernel communicates with devices connected to the I²C bus. In Linux, the kernel always acts as the I²C master.
 
 
 ![](I2C_Subsystem_1.png)
 
 The I²C subsystem is logically divided into two main parts: `buses` and `devices`.  
-
 * On the bus side, we have `adapters` and `algorithms`.   
 * On the device side, we have `clients` and `drivers`.
 
@@ -65,14 +61,12 @@ The I²C subsystem is logically divided into two main parts: `buses` and `device
 # 4️⃣ Linux I2C Subsystem Architecture (Kernel View)
 ![](I2C_Subsystem_2.png)
 
-At the center of the subsystem is the I²C core.
-
-The I²C core is responsible for registering adapters, clients, and drivers, and for matching I²C devices with the appropriate drivers.
+- At the center of the subsystem is the I²C core.
+- The I²C core is responsible for registering adapters, clients, and drivers, and for matching I²C devices with the appropriate drivers.
 
 # 5️⃣ The Three Main Components
-
 ## 1️⃣ I2C Core (i2c-core)
-The I²C core provides common infrastructure for all I²C drivers.
+- The I²C core provides common infrastructure for all I²C drivers.
 It handles:
 * Registration and removal of I²C adapters.
 * Registration and removal of I²C client drivers.
@@ -80,9 +74,9 @@ It handles:
 * Common I²C APIs such as i2c_transfer().
 
 ## 2️⃣ I2C Bus Driver (Adapter / Algorithm)
-The I²C bus driver represents the I²C controller hardware present on the SoC.
+- The I²C bus driver represents the I²C controller hardware present on the SoC.
 
-It is responsible for generating clock signals, handling start and stop conditions, and physically transferring data over the SDA and SCL lines.
+- It is responsible for generating clock signals, handling start and stop conditions, and physically transferring data over the SDA and SCL lines.
 
 *This part of the subsystem is described using two main structures:*
 * struct i2c_adapter
@@ -120,15 +114,14 @@ All I²C-related code in the Linux kernel is located under the `drivers/i2c` dir
 # 7️⃣ Two Ways to Use I2C in Linux
 ## Method 1️⃣ Using `i2c-dev` (User Space Control)
 
-The first method is to use the generic `i2c-dev` driver.
+- The first method is to use the generic `i2c-dev` driver.
 
 This exposes I²C adapters as device files like `/dev/i2c-1`, allowing user-space applications to directly communicate with I²C devices.
 * Used for testing and prototyping
 * Common tools: i2c-tools
 
 ## Method 2️⃣ Writing a Dedicated I2C Client Driver
-The second method is to write a dedicated kernel-space I²C client driver for a specific device.
-
+- The second method is to write a dedicated kernel-space I²C client driver for a specific device.
 * Recommended for production systems
 * Better performance and integration
 * Fully managed by the kernel
@@ -227,7 +220,6 @@ echo 0x50 > /sys/class/i2c-dev/i2c-1/device/delete_device
 *This removes the dynamically created I²C client and calls the driver’s `remove()` function.*
 
 ## 9️⃣ How User Space and Kernel Space Connect
-
 * User space interacts with I²C through `/dev/i2c-*` using the `i2c-dev` driver.
 * Kernel drivers interact with I²C through the I²C core using APIs such as `i2c_add_driver()` and `i2c_transfer()`.
 

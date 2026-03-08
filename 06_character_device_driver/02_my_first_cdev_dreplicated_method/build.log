@@ -1,0 +1,19 @@
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ make
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method/my_cdev.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method/my_cdev.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method/my_cdev.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ make clean
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method clean
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CLEAN   /home/htritai/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method/Module.symvers
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+
+

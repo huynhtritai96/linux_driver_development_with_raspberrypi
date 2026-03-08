@@ -1,0 +1,216 @@
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ sudo insmod my_cdev.ko
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ sudo rmmod my_cdev
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ cat /proc/devices
+Character devices:
+  1 mem
+  4 /dev/vc/0
+  4 tty
+  4 ttyS
+  5 /dev/tty
+  5 /dev/console
+  5 /dev/ptmx
+  5 ttyprintk
+  7 vcs
+ 10 misc
+ 13 input
+ 14 sound
+ 29 fb
+ 81 video4linux
+ 89 i2c
+116 alsa
+128 ptm
+136 pts
+180 usb
+189 usb_device
+204 ttyAMA
+216 rfcomm
+226 drm
+237 gpiomem
+238 media
+239 uio
+240 cec
+241 binder
+242 hidraw
+243 rpmb
+244 nvme-generic
+245 nvme
+246 vc-mem
+247 bsg
+248 watchdog
+249 ptp
+250 pps
+251 lirc
+252 rtc
+253 dma_heap
+254 gpiochip
+
+Block devices:
+  1 ramdisk
+  7 loop
+  8 sd
+ 65 sd
+ 66 sd
+ 67 sd
+ 68 sd
+ 69 sd
+ 70 sd
+ 71 sd
+128 sd
+129 sd
+130 sd
+131 sd
+132 sd
+133 sd
+134 sd
+135 sd
+179 mmc
+254 device-mapper
+259 blkext
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ sudo insmod my_cdev.ko
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ cat /proc/devices
+Character devices:
+  1 mem
+  4 /dev/vc/0
+  4 tty
+  4 ttyS
+  5 /dev/tty
+  5 /dev/console
+  5 /dev/ptmx
+  5 ttyprintk
+  7 vcs
+ 10 misc
+ 13 input
+ 14 sound
+ 29 fb
+ 64 my_cdev
+ 81 video4linux
+ 89 i2c
+116 alsa
+128 ptm
+136 pts
+180 usb
+189 usb_device
+204 ttyAMA
+216 rfcomm
+226 drm
+237 gpiomem
+238 media
+239 uio
+240 cec
+241 binder
+242 hidraw
+243 rpmb
+244 nvme-generic
+245 nvme
+246 vc-mem
+247 bsg
+248 watchdog
+249 ptp
+250 pps
+251 lirc
+252 rtc
+253 dma_heap
+254 gpiochip
+
+Block devices:
+  1 ramdisk
+  7 loop
+  8 sd
+ 65 sd
+ 66 sd
+ 67 sd
+ 68 sd
+ 69 sd
+ 70 sd
+ 71 sd
+128 sd
+129 sd
+130 sd
+131 sd
+132 sd
+133 sd
+134 sd
+135 sd
+179 mmc
+254 device-mapper
+259 blkext
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ sudo rmmod my_cdev
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ cat /proc/devices
+Character devices:
+  1 mem
+  4 /dev/vc/0
+  4 tty
+  4 ttyS
+  5 /dev/tty
+  5 /dev/console
+  5 /dev/ptmx
+  5 ttyprintk
+  7 vcs
+ 10 misc
+ 13 input
+ 14 sound
+ 29 fb
+ 81 video4linux
+ 89 i2c
+116 alsa
+128 ptm
+136 pts
+180 usb
+189 usb_device
+204 ttyAMA
+216 rfcomm
+226 drm
+237 gpiomem
+238 media
+239 uio
+240 cec
+241 binder
+242 hidraw
+243 rpmb
+244 nvme-generic
+245 nvme
+246 vc-mem
+247 bsg
+248 watchdog
+249 ptp
+250 pps
+251 lirc
+252 rtc
+253 dma_heap
+254 gpiochip
+
+Block devices:
+  1 ramdisk
+  7 loop
+  8 sd
+ 65 sd
+ 66 sd
+ 67 sd
+ 68 sd
+ 69 sd
+ 70 sd
+ 71 sd
+128 sd
+129 sd
+130 sd
+131 sd
+132 sd
+133 sd
+134 sd
+135 sd
+179 mmc
+254 device-mapper
+259 blkext
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ 
+
+
+
+htritai@Rasp26:~/ldd $ dmesg -W
+[ 9585.169924] my_cdev: loading out-of-tree module taints kernel.
+[ 9585.173987] my_cdev: Character device registered, Major number: 64
+
+[ 9606.850564] my_cdev: Goodbye, Kernel
+
+[ 9692.050830] my_cdev: Character device registered, Major number: 64
+
+[ 9757.187430] my_cdev: Goodbye, Kernel

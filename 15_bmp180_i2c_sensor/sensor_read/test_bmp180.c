@@ -100,10 +100,8 @@ int main(int argc, char **argv)
         return 4;
     }
 
-    /* temp10 is in tenths of °C */
-    double temp_c = temp10 / 10.0;
-    /* pressure is in Pa, convert to hPa for human friendly */
-    double pressure_hpa = pressure / 100.0;
+    double temp_c = temp10 / 10.0; /* temp10 is in tenths of °C */
+    double pressure_hpa = pressure / 100.0; /* pressure is in Pa, convert to hPa for human friendly */
 
     printf("Device: %s\n", device_dir);
     printf("Temperature: %.1f °C (raw=%lld)\n", temp_c, temp10);
@@ -111,5 +109,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
 

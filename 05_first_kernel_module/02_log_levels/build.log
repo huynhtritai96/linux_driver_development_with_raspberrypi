@@ -1,0 +1,9 @@
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/02_log_levels $ make
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/02_log_levels modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/02_log_levels/log_levels.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/02_log_levels/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/02_log_levels/log_levels.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/02_log_levels/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/02_log_levels/log_levels.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'

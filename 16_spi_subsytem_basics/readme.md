@@ -4,23 +4,23 @@
 [![Youtube Video](https://img.youtube.com/vi/W7CJ3Fz--Ws/0.jpg)](https://www.youtube.com/watch?v=W7CJ3Fz--Ws)
 
 ## 1. What is SPI in Linux?
-SPI (Serial Peripheral Interface) is a synchronous, full-duplex, master-driven serial bus used to communicate with peripheral devices such as ADCs, DACs, displays, and sensors.
+- SPI (Serial Peripheral Interface) is a synchronous, full-duplex, master-driven serial bus used to communicate with peripheral devices such as ADCs, DACs, displays, and sensors.
 
 ![](img/SPI_three_slaves.svg.png)
 
-Unlike I2C:
+- Unlike I2C:
 * SPI does not use addressing
 * Device selection is done using chip-select (CS or SS) lines
 * Data is transferred simultaneously in both directions
 
-In Linux, SPI is implemented as a layered subsystem that separates:
+- In Linux, SPI is implemented as a layered subsystem that separates:
 
 * Hardware-specific logic
 * Bus management
 * Device-specific drivers
 
 ## 2. High-Level SPI Architecture in Linux
-The Linux SPI subsystem is built around three core components:
+- The Linux SPI subsystem is built around three core components:
 
 ![spi_bus_driver_model](img/spi_bus_driver_model.png)   
 
@@ -34,9 +34,7 @@ The Linux SPI subsystem is built around three core components:
     - or a custom character device exposed by your SPI client driver,
 
 ### Kernel Space
-
 #### 1. SPI Client Driver (Device Driver)
-
 * Device-specific
 * Formats commands and data
 * Uses SPI core APIs to communicate
@@ -44,7 +42,6 @@ The Linux SPI subsystem is built around three core components:
 *The SPI client driver is device-specific, but hardware-independent.*
 
 #### 2. SPI Core
-
 * Bus management layer (spi.c)
 * Matches devices with drivers
 * Managing messages and transfers
@@ -52,7 +49,6 @@ The Linux SPI subsystem is built around three core components:
 * Completely hardware-agnostic
 
 #### 3. SPI Master Driver (Controller Driver)
-
 * Hardware-specific
 * Controls :
     - SPI clock
@@ -70,14 +66,12 @@ SPI client drivers know what bits to shift.*
 * Chip-select decides which slave is active
 
 ------------------------------------------------------
-
 ## SPI Registration / Probe Flow
 ![spi_register_process](img/spi_registation_process.png)
 
 *(What really happens inside the kernel)*
 
 **SPI Controller Driver**
-
 * `spi-bcm2835.c` loads
 * Registers itself using:
 ```
@@ -112,7 +106,6 @@ spi_register_controller()
 This is the `traffic controller`.
 
 ## SPI Operation Process
-
 ![](img/SPI_Operation_Process.png)
 
 
@@ -122,7 +115,6 @@ dtc -I fs -O dts -s /sys/firmware/devicetree/base > tmp_dt.dts
 ```
 
 So during boot:
-
 1. The kernel parses the Device Tree.
 2. It finds the SPI controller node.
 3. It reads the compatible string.
@@ -134,10 +126,9 @@ So during boot:
 ------------------------------------
 
 ### Example Overview
+- In this example, we explore the Linux `SPI subsystem fundamentals` by writing a `minimal SPI client driver` and manually binding it to an SPI device `without using Device Tree`.
 
-In this example, we explore the Linux `SPI subsystem fundamentals` by writing a `minimal SPI client driver` and manually binding it to an SPI device `without using Device Tree`.
-
-The purpose of this example is **not production use**, but to:
+- The purpose of this example is **not production use**, but to:
 * Understand SPI architecture in Linux
 * Learn how SPI drivers are registered and probed
 * Understand `spi_message` and `spi_transfer`
@@ -146,7 +137,6 @@ The purpose of this example is **not production use**, but to:
 An **ESP32 Dev Kit (SPI slave)** is used to verify full-duplex SPI communication with a **Raspberry Pi (SPI master)**.
 
 #### Hardware Setup
-
 **SPI Master**
 * Raspberry Pi (BCM2835 SPI controller)
 
@@ -160,15 +150,14 @@ An **ESP32 Dev Kit (SPI slave)** is used to verify full-duplex SPI communication
 --------------------------------------
 
 ### Raspberry Pi SPI Setup
-
 #### Enable SPI
-Using raspi-config:
+- Using raspi-config:
 ```
 sudo raspi-config
 ```
-Enable SPI under Interface Options.
+- Enable SPI under Interface Options.
 
-Or manually:
+- Or manually:
 ```
 sudo nano /boot/firmware/config.txt
 ```
@@ -176,14 +165,13 @@ add:
 ```
 dtparam=spi=on
 ```
-Reboot:
+- Reboot:
 ```
 sudo reboot
 ```
 ------------------------------------
 
 ### Verify SPI Interfaces
-
 #### Check SPI device nodes
 ```
 ls /dev/spi*
@@ -199,7 +187,6 @@ ls /sys/bus/spi/drivers/spidev/
 ------------------------------------------------
 
 ### Build and Load the Driver
-
 #### Step 1: Build the module
 ```
 make
@@ -213,14 +200,14 @@ At this stage:
 * The driver is loaded
 * `probe()` is not called yet
 
-This is expected.
+- This is expected.
 
 #### Understanding Default Driver Binding
-By default, Raspberry Pi binds SPI devices to the `spidev` driver.
+- By default, Raspberry Pi binds SPI devices to the `spidev` driver.
 ```
 ls /sys/bus/spi/drivers/spidev/
 ```
-You should see:
+- You should see:
 ```
 spi0.0 spi0.1
 ```
@@ -229,26 +216,26 @@ This means:
 - Your driver cannot bind yet
 
 #### Manual Driver Binding (Without Device Tree)
-Switch to root
+- Switch to root
 ```
 sudo su
 ```
-Try binding directly (will fail)
+- Try binding directly (will fail)
 ```
 echo spi0.0 > /sys/bus/spi/drivers/my_spi_driver/bind
 ```
-Error:
+- Error:
 ```
 write error: Device or resource busy
 ```
-Reson:
+- Reson:
 * `spi0.0` is already bound to `spidev` 
 
-Unbind from `spidev`
+- Unbind from `spidev`
 ```
 echo spi0.0 > /sys/bus/spi/drivers/spidev/unbind
 ```
-Verify:
+- Verify:
 ```
 ls /sys/bus/spi/drivers/spidev/
 ```
@@ -279,8 +266,7 @@ echo spi0.0 > /sys/bus/spi/drivers/my_spi_driver/unbind
 ---------------------------------------------
 
 ### Automatic Probe and Remove
-
-Once driver_override is set:
+- Once driver_override is set:
 * Loading the module automatically calls `probe()`
 * Unloading the module automatically calls `remove()`
 * Manual bind/unbind is no longer required

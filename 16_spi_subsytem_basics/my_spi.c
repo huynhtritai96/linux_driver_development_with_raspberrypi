@@ -8,7 +8,7 @@ MODULE_DESCRIPTION("Simple SPI Master");
 #define SPI_MAX_HZ  1000000
 // spi0.0
 
-static int my_probe(struct spi_device *spi){
+static int my_probe(struct spi_device *spi) {
     pr_info("probe called...\n");
 
     spi->mode = SPI_MODE_0;
@@ -30,7 +30,7 @@ static int my_probe(struct spi_device *spi){
     spi_message_add_tail(&t, &m);
 
     int ret = spi_sync(spi, &m);
-    if(ret){
+    if (ret) {
         pr_err("SPI trnsfer failed\n");
         return ret;
     }
@@ -40,7 +40,7 @@ static int my_probe(struct spi_device *spi){
     return 0;
 }
 
-static void	my_remove(struct spi_device *spi){
+static void	my_remove(struct spi_device *spi) {
     pr_info("remove called...\n");
 }
 
@@ -59,11 +59,11 @@ static struct spi_driver my_spi_driver = {
     .id_table = my_ids,
 };
 
-// static int __init my_init(void){
+// static int __init my_init(void) {
 //     return 0;
 // }
 
-// static void __exit my_exit(void){
+// static void __exit my_exit(void) {
 
 // }
 

@@ -1,0 +1,39 @@
+htritai@Rasp26:~/ldd $ dmesg -W
+[ 1230.445111] log_levels: loading out-of-tree module taints kernel.
+[ 1230.448316] log_levels: Hello, Kernel
+[ 1230.448344] log_levels: my_int = 30
+[ 1230.448359] log_levels: my_bool = 1
+[ 1230.448368] log_levels: my_str = hello
+[ 1230.448375] log_levels: my_arr (count=10)=
+[ 1230.448384]  1
+[ 1230.448390]  2
+[ 1230.448398]  3
+[ 1230.448404]  0
+[ 1230.448410]  0
+[ 1230.448416]  0
+[ 1230.448422]  0
+[ 1230.448428]  0
+[ 1230.448434]  0
+[ 1230.448440]  0
+
+^C
+htritai@Rasp26:~/ldd $ dmesg --level=3,4
+[    0.817390] pci_bus 0000:01: supply vpcie3v3 not found, using dummy regulator
+[    0.817474] pci_bus 0000:01: supply vpcie3v3aux not found, using dummy regulator
+[    0.817496] pci_bus 0000:01: supply vpcie12v not found, using dummy regulator
+[   10.366277] snd_bcm2835: module is from the staging directory, the quality is unknown, you have been warned.
+[   10.569479] vc_sm_cma: module is from the staging directory, the quality is unknown, you have been warned.
+[   10.645114] bcm2835_mmal_vchiq: module is from the staging directory, the quality is unknown, you have been warned.
+[   10.709387] bcm2835_codec: module is from the staging directory, the quality is unknown, you have been warned.
+[   10.710872] bcm2835_v4l2: module is from the staging directory, the quality is unknown, you have been warned.
+[   10.711890] bcm2835_isp: module is from the staging directory, the quality is unknown, you have been warned.
+[   10.884558] hci_uart_bcm serial0-0: supply vbat not found, using dummy regulator
+[   10.884719] hci_uart_bcm serial0-0: supply vddio not found, using dummy regulator
+[   11.155134] ieee80211 phy0: brcmf_cfg80211_reg_notifier: Firmware rejected country setting
+[  345.080974] ieee80211 phy0: brcmf_cfg80211_reg_notifier: Firmware rejected country setting
+[  345.157840] warning: `iwconfig' uses wireless extensions which will stop working for Wi-Fi 7 hardware; use nl80211
+[  503.943295] ieee80211 phy0: brcmf_cfg80211_reg_notifier: Firmware rejected country setting
+[ 1230.445111] log_levels: loading out-of-tree module taints kernel.
+htritai@Rasp26:~/ldd $ dmesg -W --level=3,4
+^C
+htritai@Rasp26:~/ldd $ 

@@ -55,7 +55,7 @@ static int __init my_init(void) {
     return 0;
 }
 
-static void __exit my_exit(void){
+static void __exit my_exit(void) {
     pr_info("%s: Goodbye, Kernel\n", module_name);
     // pr_err("%s: This is an error on exit\n", module_name);
     // pr_warn("%s: This is a warning on exit\n", module_name);

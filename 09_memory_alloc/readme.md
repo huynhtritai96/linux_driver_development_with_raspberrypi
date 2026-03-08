@@ -8,14 +8,14 @@ Early computers had very limited and expensive RAM.
 Even though CPUs could theoretically address more memory, the physical RAM installed was often much smaller.
 
 Without virtual memory, programs directly accessed physical RAM. This caused several major problems:
-* Not Enough Memory
-* Memory Fragmentation
-* Sequrity and isolation
+*   Not Enough Memory
+*   Memory Fragmentation
+*   Sequrity and isolation
 
 ### 1.1 Not Enough Memory
-* A 32-bit CPU can address up to 2³² = 4 GB of memory.
-* older machines had far less physical RAM (e.g., 1–2 GB).
-* If a program accessed an address that didn’t physically exist, it would crash.
+*   A 32-bit CPU can address up to 2³² = 4 GB of memory.
+*   older machines had far less physical RAM (e.g., 1–2 GB).
+*   If a program accessed an address that didn’t physically exist, it would crash.
 ![](img/NotEnoughMemory.gif)
 
 ### 1.2 Memory Fragmentation
@@ -30,9 +30,9 @@ Without virtual memory, programs directly accessed physical RAM. This caused sev
 ![](img/MemoryFragmentation.gif)
 
 ### 1.3 Security and Isolation
-* If all programs share the same address space:
-* Two programs can accidentally write to the same memory address
-* This leads to data corruption, crashes, or security issues
+*   If all programs share the same address space:
+*   Two programs can accidentally write to the same memory address
+*   This leads to data corruption, crashes, or security issues
 ![](img/SecurityandIsolation.gif)
 
 # 2. The Key Idea of Virtual Memory
@@ -62,14 +62,11 @@ This mapping is managed by the operating system and enforced by hardware.
 | Page             | Fixed-size block of memory (usually 4 KB) |
 
 ## 4. Pages and Page Tables
-
 Instead of mapping every byte individually:
-
 * Memory is divided into pages (typically 4 KB)
 * Each page is mapped using a page table
 
 **Page Table**
-
 * A page table maps:
     * Virtual Page Number (VPN) → Physical Page Number (PPN)
 * Each program has its own page table
@@ -83,7 +80,6 @@ Instead of mapping every byte individually:
 
 ## 5. Solving the Original Problems
 ### 5.1 Not Enough Memory → Swap Space
-
 * If RAM is full, pages can be stored on disk (swap)
 * When accessed again:
     * A page fault occurs
@@ -106,7 +102,6 @@ A **page fault** occurs when:
 * That page is not currently in RAM
 
 **What Happens:**
-
 1. CPU detects missing page
 2. CPU raises a page fault exception
 3. OS selects a page to evict (usually LRU)
@@ -117,16 +112,13 @@ A **page fault** occurs when:
 Page faults are very slow, so minimizing them is critical for performance.
 
 ## 7. MMU – Memory Management Unit
-
 The MMU is a hardware component that:
 * Translates virtual → physical addresses
 * Detects invalid accesses
 * Generates page faults
-
 The MMU is configured by the OS and operates transparently to programs.
 
 ## 8. Translation Lookaside Buffer (TLB)
-
 Looking up page tables in RAM for every access is expensive.
 
 ![](img/Translation_Lookaside_Buffer.png)
@@ -169,7 +161,6 @@ Example:
 Modern Linux systems use up to 5-level page tables on 64-bit systems.
 
 10. Summary
-
 * Each program runs in its own virtual memory space
 * Memory is divided into pages
 * Page tables map virtual pages to physical pages
@@ -185,9 +176,7 @@ Modern Linux systems use up to 5-level page tables on 64-bit systems.
 ---------------------------------------------------------------------
 
 # Linux Kernel Memory Allocation
-
 ## How This Fits with Virtual Memory
-
 * **Kernel code also runs in a virtual address space**, just like user programs — but with special rules.
 
 Important Differences (User vs Kernel)
@@ -200,7 +189,6 @@ Important Differences (User vs Kernel)
 **Even inside the kernel, we don’t touch RAM directly — we still work through virtual memory.**
 
 ## Kernel Memory Zones (Why GFP Flags Exist)[]
-
 Physical memory is divided into zones.  
 These exist because some hardware has limitations.
 
@@ -278,7 +266,6 @@ void *buf = vmalloc(4 * 1024 * 1024);
 * If CPU-only buffer → vmalloc()
 
 ## GFP Flags – Allocation Context Matters
-
 Common Flags
 | Flag       | Meaning                  |
 | ---------- | ------------------------ |
@@ -294,7 +281,6 @@ Critical driver rule
 
 
 ## Slab Allocator – Fast Object Allocation
-
 **Why Pages Alone Are Not Enough**  
 The kernel already knows how to allocate pages (usually 4 KB).  
 That works great for large memory needs, but kernel data structures are often tiny:
@@ -306,15 +292,12 @@ That works great for large memory needs, but kernel data structures are often ti
 | Process struct | ~1 KB             |
 
 🚫 Using a full 4 KB page for each small object would:
-
 * Waste huge amounts of memory
 * Be very slow
 * Cause internal fragmentation
 
 **So the kernel needs a memory allocator `below` page level.**
-
 ### The Core Idea of the Slab Allocator
-
     A page should only contain objects of the same type.
 
 This single idea solves many problems at once.
@@ -330,7 +313,6 @@ Page 3 → only task_struct
 
 
 ## SLUB Allocator Overview (Kernel Heap)
-
 From this point onward, all memory-allocation discussions refer specifically to the **SLUB** implementation of the Linux **slab** allocator.
 
 The kernel heap is fundamentally different from user-space heap implementations such as `glibc malloc`. Because the design goals and constraints are different, the **terminology is also different**.  
@@ -342,9 +324,7 @@ Instead, the **SLUB** allocator is built around the concepts of `caches, slabs, 
 
 
 ### 1. Caches — The Top-Level Concept
-
 A **cache** is the highest-level abstraction in the SLUB allocator.
-
 * Each cache manages objects of a single, fixed size
 * Examples:
     * 256-byte objects
@@ -357,7 +337,6 @@ Internally, each cache is represented by a `kmem_cache` structure.
 
 
 ### 2. Slabs — Memory Backing a Cache
-
 A **slab** is a contiguous region of memory that belongs to a cache.
 * A slab consists of one or more physical pages
 * The slab is divided into **slots**
@@ -370,7 +349,6 @@ For example:
 *The term `slab allocator` comes from this idea: `caches manage slabs, and slabs contain slots`.*
 
 ### 3. Slots and Objects
-
 A **slot** is simply a fixed-size region of memory inside a slab.
 * When a slot is free → it is available for allocation
 * When a slot is allocated → it contains a **kernel object**
@@ -383,7 +361,6 @@ When `kmalloc()` returns a pointer, that pointer:
 Once allocated, the memory in that slot is exclusively used for that object type.
 
 ### 4. Object Reuse and Initialization Benefits
-
 One major advantage of **slab** allocation is **object reuse**.
 
 In user-space:
@@ -400,7 +377,6 @@ This significantly improves:
 * Predictability
 
 ### 5. Internal SLUB Data Structures
-
 At a technical level, a cache (`kmem_cache`) is divided into two major components:
 
 **CPU-local data (`kmem_cache_cpu`):**
@@ -417,7 +393,6 @@ At a technical level, a cache (`kmem_cache`) is divided into two major component
 This design is similar in spirit to thread-local caches in user-space allocators, but instead of being per-thread, it is **per-CPU**.
 
 ### 6. Slab States
-
 Each slab can be in one of three states:
 | State   | Description                     |
 | ------- | ------------------------------- |
@@ -431,7 +406,6 @@ Key behavior:
 * Empty slabs may be kept or released depending on cache policy
 
 ### 7. Tracking and Performance Optimization
-
 An important optimization in SLUB:
 * **Fully allocated slabs are not tracked**
 * The kernel does not need to know about them
@@ -452,9 +426,7 @@ For most kernel and driver work, the important mental model is simple:
 Understanding how objects are laid out inside slabs — and how slabs are reused — is far more important than memorizing internal data structures.
 
 ### 9. Relationship to Virtual Memory
-
 The SLUB allocator **does not replace paging**.
-
 Instead, it builds on top of it:
 ```
 Virtual Memory Pages

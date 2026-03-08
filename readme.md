@@ -1,8 +1,5 @@
 # ✅ Linux Driver Development with Raspberry Pi — Full Tutorial Series Roadmap
-
-
 ## SECTION 0 — Introduction & Preparation
-
 ### 1. Introduction to the Series
 * What the series covers
 * Tools, requirements
@@ -13,10 +10,7 @@
 * User space vs kernel space
 
 ### 3. Linux Device Drivers Overview
-
-
 ## SECTION 1 — Raspberry Pi Setup & Development Environment
-
 ### [4. Raspberry Pi Setup](/04_raspberry_pi_setup/)
 * Installing Raspberry Pi OS (64-bit)
 * Enabling SSH
@@ -30,7 +24,6 @@
 * [Kernel print levels (Log levels)](/05_first_kernel_module/02_log_levels/)
 
 ## SECTION 2 — Character Device Driver Foundations
-
 ### [6. Character Device Driver Basics](/06_character_device_driver/)
 * Allocating major/minor numbers
 * cdev_init, cdev_add
@@ -57,7 +50,6 @@
 * Using linked lists in drivers
 
 ## SECTION 3 — GPIO, Interrupts, Timers
-
 ### [11. GPIO Control](/11_gpio_ctrl/)
 * Request/release GPIO
 * Set/get GPIO state
@@ -72,7 +64,6 @@
 * One-shot, periodic timers
 
 ## SECTION 4 — I2C & SPI Drivers
-
 ### [14. I2C Subsystem Basics](/14_i2c_subsystem_basics/)
 * Linux I2C architecture
 * Client vs adapter vs driver
@@ -91,7 +82,6 @@
 * SPI message & transfer structs
 
 ## SECTION 5 — Concurrency & Synchronization
-
 ### [17. Kernel Threads (kthread)](/17_kernel_threads/)
 * Creating, running, stopping threads
 * Thread loop best practices
@@ -113,7 +103,6 @@
 * Comparison with tasklets
 
 ## SECTION 6 — Linux Device Model & Sysfs
-
 ### 21. Linux Device Model
 * Devices, drivers, buses
 * Probe/remove lifecycle
@@ -130,7 +119,6 @@
 * Differences from sysfs
 
 ## SECTION 7 — Device Tree & Raspberry Pi Overlays
-
 ### 24. Device Tree Introduction
 * Why Device Tree exists
 * Structure of .dts and .dtsi
@@ -165,7 +153,6 @@
 * Parsing strings, ints, gpios from DT
 
 ## SECTION 8 — Advanced Topics
-
 ### 31. Misc Device Driver
 * Easiest way to expose /dev/mydevice
 * When to prefer over char device

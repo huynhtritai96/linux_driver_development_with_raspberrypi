@@ -1,0 +1,237 @@
+htritai@Rasp26:~/ldd $ sudo apt install screen -y
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following additional packages will be installed:
+  libutempter0
+Suggested packages:
+  byobu | screenie | iselect
+The following NEW packages will be installed:
+  libutempter0 screen
+0 upgraded, 2 newly installed, 0 to remove and 141 not upgraded.
+Need to get 574 kB of archives.
+After this operation, 1,172 kB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian bookworm/main arm64 libutempter0 arm64 1.2.1-3 [8,964 B]
+Get:2 http://deb.debian.org/debian bookworm/main arm64 screen arm64 4.9.0-4 [565 kB]
+Fetched 574 kB in 1s (761 kB/s)
+Selecting previously unselected package libutempter0:arm64.
+(Reading database ... 236630 files and directories currently installed.)
+Preparing to unpack .../libutempter0_1.2.1-3_arm64.deb ...
+Unpacking libutempter0:arm64 (1.2.1-3) ...
+Selecting previously unselected package screen.
+Preparing to unpack .../screen_4.9.0-4_arm64.deb ...
+Unpacking screen (4.9.0-4) ...
+Setting up libutempter0:arm64 (1.2.1-3) ...
+Setting up screen (4.9.0-4) ...
+Processing triggers for debianutils (5.7-0.5~deb12u1) ...
+Processing triggers for libc-bin (2.36-9+rpt2+deb12u13) ...
+Processing triggers for man-db (2.11.2-2) ...
+htritai@Rasp26:~/ldd $ ls /dev
+autofs           loop0         ram12   tty17  tty43      uinput    vcsu6
+block            loop1         ram13   tty18  tty44      urandom   vcsu7
+btrfs-control    loop2         ram14   tty19  tty45      v4l       vga_arbiter
+bus              loop3         ram15   tty2   tty46      vchiq     vhci
+cec0             loop4         ram2    tty20  tty47      vcio      vhost-net
+cec1             loop5         ram3    tty21  tty48      vc-mem    vhost-vsock
+char             loop6         ram4    tty22  tty49      vcs       video10
+console          loop7         ram5    tty23  tty5       vcs1      video11
+cpu_dma_latency  loop-control  ram6    tty24  tty50      vcs2      video12
+cuse             mapper        ram7    tty25  tty51      vcs3      video13
+disk             media0        ram8    tty26  tty52      vcs4      video14
+dma_heap         media1        ram9    tty27  tty53      vcs5      video15
+dri              media2        random  tty28  tty54      vcs6      video16
+fb0              media3        rfkill  tty29  tty55      vcs7      video18
+fd               mem           shm     tty3   tty56      vcsa      video19
+full             mmcblk0       snd     tty30  tty57      vcsa1     video20
+fuse             mmcblk0p1     stderr  tty31  tty58      vcsa2     video21
+gpiochip0        mmcblk0p2     stdin   tty32  tty59      vcsa3     video22
+gpiochip1        mqueue        stdout  tty33  tty6       vcsa4     video23
+gpiochip4        net           tty     tty34  tty60      vcsa5     video31
+gpiomem          null          tty0    tty35  tty61      vcsa6     watchdog
+hwrng            port          tty1    tty36  tty62      vcsa7     watchdog0
+i2c-20           ppp           tty10   tty37  tty63      vcsm-cma  zero
+i2c-21           ptmx          tty11   tty38  tty7       vcsu
+initctl          pts           tty12   tty39  tty8       vcsu1
+input            ram0          tty13   tty4   tty9       vcsu2
+kmsg             ram1          tty14   tty40  ttyprintk  vcsu3
+kvm              ram10         tty15   tty41  udmabuf    vcsu4
+log              ram11         tty16   tty42  uhid       vcsu5
+htritai@Rasp26:~/ldd $ ls /dev | wc -l
+197
+htritai@Rasp26:~/ldd $ ls -lh /dev/mmcblk0 /dev/tty0 /dev/gpiochip0
+crw-rw----+ 1 root gpio 254, 0 Mar  7 21:17 /dev/gpiochip0
+brw-rw----  1 root disk 179, 0 Mar  7 21:17 /dev/mmcblk0
+crw--w----  1 root tty    4, 0 Mar  7 21:17 /dev/tty0
+htritai@Rasp26:~/ldd $ ls -lh /dev/mmcblk0p1
+brw-rw---- 1 root disk 179, 1 Mar  7 21:17 /dev/mmcblk0p1
+htritai@Rasp26:~/ldd $ cat /proc/devices
+Character devices:
+  1 mem
+  4 /dev/vc/0
+  4 tty
+  5 /dev/tty
+  5 /dev/console
+  5 /dev/ptmx
+  5 ttyprintk
+  7 vcs
+ 10 misc
+ 13 input
+ 14 sound
+ 29 fb
+ 81 video4linux
+ 89 i2c
+116 alsa
+128 ptm
+136 pts
+180 usb
+189 usb_device
+204 ttyAMA
+216 rfcomm
+226 drm
+237 media
+238 gpiomem
+239 uio
+240 cec
+241 binder
+242 hidraw
+243 rpmb
+244 nvme-generic
+245 nvme
+246 vc-mem
+247 bsg
+248 watchdog
+249 ptp
+250 pps
+251 lirc
+252 rtc
+253 dma_heap
+254 gpiochip
+
+Block devices:
+  1 ramdisk
+  7 loop
+  8 sd
+ 65 sd
+ 66 sd
+ 67 sd
+ 68 sd
+ 69 sd
+ 70 sd
+ 71 sd
+128 sd
+129 sd
+130 sd
+131 sd
+132 sd
+133 sd
+134 sd
+135 sd
+179 mmc
+254 device-mapper
+259 blkext
+htritai@Rasp26:~/ldd $ ls -lh /dev/tty{1,2,3,4,5}
+crw------- 1 htritai tty 4, 1 Mar  7 21:24 /dev/tty1
+crw--w---- 1 root    tty 4, 2 Mar  7 21:24 /dev/tty2
+crw--w---- 1 root    tty 4, 3 Mar  7 21:24 /dev/tty3
+crw--w---- 1 root    tty 4, 4 Mar  7 21:24 /dev/tty4
+crw--w---- 1 root    tty 4, 5 Mar  7 21:24 /dev/tty5
+htritai@Rasp26:~/ldd $ 
+
+
+
+
+htritai@Rasp26:~/ldd $ cat /boot/cmdline.txt
+DO NOT EDIT THIS FILE
+
+The file you are looking for has moved to /boot/firmware/cmdline.txt
+htritai@Rasp26:~/ldd $ cat /boot/firmware/cmdline.txt
+console=serial0,115200 console=tty1 root=PARTUUID=7a648717-02 rootfstype=ext4 fsck.repair=yes rootwait quiet splash plymouth.ignore-serial-consoles cfg80211.ieee80211_regdom=VNhtritai@Rasp26:~/ldd $ ls -l /dev/serial0
+lrwxrwxrwx 1 root root 5 Mar  8 11:43 /dev/serial0 -> ttyS0
+htritai@Rasp26:~/ldd $ systemctl status serial-getty@serial0.service --no-pager
+○ serial-getty@serial0.service - Serial Getty on serial0
+     Loaded: loaded (/lib/systemd/system/serial-getty@.service; disabled; preset: enabled)
+     Active: inactive (dead)
+       Docs: man:agetty(8)
+             man:systemd-getty-generator(8)
+             https://0pointer.de/blog/projects/serial-console.html
+htritai@Rasp26:~/ldd $ sudo screen /dev/serial0 115200
+[screen is terminating]
+htritai@Rasp26:~/ldd $ screen -wipe
+No Sockets found in /run/screen/S-htritai.
+
+htritai@Rasp26:~/ldd $ sudo screen /dev/serial0 115200
+[screen is terminating]
+htritai@Rasp26:~/ldd $ sudo apt install picocom
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following NEW packages will be installed:
+  picocom
+0 upgraded, 1 newly installed, 0 to remove and 141 not upgraded.
+Need to get 43.0 kB of archives.
+After this operation, 109 kB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian bookworm/main arm64 picocom arm64 3.1-4 [43.0 kB]
+Fetched 43.0 kB in 0s (101 kB/s) 
+Selecting previously unselected package picocom.
+(Reading database ... 236700 files and directories currently installed.)
+Preparing to unpack .../picocom_3.1-4_arm64.deb ...
+Unpacking picocom (3.1-4) ...
+Setting up picocom (3.1-4) ...
+Processing triggers for man-db (2.11.2-2) ...
+htritai@Rasp26:~/ldd $ picocom -b 115200 /dev/serial0
+picocom v3.1
+
+port is        : /dev/serial0
+flowcontrol    : none
+baudrate is    : 115200
+parity is      : none
+databits are   : 8
+stopbits are   : 1
+escape is      : C-a
+local echo is  : no
+noinit is      : no
+noreset is     : no
+hangup is      : no
+nolock is      : no
+send_cmd is    : sz -vv
+receive_cmd is : rz -vv -E
+imap is        : 
+omap is        : 
+emap is        : crcrlf,delbs,
+logfile is     : none
+initstring     : none
+exit_after is  : not set
+exit is        : no
+
+
+FATAL: cannot open /dev/serial0: Permission denied
+htritai@Rasp26:~/ldd $ sudo picocom -b 115200 /dev/serial0
+picocom v3.1
+
+port is        : /dev/serial0
+flowcontrol    : none
+baudrate is    : 115200
+parity is      : none
+databits are   : 8
+stopbits are   : 1
+escape is      : C-a
+local echo is  : no
+noinit is      : no
+noreset is     : no
+hangup is      : no
+nolock is      : no
+send_cmd is    : sz -vv
+receive_cmd is : rz -vv -E
+imap is        : 
+omap is        : 
+emap is        : crcrlf,delbs,
+logfile is     : none
+initstring     : none
+exit_after is  : not set
+exit is        : no
+
+
+hello
+^C
+FATAL: failed to config port: Cannot set the device attributes: Interrupted system call
+htritai@Rasp26:~/ldd $ 

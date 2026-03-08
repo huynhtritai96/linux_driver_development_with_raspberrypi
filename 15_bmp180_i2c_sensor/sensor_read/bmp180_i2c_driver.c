@@ -87,10 +87,8 @@ static int bmp_read_calib(struct i2c_client *client, struct bmp_calib *c)
     c->MC  = (int16_t)((raw[18] << 8) | raw[19]);
     c->MD  = (int16_t)((raw[20] << 8) | raw[21]);
 
-    dev_dbg(&client->dev, "AC1=%d AC2=%d AC3=%d AC4=%u AC5=%u AC6=%u\n",
-            c->AC1, c->AC2, c->AC3, c->AC4, c->AC5, c->AC6);
-    dev_dbg(&client->dev, "B1=%d B2=%d MB=%d MC=%d MD=%d\n",
-            c->B1, c->B2, c->MB, c->MC, c->MD);
+    dev_dbg(&client->dev, "AC1=%d AC2=%d AC3=%d AC4=%u AC5=%u AC6=%u\n", c->AC1, c->AC2, c->AC3, c->AC4, c->AC5, c->AC6);
+    dev_dbg(&client->dev, "B1=%d B2=%d MB=%d MC=%d MD=%d\n", c->B1, c->B2, c->MB, c->MC, c->MD);
 
     return 0;
 }
@@ -284,8 +282,7 @@ static int bmp180_probe(struct i2c_client *client)
         return -ENOMEM;
 
     bc->client = client;
-    /* default oversample: use 3 (max resolution) */
-    bc->oversample = 3;
+    bc->oversample = 3; /* default oversample: use 3 (max resolution) */
 
     i2c_set_clientdata(client, bc);
 
@@ -353,10 +350,10 @@ static struct i2c_driver bmp180_driver = {
     .id_table = bmp180_ids,
 };
 
-static int __init bmp180_init(void){
+static int __init bmp180_init(void) {
 	int ret;
 	ret = i2c_add_driver(&bmp180_driver);
-	if(ret){
+	if (ret) {
 		pr_err("bmp180_i2c_driver: faild to add driver\n");
 		return ret;
 	}
@@ -365,7 +362,7 @@ static int __init bmp180_init(void){
 
 	/* Get I2C adapter (12c-1) */
 	bmp180_adapter = i2c_get_adapter(1);
-	if(ret){
+	if (ret) {
 		pr_err("bmp180_i2c_driver: failed to add driver\n");
 		return ret;
 	}
@@ -373,7 +370,7 @@ static int __init bmp180_init(void){
 	/* Create the I2C device */
 	bmp180_client = i2c_new_client_device(bmp180_adapter, &bmp180_i2c_device_info);
 	i2c_put_adapter(bmp180_adapter);
-	if(IS_ERR(bmp180_client)){
+	if (IS_ERR(bmp180_client)) {
 		pr_err("bmp180_i2c_driver: faild to create I2C device\n");
 		i2c_del_driver(&bmp180_driver);
 		return PTR_ERR(bmp180_client);
@@ -384,7 +381,7 @@ static int __init bmp180_init(void){
 	return 0;
 }
 
-static void __exit bmp180_exit(void){
+static void __exit bmp180_exit(void) {
 	if (bmp180_client)
 		i2c_unregister_device(bmp180_client);
 	

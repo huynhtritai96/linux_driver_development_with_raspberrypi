@@ -24,16 +24,13 @@ struct my_object {
 static struct kmem_cache *my_cache;
 static struct my_object  *obj1;
 
-static int __init my_init(void){
-
-    // kmalloc: physically contiguous, no zeroing
-    kmalloc_ptr = kmalloc(ALLOC_SIZE_SMALL, GFP_KERNEL);
+static int __init my_init(void) {
+    kmalloc_ptr = kmalloc(ALLOC_SIZE_SMALL, GFP_KERNEL); // kmalloc: physically contiguous, no zeroing
     if (!kmalloc_ptr) {
         pr_err("kmalloc failed\n");
         return -ENOMEM;
     }
-    pr_info("kmalloc allocated at %px (physical %llx)\n",
-            kmalloc_ptr, virt_to_phys(kmalloc_ptr));
+    pr_info("kmalloc allocated at %px (physical %llx)\n", kmalloc_ptr, virt_to_phys(kmalloc_ptr));
 
     // kzalloc: same as kmalloc but zeros memory
     kzalloc_ptr = kzalloc(ALLOC_SIZE_SMALL, GFP_KERNEL);
@@ -43,8 +40,7 @@ static int __init my_init(void){
     }
     pr_info("kzalloc allocated at %px\n", kzalloc_ptr);
 
-    // vmalloc: virtually contiguous, suitable for large blocks
-    vmalloc_ptr = vmalloc(ALLOC_SIZE_LARGE);
+    vmalloc_ptr = vmalloc(ALLOC_SIZE_LARGE); // vmalloc: virtually contiguous, suitable for large blocks
     if (!vmalloc_ptr) {
         pr_err("vmalloc failed\n");
         goto label_kzalloc_ptr_free;
@@ -58,10 +54,10 @@ static int __init my_init(void){
                                  SLAB_HWCACHE_ALIGN | SLAB_NO_MERGE,
                                  NULL);
 
-    if(!my_cache) goto label_vmalloc_ptr_free;
+    if (!my_cache) goto label_vmalloc_ptr_free;
 
     obj1 = kmem_cache_alloc(my_cache, GFP_KERNEL);
-    if(!obj1){
+    if (!obj1) {
         goto label_kmem_cache_free;
     }
 
@@ -84,7 +80,7 @@ label_kmalloc_ptr_free:
     return -ENOMEM;
 }
 
-static void __exit my_exit(void){
+static void __exit my_exit(void) {
     kfree(kmalloc_ptr);
     kfree(kzalloc_ptr);
     vfree(vmalloc_ptr);

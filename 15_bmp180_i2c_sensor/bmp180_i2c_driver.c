@@ -35,7 +35,7 @@ MODULE_DEVICE_TABLE(i2c, my_ids);
  *   echo bmp180-a 0x77 > new_device
  *   
  */
-static int my_probe(struct i2c_client *client){
+static int my_probe(struct i2c_client *client) {
     const struct i2c_device_id *id = i2c_client_get_device_id(client);
     pr_info("bmp180_i2c_driver name %s\n", id->name);
 
@@ -53,7 +53,7 @@ static int my_probe(struct i2c_client *client){
  *   echo 0x77 > delete_device
  *   
  */
-static void my_remove(struct i2c_client *client){
+static void my_remove(struct i2c_client *client) {
     pr_info("bmp180_i2c_driver - removing device\n");
 }
 
@@ -77,9 +77,9 @@ static struct i2c_driver my_driver = {
 
 };
 
-static int __init my_init(void){
+static int __init my_init(void) {
     int ret = i2c_add_driver(&my_driver);
-    if(ret){
+    if (ret) {
         pr_err("bmp180-i2c-driver: failed to add driver\n");
         return ret;
     }
@@ -87,7 +87,7 @@ static int __init my_init(void){
 
     /* Get I2C adapter (12c-1) */
 	my_adapter = i2c_get_adapter(1);
-	if(IS_ERR(my_adapter)){
+	if (IS_ERR(my_adapter)) {
 		pr_err("bmp180_i2c_driver: failed to get adapter on i2c bus 1\n");
         i2c_del_driver(&my_driver);
 		return PTR_ERR(my_adapter);
@@ -95,7 +95,7 @@ static int __init my_init(void){
 
     /* Create the I2C device */
 	my_client = i2c_new_client_device(my_adapter, &my_i2c_device_info);
-	if(IS_ERR(my_client)){
+	if (IS_ERR(my_client)) {
         pr_err("bmp180_i2c_driver: faild to create new I2C client\n");
 		i2c_del_driver(&my_driver);
 		return PTR_ERR(my_client);
@@ -108,7 +108,7 @@ static int __init my_init(void){
     return 0;
 }
 
-static void __exit my_exit(void){
+static void __exit my_exit(void) {
     if (my_client)
 		i2c_unregister_device(my_client);
     i2c_del_driver(&my_driver);

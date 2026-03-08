@@ -1,0 +1,1 @@
+savedcmd_/home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/hello.mod := printf '%s\n'   hello.o | awk '!x[$$0]++ { print("/home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/"$$0) }' > /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/hello.mod

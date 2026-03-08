@@ -4,7 +4,7 @@
 [![Youtube Video](https://img.youtube.com/vi/PO8QOPt3g10/0.jpg)](https://www.youtube.com/watch?v=PO8QOPt3g10)
 
 ## Introduction
-In the previous video of this series, we discussed the **Linux I2C subsystem basics**.  
+- In the previous video of this series, we discussed the **Linux I2C subsystem basics**.  
 We covered the following concepts:
 * User-space I2C access
 * I2C adapters (controllers)
@@ -21,17 +21,13 @@ This project gradually evolves from:
 --------------------------------
 
 ### Listing Available I2C Adapters
-
-Use the following command to list all I2C adapters registered with the kernel:
+- Use the following command to list all I2C adapters registered with the kernel:
 ```bash
 i2cdetect -l
 ```
 This command displays all available I2C buses.
-
 * On Raspberry Pi, i2c-1 is typically the primary I2C bus connected to external peripherals.
-
 * Other adapters (for example HDMI-related buses) are internal and not used here.
-
 * If you do not see i2c-1, the I2C interface is not enabled.
 
 Enabling I2C on Raspberry Pi:
@@ -46,22 +42,20 @@ sudo raspi-config
 ---------------------------------
 
 ### Hardware Used: BMP180 Sensor
+- In this example, we use the **BMP180** pressure and temperature sensor.
 
-In this example, we use the **BMP180** pressure and temperature sensor.
+- However, you do not need a **BMP180** sensor for the initial parts of this tutorial.
+- Any I2C-compatible device—or even a microcontroller such as an **Arduino** or **ESP32** configured as an I2C slave—can be used.
 
-However, you do not need a **BMP180** sensor for the initial parts of this tutorial.
-Any I2C-compatible device—or even a microcontroller such as an **Arduino** or **ESP32** configured as an I2C slave—can be used.
-
-Later videos will also demonstrate **Device Tree–based device creation**, including examples using an **ESP32**.
+- Later videos will also demonstrate **Device Tree–based device creation**, including examples using an **ESP32**.
 
 **BMP180 Overview**
 
 The BMP180 sensor consists of:
-
-* A piezo-resistive pressure sensor
-* An analog-to-digital converter (ADC)
-* An internal control unit with EEPROM
-* A serial I2C interface
+*   A piezo-resistive pressure sensor
+*   An analog-to-digital converter (ADC)
+*   An internal control unit with EEPROM
+*   A serial I2C interface
 
 BMP180 sensor connection with Pi4:
 
@@ -69,13 +63,12 @@ BMP180 sensor connection with Pi4:
 
 -------------------------------
 ### Scanning the I2C Bus
-Scan the I2C bus for connected devices:
+- Scan the I2C bus for connected devices:
 
 ```bash
 i2cdetect -y 1
 ```
 You should see:
-
 * The address `0x77` on the bus
 * `0x77` is the default I2C address of the BMP180 sensor
 
@@ -83,9 +76,7 @@ You should see:
 ---------------------------------
 ---------------------------------
 ## Part 1: Manual I2C Device Creation (Using sysfs)
-
 ### Driver Overview
-
 **The following driver demonstrates:**
 * i2c_device_id matching
 * Use of driver_data
@@ -98,28 +89,28 @@ You should see:
 * Manual binding using new_device and delete_device
 
 ### Building and Loading the Module
-Build the module:
+- Build the module:
 ```bash
 make
 ```
-Switch to superuser:
+- Switch to superuser:
 ```bash
 sudo su
 ```
-Before loading the module, inspect existing drivers and deices:
+- Before loading the module, inspect existing drivers and deices:
 ```bash
 ls /sys/bus/i2c/drivers
 ls /sys/bus/i2c/devices
 ```
-Load the module:
+- Load the module:
 ```
 insmod bmp180_i2c_driver.ko
 ```
-Verify that the driver is registerd:
+- Verify that the driver is registerd:
 ```bash
 ls /sys/bus/i2c/drivers
 ```
-You should now see:
+- You should now see:
 ```
 bmp180-i2c-driver
 ```
@@ -129,17 +120,17 @@ Create an I2C device using sysfs:
 ```bash
 echo bmp180-a 0x77 > /sys/bus/i2c/devices/i2c-1/new_device
 ```
-Results:
+- Results:
 * The kernel matches bmp180-a with the driver’s i2c_device_id table
 * The driver’s probe() function is invoked
 * The private data associated with the device ID is printed
 * The BMP180 chip ID register (0xD0) is read and returns 0x55, confirming correct communication
 
-Verify device creation:
+- Verify device creation:
 ```bash
 ls /sys/bus/i2c/devices
 ```
-You should see:
+- You should see:
 ```bash
 1-0077
 ```
@@ -168,7 +159,7 @@ echo 0x77 > /sys/bus/i2c/devices/i2c-1/delete_device
 
 
 ### Device ID Matching Behavior
-Creating a device **not present** in the ID table:
+- Creating a device **not present** in the ID table:
 ```bash
 echo test-dev 0x77 > /sys/bus/i2c/devices/i2c-1/new_device
 ```
@@ -180,8 +171,8 @@ This demonstrates that only devices listed in `i2c_device_id` are matched.
 -----------------------------------------------------
 -----------------------------------------------------
 ## Part 2: Automatic I2C Device Creation (Kernel API)
-Manually using `new_device` is useful for learning, but not suitable for production systems.    
-In this section, we create and remove the I2C device `automatically from inside the kernel module`, using the Linux I2C API.
+- Manually using `new_device` is useful for learning, but not suitable for production systems.    
+- In this section, we create and remove the I2C device `automatically from inside the kernel module`, using the Linux I2C API.
 
 **APIs Used:**
 * i2c_get_adapter()
@@ -203,11 +194,8 @@ echo 0x77 > delete_device
 -------------------------
 
 ## Part 3: Complete BMP180 Sensor Driver
-
-This section contains a full BMP180 sensor driver implementation.
-
+- This section contains a full BMP180 sensor driver implementation.
 ### Testing With BMP180 Sensor
-
 **The code reads register 0xD0, which on BMP180 should return 0x55.**
 ```bash
 i2ctransfer -y 1 w1@0x77 0xD0 r1@0x77
@@ -234,13 +222,12 @@ sleep 0.005
 i2ctransfer -y 1 w1@0x77 0xF6 r2@0x77
 ```
 
-All in one line:
+- All in one line:
 ```bash
 i2ctransfer -y 1 w2@0x77 0xF4 0x2E; sleep 0.005; i2ctransfer -y 1 w1@0x77 0xF6 r2@0x77
 ```
 
-Code :
-
+- Code :
 **Features**
 * Reads calibration data from EEPROM
 * Performs temperature and pressure compensation (as per datasheet)
@@ -257,12 +244,11 @@ After loading the module, the following sysfs files are created:
 ```
 
 **Reading Sensor Data**
-
 #### Read pressure (in Pascals):
 ```bash
 cat /sys/bus/i2c/devices/1-0077/pressure_input
 ```
-Example output:  
+- Example output:  
 101119 -> This corresponds to: `1011.19 hPa`    
 
 
@@ -270,7 +256,7 @@ Example output:
 ```bash
 cat /sys/bus/i2c/devices/1-0077/temp_input
 ```
-Example output:  
+- Example output:  
 204 -> This corresponds to: `20.4 °C`.
 
 

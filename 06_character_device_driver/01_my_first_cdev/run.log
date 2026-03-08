@@ -1,0 +1,115 @@
+##### Terminal 1
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev $ sudo insmod my_cdev.ko
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev $ sudo rmmod my_cdev.ko
+
+
+##### Terminal 2
+[15465.182362] my_cdev: Character device registerd, Major number: 236 Minor number: 0
+[15465.182379] my_cdev: Created device entry under /sys/class/my_class
+[15465.182383] my_cdev: Created new device node /dev/my_cdev
+
+[15477.977947] my_cdev: Goodbye, Kernel
+
+
+##### Terminal 3
+$ udevadm monitor
+monitor will print the received events for:
+UDEV - the event which udev sends out after rule processing
+KERNEL - the kernel uevent
+
+
+KERNEL[15741.336391] add      /class/my_class (class)
+KERNEL[15741.339621] add      /devices/virtual/my_class/my_cdev0 (my_class)
+KERNEL[15741.339719] add      /module/my_cdev (module)
+UDEV  [15741.342758] add      /class/my_class (class)
+UDEV  [15741.344410] add      /devices/virtual/my_class/my_cdev0 (my_class)
+UDEV  [15741.345304] add      /module/my_cdev (module)
+
+
+
+KERNEL[15752.616591] remove   /devices/virtual/my_class/my_cdev0 (my_class)
+KERNEL[15752.617269] remove   /class/my_class (class)
+KERNEL[15752.617331] remove   /module/my_cdev (module)
+UDEV  [15752.622117] remove   /devices/virtual/my_class/my_cdev0 (my_class)
+UDEV  [15752.622750] remove   /class/my_class (class)
+UDEV  [15752.623736] remove   /module/my_cdev (module)
+
+
+##### Terminal 4: check the result:
+$ ls -lah /sys/class
+    drwxr-xr-x 66 root root 0 Jan  1  1970 .
+    dr-xr-xr-x 12 root root 0 Jan  1  1970 ..
+    drwxr-xr-x  2 root root 0 Jan  1  1970 backlight
+    drwxr-xr-x  2 root root 0 Jan  1  1970 bdi
+    drwxr-xr-x  2 root root 0 Jan  1  1970 block
+    drwxr-xr-x  2 root root 0 Mar  8 11:43 bluetooth
+    drwxr-xr-x  2 root root 0 Jan  1  1970 bsg
+    drwxr-xr-x  2 root root 0 Jan  1  1970 devcoredump
+    drwxr-xr-x  2 root root 0 Jan  1  1970 devlink
+    drwxr-xr-x  2 root root 0 Jan  1  1970 dma
+    drwxr-xr-x  2 root root 0 Jan  1  1970 dma_heap
+    drwxr-xr-x  2 root root 0 Jan  1  1970 drm
+    drwxr-xr-x  2 root root 0 Jan  1  1970 extcon
+    drwxrwxr-x  2 root gpio 0 Mar  8 11:43 gpio
+    drwxr-xr-x  2 root root 0 Mar  8 11:43 gpiomem
+    drwxr-xr-x  2 root root 0 Jan  1  1970 graphics
+    drwxr-xr-x  2 root root 0 Jan  1  1970 hidraw
+    drwxr-xr-x  2 root root 0 Jan  1  1970 hwmon
+    drwxr-xr-x  2 root root 0 Mar  8 11:43 i2c-dev
+    drwxr-xr-x  2 root root 0 Mar  8 11:43 ieee80211
+    drwxr-xr-x  2 root root 0 Jan  1  1970 input
+    drwxr-xr-x  2 root root 0 Jan  1  1970 iommu
+    drwxr-xr-x  2 root root 0 Jan  1  1970 iscsi_connection
+    drwxr-xr-x  2 root root 0 Jan  1  1970 iscsi_endpoint
+    drwxr-xr-x  2 root root 0 Jan  1  1970 iscsi_host
+    drwxr-xr-x  2 root root 0 Jan  1  1970 iscsi_iface
+    drwxr-xr-x  2 root root 0 Jan  1  1970 iscsi_session
+    drwxr-xr-x  2 root root 0 Jan  1  1970 iscsi_transport
+    drwxr-xr-x  2 root root 0 Jan  1  1970 leds
+    drwxr-xr-x  2 root root 0 Jan  1  1970 lirc
+    drwxr-xr-x  2 root root 0 Jan  1  1970 mdio_bus
+    drwxr-xr-x  2 root root 0 Jan  1  1970 mem
+    drwxr-xr-x  2 root root 0 Jan  1  1970 misc
+    drwxr-xr-x  2 root root 0 Jan  1  1970 mmc_host
+    drwxr-xr-x  2 root root 0 Mar  8 16:09 my_class <---------------- our device class
+    drwxr-xr-x  2 root root 0 Jan  1  1970 net
+    drwxr-xr-x  2 root root 0 Jan  1  1970 nvme
+    drwxr-xr-x  2 root root 0 Jan  1  1970 nvme-generic
+    drwxr-xr-x  2 root root 0 Jan  1  1970 nvme-subsystem
+    drwxr-xr-x  2 root root 0 Jan  1  1970 pci_bus
+    drwxr-xr-x  2 root root 0 Jan  1  1970 phy
+    drwxr-xr-x  2 root root 0 Jan  1  1970 power_supply
+    drwxr-xr-x  2 root root 0 Jan  1  1970 pps
+    drwxr-xr-x  2 root root 0 Jan  1  1970 ptp
+    drwxr-xr-x  2 root root 0 Jan  1  1970 pwm
+    drwxr-xr-x  2 root root 0 Jan  1  1970 rc
+    drwxr-xr-x  2 root root 0 Jan  1  1970 regulator
+    drwxr-xr-x  2 root root 0 Mar  8 11:43 rfkill
+    drwxr-xr-x  2 root root 0 Jan  1  1970 rtc
+    drwxr-xr-x  2 root root 0 Jan  1  1970 scsi_device
+    drwxr-xr-x  2 root root 0 Jan  1  1970 scsi_disk
+    drwxr-xr-x  2 root root 0 Jan  1  1970 scsi_host
+    drwxr-xr-x  2 root root 0 Jan  1  1970 sound
+    drwxr-xr-x  2 root root 0 Jan  1  1970 spi_master
+    drwxr-xr-x  2 root root 0 Jan  1  1970 spi_slave
+    drwxr-xr-x  2 root root 0 Jan  1  1970 thermal
+    drwxr-xr-x  2 root root 0 Jan  1  1970 tty
+    drwxr-xr-x  2 root root 0 Jan  1  1970 udc
+    drwxr-xr-x  2 root root 0 Mar  8 11:43 uio
+    drwxr-xr-x  2 root root 0 Jan  1  1970 usbmisc
+    drwxr-xr-x  2 root root 0 Jan  1  1970 usb_role
+    drwxr-xr-x  2 root root 0 Jan  1  1970 vc
+    drwxr-xr-x  2 root root 0 Jan  1  1970 vc-mem
+    drwxr-xr-x  2 root root 0 Mar  8 11:43 video4linux
+    drwxr-xr-x  2 root root 0 Jan  1  1970 vtconsole
+    drwxr-xr-x  2 root root 0 Jan  1  1970 watchdog
+$ ls -lah /sys/class/my_class*
+    total 0
+    drwxr-xr-x  2 root root 0 Mar  8 16:09 .
+    drwxr-xr-x 66 root root 0 Jan  1  1970 ..
+    lrwxrwxrwx  1 root root 0 Mar  8 16:09 my_cdev0 -> ../../devices/virtual/my_class/my_cdev0
+$ ls -lah /dev/my_cdev*
+    crw------- 1 root root 236, 0 Mar  8 16:09 /dev/my_cdev0 <------------ Major number = 236, Minor number = 0
+
+
+## When removing all the files are removed:

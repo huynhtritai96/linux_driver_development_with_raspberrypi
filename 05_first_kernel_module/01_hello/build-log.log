@@ -1,0 +1,27 @@
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello $ make
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/hello.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/Module.symvers
+ERROR: modpost: missing MODULE_LICENSE() in /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/hello.o
+make[3]: *** [/usr/src/linux-headers-6.12.47+rpt-common-rpi/scripts/Makefile.modpost:145: /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/Module.symvers] Error 1
+make[2]: *** [/usr/src/linux-headers-6.12.47+rpt-common-rpi/Makefile:1922: modpost] Error 2
+make[1]: *** [/usr/src/linux-headers-6.12.47+rpt-common-rpi/Makefile:236: __sub-make] Error 2
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+make: *** [Makefile:7: all] Error 2
+
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello $ make
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/hello.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/hello.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/hello.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello $ make clean
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello clean
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CLEAN   /home/htritai/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello/Module.symvers
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/05_first_kernel_module/01_hello $ 
