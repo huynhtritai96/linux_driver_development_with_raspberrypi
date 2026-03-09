@@ -97,8 +97,8 @@
 * Thread loop best practices
 
 ### 18. Wait Queues, Poll, Fasync
-* Blocking/non-blocking I/O
-* Implementing .poll()
+* [Blocking/non-blocking I/O](/18_wait_queue_poll_fasync/02_wait_queue/)
+* Implementing .poll() & select()
 * Async notification using fasync
 
 ### 19. Kernel Synchronization Techniques
