@@ -2,6 +2,7 @@
 #include <linux/init.h>
 #include <linux/fs.h>
 #include <linux/cdev.h>
+#include <linux/mutex.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("MPCoding - LDD");
@@ -172,6 +173,7 @@ static void __exit my_exit(void){
     class_destroy(my_class);
     cdev_del(&my_cdev);
     unregister_chrdev_region(dev_nr, MINORMASK + 1);
+    mutex_destroy(&dev_mutex);
     pr_info("%s: Goodbye, Kernel\n", my_device);
 }
 
