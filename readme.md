@@ -99,10 +99,10 @@
 ### 18. Wait Queues, Poll, Fasync
 * [Blocking/non-blocking I/O](/18_wait_queue_poll_fasync/02_wait_queue/)
 * [Implementing .poll() & select()](/18_wait_queue_poll_fasync//03_poll_select/)
-* Async notification using fasync
+* [Async notification using fasync](/18_wait_queue_poll_fasync/04_fasync/)
 
 ### 19. Kernel Synchronization Techniques
-* Mutex
+* [Mutex](/19_kernel_synchronization/01_mutex/)
 * Spinlock
 * Completion
 * When to use which
