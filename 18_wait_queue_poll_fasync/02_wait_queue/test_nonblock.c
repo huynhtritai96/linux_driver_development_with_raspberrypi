@@ -7,7 +7,7 @@
 int main(int argc, char *argv[])
 {
     int fd = open(argv[1], O_RDONLY | O_NONBLOCK);
-    if(fd < 0){
+    if (fd < 0) {
         perror("Failed to open\n");
         return fd;
     }
@@ -15,9 +15,9 @@ int main(int argc, char *argv[])
     char buffer[64];
     int ret = read(fd, buffer, sizeof(buffer));
 
-    if( ret < 0){
+    if ( ret < 0) {
         printf("Read failed : %s\n", strerror(errno));
-    }else{
+    } else {
         printf("Read success: %s\n", buffer);
     }
 

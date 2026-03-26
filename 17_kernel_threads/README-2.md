@@ -26,7 +26,6 @@ COMMENT:
 ====================================================================================================
 [ WHAT IS A PROCESS? ]
 ====================================================================================================
-
 A process is a running instance of a user-space program.
 
 Examples:
@@ -44,7 +43,6 @@ A process usually owns:
     - one or more threads
 
 Mental picture:
-
     Process
       |
       +-- address space

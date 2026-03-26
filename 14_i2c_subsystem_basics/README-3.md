@@ -532,7 +532,6 @@ Complete architecture:
 Two parallel system views:
 
 USER SPACE
-
     /dev/i2c-1
         │
         ▼

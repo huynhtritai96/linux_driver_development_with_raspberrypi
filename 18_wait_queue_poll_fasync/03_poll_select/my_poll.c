@@ -20,7 +20,7 @@ static int button_gpio = (BUTTON_GPIO + IO_OFFSET);
 static const char       *my_device = "my_cdev";
 
 static dev_t            dev_nr;
-static struct cdev      my_cdev;
+static struct cdev      my_cdev;2
 static struct class     *my_class;
 
 /* Variable contains irq number */
@@ -83,7 +83,7 @@ static ssize_t my_read(struct file *file,
     return sizeof(message);
 }
 
-static __poll_t my_poll(struct file *file, struct poll_table_struct *poll_table){
+static __poll_t my_poll(struct file *file, struct poll_table_struct *poll_table) {
     pr_info("%s: poll called\n", my_device);
 
     struct my_dev_data *data = file->private_data;
@@ -93,7 +93,7 @@ static __poll_t my_poll(struct file *file, struct poll_table_struct *poll_table)
     /* Register our wait queue - does NOT sleep */
     poll_wait(file, &my_wait_queue, poll_table);
 
-    if(data->last_event != event_count)
+    if (data->last_event != event_count)
         mask |= EPOLLIN | EPOLLRDNORM;
 
     return mask;
@@ -135,7 +135,7 @@ static struct file_operations fops = {
 /*  GPIO Interrupt Service Routine                                    */
 /* ------------------------------------------------------------------ */
 
-static irqreturn_t isr(int irq, void *dev_id){
+static irqreturn_t isr(int irq, void *dev_id) {
     pr_info("%s: GPIO Interrupt occoured\n", my_device);
     
     event_count++;                            /* New event — all fds will see this */
@@ -150,19 +150,19 @@ static irqreturn_t isr(int irq, void *dev_id){
 /*  GPIO / IRQ setup                                                  */
 /* ------------------------------------------------------------------ */
 
-static int external_gpio_irq_setup(unsigned int gpio){
+static int external_gpio_irq_setup(unsigned int gpio) {
     int status;
 
     /* request GPIO */
     status = gpio_request(gpio, "button_gpio");
-    if(status){
+    if (status) {
         pr_err("%s: Failed to request GPIO %d\n", my_device, gpio);
         return status;
     }
 
     /* set gpio direction to input */
     status = gpio_direction_input(gpio);
-    if(status){
+    if (status) {
         pr_err("%s: Failed to set GPIO %d as input\n", my_device, gpio);
         gpio_free(gpio);
         return status;
@@ -171,7 +171,7 @@ static int external_gpio_irq_setup(unsigned int gpio){
     /* Set gpi ISR */
     irq_number = gpio_to_irq(gpio);
     status = request_irq(irq_number, isr, IRQF_TRIGGER_FALLING, "irq_handler", NULL);
-    if(status){
+    if (status) {
         pr_info("%s: Failed to request IRQ\n", my_device);
         gpio_free(gpio);
         return status;
@@ -187,7 +187,7 @@ static int external_gpio_irq_setup(unsigned int gpio){
 static int __init my_init(void) {
     int status;
     status = alloc_chrdev_region(&dev_nr, 0, MINORMASK + 1, my_device);
-    if(status){
+    if (status) {
         pr_err("%s: Character device registration failed\n", my_device);
         return status;
     }
@@ -195,25 +195,25 @@ static int __init my_init(void) {
     cdev_init(&my_cdev, &fops);
 
     status = cdev_add(&my_cdev, dev_nr, MINORMASK + 1);
-    if(status){
+    if (status) {
         pr_err("%s: cdev_add failed\n", my_device);
         goto free_device_nr;
     }
 
     my_class = class_create("my_class");
-    if(!my_class){
+    if (!my_class) {
         pr_err("%s:  class_create failed\n",my_device);
         status = ENOMEM;
         goto delete_cdev;
     }
 
-    if(!device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0)){
+    if (!device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0)) {
         pr_err("%s: device_create failed\n", my_device);
         status = ENOMEM;
         goto delete_class;
     }
 
-    if(external_gpio_irq_setup(button_gpio)){ // set gpio 20 as exteranl gpio interrupt
+    if (external_gpio_irq_setup(button_gpio)) { // set gpio 20 as exteranl gpio interrupt
        pr_err("%s: GPIO %d failed to set up as external interrupt\n", my_device, button_gpio);
        goto free_gpio;
     }
@@ -239,7 +239,7 @@ free_device_nr:
 
 }
 
-static void __exit my_exit(void){
+static void __exit my_exit(void) {
 
     free_irq(irq_number, NULL);
     gpio_free(button_gpio);

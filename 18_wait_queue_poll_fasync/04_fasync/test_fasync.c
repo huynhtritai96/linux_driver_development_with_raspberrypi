@@ -6,12 +6,12 @@
 
 static int fd;
 
-static void sigio_handler(int sig){
+static void sigio_handler(int sig) {
 
     char buffer[64];
 
     int n = read(fd, buffer, sizeof(buffer) - 1);
-    if(n > 0){
+    if (n > 0) {
         buffer[n] = '\0';
         printf("\n[SIgIO] Button pressed - Received: %s", buffer);
         fflush(stdout);
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     printf("Process is running freely — not blocked.\n\n");
 
     int counter = 0;
-    while(1){
+    while(1) {
         printf("Working... %d\r", counter++);
         fflush(stdout);
         sleep(1);  /* In a real app this would be actual work, not sleep */

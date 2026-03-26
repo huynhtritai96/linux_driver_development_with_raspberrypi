@@ -87,10 +87,10 @@ static int __init my_init(void) {
 }
 
 static void __exit my_exit(void) {
-    if(thread_high)
+    if (thread_high)
         kthread_stop(thread_high);
     
-    if(thread_low)
+    if (thread_low)
         kthread_stop(thread_low);
 
     mutex_destroy(&my_mutex);

@@ -3,20 +3,15 @@
 ====================================================================================================
 CHAR DEVICE WITH FILE OPERATIONS — SENIOR MENTAL MODEL
 ====================================================================================================
-
 KEY QUESTION
 ----------------------------------------------------------------------------------------------------
 How does a normal userspace file operation like:
-
     open("/dev/my_cdev0")
     read(fd, ...)
     write(fd, ...)
     close(fd)
-
 end up executing code inside a Linux character-device driver?
-
 This module answers that by building a complete path:
-
     device number registration
         ↓
     cdev dispatch
@@ -34,13 +29,10 @@ This module answers that by building a complete path:
 ====================================================================================================
 LAYER 1 — USER VIEW
 ====================================================================================================
-
 Userspace sees:
-
     /dev/my_cdev0
 
 and treats it like a file:
-
     open()
     read()
     write()
@@ -55,9 +47,7 @@ Important:
 ----------------------------------------------------------------------------------------------------
 `/dev/my_cdev0` is not the driver.
 It is only the userspace entry point.
-
 It is a special file containing metadata:
-
     file type = character device
     major     = assigned major
     minor     = 0
@@ -70,7 +60,6 @@ Senior mental model:
 ====================================================================================================
 LAYER 2 — VFS VIEW: inode vs file
 ====================================================================================================
-
 When userspace opens `/dev/my_cdev0`, the VFS creates two important kernel views:
 
 1. inode
@@ -94,7 +83,6 @@ Mental model:
 ----------------------------------------------------------------------------------------------------
 Represents:
     this specific open instance
-
 Contains:
     f_pos
     f_mode
@@ -108,15 +96,12 @@ Mental model:
 Important distinction:
 ----------------------------------------------------------------------------------------------------
 One inode can have many simultaneous opens.
-
 That means:
-
     one `/dev/my_cdev0`
         ↓
     many `struct file` objects
 
 So:
-
     inode = shared device identity
     file  = per-open runtime state
 
@@ -125,7 +110,6 @@ This is one of the most important ideas in Linux file-based drivers.
 ====================================================================================================
 LAYER 3 — DEVICE NUMBER REGISTRATION
 ====================================================================================================
-
 Code:
 ----------------------------------------------------------------------------------------------------
     alloc_chrdev_region(&dev_nr, 0, MINORMASK + 1, "my_cdev");
@@ -133,9 +117,7 @@ Code:
 Meaning:
 ----------------------------------------------------------------------------------------------------
 Ask kernel to reserve a character-device number range.
-
 Kernel now knows conceptually:
-
     major = dynamically assigned
     minors = 0..255
     name = "my_cdev"
@@ -152,7 +134,6 @@ Important:
 ----------------------------------------------------------------------------------------------------
 Yes, the kernel keeps the name associated with the registered range.
 That is why `/proc/devices` can show it.
-
 Senior mental model:
     `alloc_chrdev_region()` reserves identity,
     but identity alone does not yet define behavior.
@@ -160,7 +141,6 @@ Senior mental model:
 ====================================================================================================
 LAYER 4 — cdev: IDENTITY → BEHAVIOR
 ====================================================================================================
-
 Code:
 ----------------------------------------------------------------------------------------------------
     cdev_init(&my_cdev, &fops);
@@ -173,7 +153,6 @@ This binds the reserved device-number range to actual driver callbacks.
 
 Conceptual mapping:
 ----------------------------------------------------------------------------------------------------
-
     (major, minor)
          ↓
        cdev
@@ -194,7 +173,6 @@ The major/minor number only identifies the device.
 About `owner = THIS_MODULE`:
 ----------------------------------------------------------------------------------------------------
 This helps prevent the module from being unloaded while its file operations are still in use.
-
 Senior mental model:
     device number = address
     cdev          = dispatch table binding
@@ -203,7 +181,6 @@ Senior mental model:
 ====================================================================================================
 LAYER 5 — DEVICE MODEL / SYSFS / UDEV
 ====================================================================================================
-
 Code:
 ----------------------------------------------------------------------------------------------------
     my_class = class_create("my_class");
@@ -212,9 +189,7 @@ Code:
 Meaning:
 ----------------------------------------------------------------------------------------------------
 Publish this device into the Linux device model.
-
 This creates sysfs objects like:
-
     /sys/class/my_class
     /sys/class/my_class/my_cdev0
 
@@ -237,7 +212,6 @@ There are two different names here:
    used in `device_create`
 
 These belong to different layers.
-
 Senior mental model:
     char-device registry name
         = kernel-side identity family
@@ -248,7 +222,6 @@ Senior mental model:
 ====================================================================================================
 LAYER 6 — SHARED DEVICE STATE IN THIS DRIVER
 ====================================================================================================
-
 Code:
 ----------------------------------------------------------------------------------------------------
     static char *dev_buffer;
@@ -269,20 +242,14 @@ so `dev_buffer` acts like the "device memory".
 Important:
 ----------------------------------------------------------------------------------------------------
 This buffer is GLOBAL / SHARED across all opens.
-
 That means:
-
     process A write()
     process B read()
 
 both operate on the same `dev_buffer`.
-
 So this driver currently behaves like:
-
     one shared device-wide storage area
-
 not:
-
     one private session buffer per open
 
 Senior mental model:
@@ -292,11 +259,9 @@ Senior mental model:
 ====================================================================================================
 LAYER 7 — WHY THE MUTEX EXISTS
 ====================================================================================================
-
 Code:
 ----------------------------------------------------------------------------------------------------
     static struct mutex dev_mutex;
-
 Used in:
     my_read()
     my_write()
@@ -304,7 +269,6 @@ Used in:
 Meaning:
 ----------------------------------------------------------------------------------------------------
 Protects shared mutable device state:
-
     dev_buffer
 
 Why needed:
@@ -318,23 +282,19 @@ Without a lock:
 - offset/buffer calculations could race
 
 So the mutex serializes access to shared state.
-
 Senior mental model:
     shared state requires synchronization
 
 In this example:
-
     shared state = dev_buffer
     synchronization = dev_mutex
 
 ====================================================================================================
 LAYER 8 — OPEN PATH
 ====================================================================================================
-
 Code:
 ----------------------------------------------------------------------------------------------------
     static int my_open(struct inode *pInode, struct file *pFile)
-
 Current behavior:
 ----------------------------------------------------------------------------------------------------
 - print major/minor
@@ -350,25 +310,18 @@ This example uses open mainly as a diagnostic callback.
 What it teaches:
 ----------------------------------------------------------------------------------------------------
 `open()` gives you both:
-
     inode  -> device identity
     file   -> this open instance
 
 Important fields:
 ----------------------------------------------------------------------------------------------------
-`f_pos`
-    current file position for this open
-
-`f_mode`
-    kernel's access mode info
-
-`f_flags`
-    open flags such as O_RDONLY / O_WRONLY / O_RDWR / O_SYNC
+`f_pos` : current file position for this open
+`f_mode` : kernel's access mode info
+`f_flags` : open flags such as O_RDONLY / O_WRONLY / O_RDWR / O_SYNC
 
 Senior interpretation:
 ----------------------------------------------------------------------------------------------------
 In a real driver, `open()` is often where you may:
-
 - validate access mode
 - identify a target instance
 - increment open count
@@ -376,11 +329,9 @@ In a real driver, `open()` is often where you may:
 - assign `file->private_data`
 
 But in this lesson it only logs information.
-
 ====================================================================================================
 LAYER 9 — WRITE PATH: USER → KERNEL
 ====================================================================================================
-
 Code:
 ----------------------------------------------------------------------------------------------------
     my_write(file, user_buf, count, pOffset)
@@ -413,14 +364,9 @@ the second write continues from the previous position for that same file.
 
 Possible return values:
 ----------------------------------------------------------------------------------------------------
-`> 0`
-    number of bytes accepted
-
-`-ENOSPC`
-    no space left in device buffer
-
-`-ERESTARTSYS`
-    interrupted while waiting for mutex
+`> 0` : number of bytes accepted
+`-ENOSPC` : no space left in device buffer
+`-ERESTARTSYS` :interrupted while waiting for mutex
 
 Senior mental model:
     write() is copying data across the user/kernel boundary
@@ -430,7 +376,6 @@ Senior mental model:
 ====================================================================================================
 LAYER 10 — READ PATH: KERNEL → USER
 ====================================================================================================
-
 Code:
 ----------------------------------------------------------------------------------------------------
     my_read(file, user_buf, count, pOffset)
@@ -452,29 +397,18 @@ KERNEL dev_buffer  ---------------- copy_to_user ---------------->  USER BUFFER
 Meaning:
 ----------------------------------------------------------------------------------------------------
 Userspace reads bytes out of the device's internal kernel buffer.
-
 This lesson uses:
-
     strlen(dev_buffer)
-
 to define logical content length.
-
 That means:
 ----------------------------------------------------------------------------------------------------
 the buffer is treated like string-like content
-
 So reading stops at the first zero byte in the device buffer.
-
 Read return semantics:
 ----------------------------------------------------------------------------------------------------
-`> 0`
-    bytes were returned
-
-`0`
-    end of file / no more data
-
-`< 0`
-    error
+`> 0` : bytes were returned
+`0`: end of file / no more data
+`< 0` : error
 
 Why `cat` often reads twice:
 ----------------------------------------------------------------------------------------------------
@@ -489,9 +423,7 @@ Senior mental model:
 ====================================================================================================
 LAYER 11 — f_pos / OFFSET IS PER-OPEN, NOT GLOBAL
 ====================================================================================================
-
 This is one of the most important conceptual points.
-
 Shared state:
 ----------------------------------------------------------------------------------------------------
     dev_buffer
@@ -501,7 +433,6 @@ Per-open state:
     file->f_pos   (through `*pOffset`)
 
 So:
-
     all opens share the same bytes
     but each open has its own current position
 
@@ -509,13 +440,10 @@ Example:
 ----------------------------------------------------------------------------------------------------
 Process A opens device:
     offset = 0
-
 Process B opens device:
     offset = 0
-
 A writes 5 bytes:
     A offset becomes 5
-
 B still has:
     offset = 0
 
@@ -530,7 +458,6 @@ Senior mental model:
 ====================================================================================================
 LAYER 12 — CLOSE PATH
 ====================================================================================================
-
 Code:
 ----------------------------------------------------------------------------------------------------
     static int my_release(struct inode *pInode, struct file *pFile)
@@ -547,7 +474,6 @@ This lesson uses `release()` only as a diagnostic hook.
 Senior interpretation:
 ----------------------------------------------------------------------------------------------------
 In a real driver, `release()` is where you might:
-
 - decrement open count
 - free per-open state
 - flush delayed work
@@ -559,7 +485,6 @@ so release only logs the close event.
 ====================================================================================================
 LAYER 13 — STATE MODEL OF THIS LESSON
 ====================================================================================================
-
 GLOBAL / SHARED DEVICE STATE
 ----------------------------------------------------------------------------------------------------
 - dev_buffer
@@ -584,11 +509,8 @@ Meaning:
 Senior summary:
 ----------------------------------------------------------------------------------------------------
 This driver is halfway between:
-
     "just registering a char device"
-
 and
-
     "real per-open driver design"
 
 It already has:
@@ -596,13 +518,10 @@ It already has:
 
 It does not yet have:
     per-open private state
-
 ====================================================================================================
 LAYER 14 — WHAT THE TEST PROGRAM IS SHOWING
 ====================================================================================================
-
 Userspace program opens the same device four times with different flags:
-
     O_RDONLY
     O_WRONLY
     O_RDWR
@@ -625,7 +544,6 @@ Senior mental model:
 ====================================================================================================
 LAYER 15 — WHAT THIS EXAMPLE GETS RIGHT
 ====================================================================================================
-
 Good teaching points:
 ----------------------------------------------------------------------------------------------------
 - separates registration from actual I/O behavior
@@ -641,21 +559,17 @@ These are all foundational char-device concepts.
 ====================================================================================================
 LAYER 16 — IMPORTANT CODE / DESIGN ISSUES
 ====================================================================================================
-
 1. Typo in function declaration
 ----------------------------------------------------------------------------------------------------
 You wrote:
-
     static ssize_tmy_read(...)
 
 It should be:
-
     static ssize_t my_read(...)
 
 2. Missing header for mutex / copy helpers
 ----------------------------------------------------------------------------------------------------
 This code normally also needs headers such as:
-
     <linux/mutex.h>
     <linux/uaccess.h>
     <linux/slab.h>
@@ -666,7 +580,6 @@ depending on kernel version and includes already pulled indirectly.
 ----------------------------------------------------------------------------------------------------
 Modern kernels often return ERR_PTR, not NULL.
 Safer pattern is usually:
-
     my_class = class_create("my_class");
     if (IS_ERR(my_class)) {
         status = PTR_ERR(my_class);
@@ -677,9 +590,7 @@ Safer pattern is usually:
 ----------------------------------------------------------------------------------------------------
 `dev_buffer` is allocated in `my_init()`
 but never freed in `my_exit()`
-
 Need:
-
     kfree(dev_buffer);
 
 5. Memory leak on init error path
@@ -696,20 +607,16 @@ but not correct for arbitrary binary device data.
 7. Potential underflow bug in read length calculation
 ----------------------------------------------------------------------------------------------------
 This line is dangerous:
-
     bytes_to_copy = (count + *pOffset > strlen(dev_buffer))
                     ? (strlen(dev_buffer) - *pOffset)
                     : count;
 
 If `*pOffset > strlen(dev_buffer)`,
 then:
-
     strlen(dev_buffer) - *pOffset
 
 can underflow because these are unsigned size-like values.
-
 Safer logic is:
-
     size_t data_len = strlen(dev_buffer);
 
     if (*pOffset >= data_len)
@@ -720,25 +627,18 @@ Safer logic is:
 8. Wrong argc check in userspace test
 ----------------------------------------------------------------------------------------------------
 You wrote:
-
     if (argc < 0)
 
 That is never true.
-
 Should be:
-
     if (argc < 2)
 
 because you use `argv[1]`.
-
 ====================================================================================================
 FINAL SENIOR TAKEAWAY
 ====================================================================================================
-
 This driver is no longer "just a device registration example".
-
 It is now a real file-like kernel service with:
-
     identity         -> dev_t / major / minor / registry name
     dispatch         -> cdev + file_operations
     publication      -> class + device + udev
@@ -748,7 +648,6 @@ It is now a real file-like kernel service with:
     user/kernel copy -> copy_to_user / copy_from_user
 
 So the complete mental model is:
-
     /dev node
         ↓
     VFS inode/file
@@ -764,7 +663,6 @@ So the complete mental model is:
     bytes safely cross the user/kernel boundary
 
 That is the foundational architecture of a real character device driver.
-
 ====================================================================================================
 
 ```
