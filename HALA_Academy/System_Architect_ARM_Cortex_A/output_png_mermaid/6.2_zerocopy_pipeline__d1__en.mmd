@@ -1,0 +1,20 @@
+flowchart LR
+    subgraph traditional["Traditional (with copies)"]
+        tvpu["VPU"]
+        tmem["CPU Memory"]
+        tgpu["GPU"]
+        tdisplay["Display"]
+        tvpu -->|copy| tmem -->|copy| tgpu -->|copy| tdisplay
+    end
+
+    subgraph zero["Zero-copy (dma-buf)"]
+        zvpu["VPU"]
+        zbuf["DMA-BUF<br/>(shared)"]
+        zdisplay["Display"]
+        zvpu -->|decode to| zbuf -->|scanout| zdisplay
+    end
+
+    tnote["~560 MB/s bandwidth<br/>+2 frames latency"]
+    znote["~187 MB/s bandwidth<br/>Minimal latency<br/>66% savings"]
+    tdisplay -.-> tnote
+    zdisplay -.-> znote

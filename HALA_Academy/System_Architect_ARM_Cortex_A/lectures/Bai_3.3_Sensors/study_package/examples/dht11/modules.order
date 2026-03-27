@@ -1,0 +1,1 @@
+/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_3.3_Sensors/study_package/examples/dht11/dht11.o

@@ -1,0 +1,33 @@
+flowchart TD
+    start((Start))
+    subgraph linux["Linux Kernel"]
+        l1["Boot Linux on CPU 0-2"]
+        l2["Load remoteproc driver"]
+        l3["Parse device tree (reserved-memory)"]
+        l1 --> l2 --> l3
+    end
+    subgraph user["Userspace"]
+        u1["echo 'rtos.elf' > /sys/class/remoteproc/.../firmware"]
+        u2["echo 'start' > /sys/class/remoteproc/.../state"]
+        u1 --> u2
+    end
+    subgraph rproc["Remoteproc Driver"]
+        r1["Request firmware (rtos.elf)"]
+        r2["Parse resource table"]
+        r3["Load ELF segments to 0x7F800000"]
+        r4["Setup virtio devices (vdev)"]
+        r5["Reset CPU 3"]
+        r1 --> r2 --> r3 --> r4 --> r5
+    end
+    subgraph rtos["RTOS (CPU 3)"]
+        t1["Reset Handler"]
+        t2["Initialize hardware"]
+        t3["Create IPC task"]
+        t4["Wait for link up"]
+        done((End))
+        t1 --> t2 --> t3 --> t4 --> done
+    end
+    start --> l1
+    l3 --> u1
+    u2 --> r1
+    r5 --> t1

@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant APP as Linux App
+    participant RPMSG as rpmsg
+    participant SHM as Shared Memory
+    participant RTOS as RTOS IPC Task
+    APP->>RPMSG: write(fd, msg)
+    RPMSG->>SHM: Copy to TX vring
+    SHM->>RTOS: Doorbell IRQ
+    RTOS->>SHM: Read from vring
+    RTOS->>RTOS: Process message
+    RTOS->>SHM: Write response
+    SHM->>RPMSG: Doorbell IRQ
+    RPMSG->>SHM: Read from RX vring
+    RPMSG-->>APP: return to read()
+    Note over RPMSG,SHM: Virtio-based ring buffers

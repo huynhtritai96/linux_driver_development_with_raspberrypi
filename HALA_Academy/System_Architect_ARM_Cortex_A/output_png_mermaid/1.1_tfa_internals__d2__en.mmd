@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant NW as Normal World (Linux/U-Boot)
+    participant EL3 as EL3 Entry
+    participant ROUTER as Service Router
+    participant PSCI as PSCI Handler
+    NW->>EL3: SMC instruction (#0)
+    Note over NW,EL3: Trap to EL3
+    EL3->>ROUTER: Context switch
+    ROUTER->>PSCI: Route by function ID
+    Note right of PSCI: CPU_ON: 0xC4000003<br/>CPU_OFF: 0x84000002<br/>SUSPEND: 0xC4000001
+    PSCI-->>NW: ERET back

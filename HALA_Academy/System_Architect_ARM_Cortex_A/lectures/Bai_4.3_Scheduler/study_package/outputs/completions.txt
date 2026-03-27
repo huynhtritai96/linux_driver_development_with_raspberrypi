@@ -1,0 +1,23 @@
+Example: completions
+Status: executed
+
+Build log:
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/completions modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/completions/completions.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/completions/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/completions/completions.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/completions/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/completions/completions.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+Command log:
+$ sudo insmod /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/completions/completions.ko
+$ bash -lc sleep 1
+$ sudo rmmod completions
+
+Kernel log delta:
+[12726.059363] completions example
+[12726.060959] Turn the crank
+[12726.061032] Flywheel spins up
+[12727.169913] completions exit

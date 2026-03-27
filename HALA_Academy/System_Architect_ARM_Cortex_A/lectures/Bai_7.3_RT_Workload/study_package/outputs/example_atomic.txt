@@ -1,0 +1,28 @@
+Example: example_atomic
+Status: executed
+
+Build log:
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_atomic modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_atomic/example_atomic.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_atomic/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_atomic/example_atomic.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_atomic/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_atomic/example_atomic.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+Command log:
+$ sudo insmod /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_atomic/example_atomic.ko
+$ bash -lc sleep 1
+$ sudo rmmod example_atomic
+
+Kernel log delta:
+[12791.179283] example_atomic started
+[12791.179298] chris: 50, debbie: 52
+[12791.179305] Bits 0: 00000000
+[12791.179308] Bits 1: 00101000
+[12791.179311] Bits 2: 00001000
+[12791.179314] Bits 3: 00000000
+[12791.179317] Bits 4: 00001000
+[12791.179319] Bits 5: 11111111
+[12792.276234] example_atomic exit

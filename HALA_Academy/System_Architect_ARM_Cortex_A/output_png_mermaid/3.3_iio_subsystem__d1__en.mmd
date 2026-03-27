@@ -1,0 +1,37 @@
+flowchart TD
+    subgraph userspace["Userspace"]
+        app["Application"]
+        libiio["libiio"]
+        sysfs["/sys/bus/iio/devices/iio:device0/"]
+    end
+
+    subgraph core["Kernel - IIO Core"]
+        idev["iio_device"]
+        ibuf["iio_buffer"]
+        ichan["iio_channel"]
+        itrig["iio_trigger"]
+    end
+
+    subgraph driver["Kernel - Driver"]
+        sensor["IIO Sensor Driver"]
+        regmap["Regmap API"]
+    end
+
+    subgraph hw["Hardware"]
+        dev["I2C/SPI Sensor"]
+    end
+
+    app -->|cat in_temp_raw| sysfs
+    libiio -->|/dev/iio:device0| idev
+    sysfs -->|Export| idev
+    idev -->|Optional| ibuf
+    idev -->|Contains| ichan
+    itrig -->|Trigger| ibuf
+    sensor -->|read_raw()| ichan
+    sensor --> regmap
+    regmap -->|I2C/SPI| dev
+
+    sysfs_note["/sys/bus/iio/devices/iio:device0/<br/>in_temp_raw<br/>in_temp_scale<br/>name"]
+    chan_note["struct iio_chan_spec {<br/>type = IIO_TEMP,<br/>info_mask_separate = BIT(IIO_CHAN_INFO_RAW),<br/>}"]
+    sysfs -.-> sysfs_note
+    ichan -.-> chan_note

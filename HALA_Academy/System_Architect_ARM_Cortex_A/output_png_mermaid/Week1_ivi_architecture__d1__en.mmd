@@ -1,0 +1,32 @@
+flowchart TD
+    subgraph apps["Applications"]
+        media["Media Player"]
+        nav["Navigation"]
+        settings["Settings"]
+    end
+    subgraph middleware["Middleware"]
+        dbus["D-Bus"]
+        gst["GStreamer"]
+        systemd["Systemd"]
+    end
+    subgraph graphics["Graphics"]
+        mesa["Mesa/Panfrost"]
+        weston["Weston"]
+    end
+    subgraph kernel["Kernel"]
+        drm["DRM/KMS"]
+        v4l2["V4L2"]
+        input["Input"]
+    end
+    subgraph hw["Hardware"]
+        gpu["GPU"]
+        vpu["VPU"]
+        touch["Touch"]
+    end
+    dbus --> media
+    gst --> media
+    gst --> weston
+    systemd --> drm
+    drm --> gpu
+    v4l2 --> vpu
+    input --> touch

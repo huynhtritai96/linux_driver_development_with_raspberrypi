@@ -1,0 +1,25 @@
+Example: example_spinlock
+Status: executed
+
+Build log:
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_spinlock modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_spinlock/example_spinlock.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_spinlock/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_spinlock/example_spinlock.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_spinlock/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_spinlock/example_spinlock.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+Command log:
+$ sudo insmod /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_spinlock/example_spinlock.ko
+$ bash -lc sleep 1
+$ sudo rmmod example_spinlock
+
+Kernel log delta:
+[12760.789228] example spinlock started
+[12760.789244] Locked static spinlock
+[12760.789246] Unlocked static spinlock
+[12760.789249] Locked dynamic spinlock
+[12760.789251] Unlocked dynamic spinlock
+[12761.873413] example spinlock exit

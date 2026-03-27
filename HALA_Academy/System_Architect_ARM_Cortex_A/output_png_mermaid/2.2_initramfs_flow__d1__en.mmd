@@ -1,0 +1,44 @@
+flowchart TD
+    subgraph kernel["Kernel"]
+        k0((Start))
+        k1["Kernel boots"]
+        k2["Unpack initramfs to rootfs (ramfs)"]
+        k3["run_init_process('/init')"]
+        k0 --> k1 --> k2 --> k3
+    end
+
+    subgraph initramfs["Initramfs"]
+        i1["/init script starts (PID 1)"]
+        i2["Mount virtual filesystems"]
+        i2_note["mount -t proc proc /proc<br/>mount -t sysfs sysfs /sys<br/>mount -t devtmpfs devtmpfs /dev"]
+        i3["Parse /proc/cmdline"]
+        i3_note["Find root=&lt;device&gt;"]
+        i4["Wait for root device"]
+        i4_note["while [ ! -b $ROOT ]; do<br/>sleep 0.1<br/>done"]
+        i5["Mount real rootfs"]
+        i5_note["mount -t ext4 $ROOT /mnt/root"]
+        i6{"Real init exists?"}
+        i7["switch_root /mnt/root /sbin/init"]
+        i7_note["1. Delete initramfs files<br/>2. Move /mnt/root to /<br/>3. exec /sbin/init"]
+        i8["Drop to emergency shell"]
+        i9["exec /bin/sh"]
+        i1 --> i2 --> i3 --> i4 --> i5 --> i6
+        i6 -->|yes| i7
+        i6 -->|no| i8 --> i9
+        i2 -.-> i2_note
+        i3 -.-> i3_note
+        i4 -.-> i4_note
+        i5 -.-> i5_note
+        i7 -.-> i7_note
+    end
+
+    subgraph real["Real Rootfs"]
+        r1["/sbin/init (systemd)"]
+        r2["Start services"]
+        r3["Login prompt"]
+        r4((End))
+        r1 --> r2 --> r3 --> r4
+    end
+
+    k3 --> i1
+    i7 --> r1

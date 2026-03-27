@@ -1,0 +1,37 @@
+flowchart TD
+    subgraph app["Application"]
+        qt["Qt / GTK / Game"]
+    end
+    subgraph api["Graphics API"]
+        gles["OpenGL ES"]
+        vk["Vulkan"]
+        egl["EGL"]
+    end
+    subgraph mesa["Mesa (Userspace)"]
+        gallium["Gallium3D"]
+        panfrost["Panfrost Driver"]
+        gbm["GBM"]
+    end
+    subgraph kernel["Kernel"]
+        drm["DRM Core"]
+        panfrostko["panfrost.ko"]
+        sun4i["sun4i-drm.ko"]
+    end
+    subgraph hw["Hardware"]
+        gpu["Mali-G31 GPU"]
+        de["Display Engine"]
+        hdmi["HDMI PHY"]
+    end
+    note["Panfrost: open-source Mali driver in Mesa"]
+    qt -->|calls| gles
+    qt -->|calls| vk
+    gles -->|implemented by| gallium
+    vk -->|implemented by| panfrost
+    egl -->|ioctl| drm
+    gallium --> gbm
+    panfrost --> panfrostko
+    drm --> sun4i
+    panfrostko -->|registers| gpu
+    sun4i -->|registers| de
+    sun4i -->|registers| hdmi
+    panfrost -.-> note

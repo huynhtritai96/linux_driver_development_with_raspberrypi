@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant APP as Userspace App
+    participant V4L2 as V4L2 Core
+    participant MC as Media Controller
+    participant CEDRUS as Cedrus Driver
+    participant VPU as VPU Hardware
+    Note over APP,VPU: Request Preparation
+    APP->>MC: ALLOC_REQUEST()
+    MC-->>APP: return req_fd
+    APP->>V4L2: S_EXT_CTRLS(req_fd, SPS/PPS)
+    Note right of V4L2: Bind parameters to request
+    APP->>V4L2: QBUF(req_fd, Bitstream)
+    Note right of V4L2: Bind data to request
+    Note over APP,VPU: Submission
+    APP->>MC: QUEUE_REQUEST(req_fd)
+    MC->>CEDRUS: request_queue()
+    Note over APP,VPU: Execution
+    CEDRUS->>CEDRUS: Validate controls and data
+    CEDRUS->>VPU: Program registers
+    CEDRUS->>VPU: Start decode
+    VPU-->>CEDRUS: IRQ (done)
+    CEDRUS-->>V4L2: DQBUF (frame ready)
+    V4L2-->>APP: Buffer available

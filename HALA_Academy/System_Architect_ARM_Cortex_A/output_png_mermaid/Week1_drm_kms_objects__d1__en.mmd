@@ -1,0 +1,14 @@
+flowchart TD
+    fb["Framebuffer (FB)<br/>Pixel buffer in memory"]
+    plane["Plane<br/>(Primary, Overlay, Cursor)"]
+    crtc["CRTC<br/>Timing generator"]
+    encoder["Encoder<br/>Signal converter"]
+    connector["Connector<br/>Physical output (HDMI)"]
+    plane_note["Primary: main display<br/>Overlay: video, HW cursor<br/>Cursor: mouse pointer"]
+    crtc_note["Generates timing<br/>Handles scanout<br/>Multiple planes per CRTC"]
+    fb -->|attached to| plane
+    plane -->|composited by| crtc
+    crtc -->|drives| encoder
+    encoder -->|outputs to| connector
+    plane -.-> plane_note
+    crtc -.-> crtc_note

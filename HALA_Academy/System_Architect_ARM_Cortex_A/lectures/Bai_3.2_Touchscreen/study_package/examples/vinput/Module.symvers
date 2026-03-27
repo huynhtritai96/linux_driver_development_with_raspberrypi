@@ -1,0 +1,2 @@
+0xaaa2ae57	vinput_register	/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_3.2_Touchscreen/study_package/examples/vinput/vinput	EXPORT_SYMBOL	
+0x58b2a9bb	vinput_unregister	/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_3.2_Touchscreen/study_package/examples/vinput/vinput	EXPORT_SYMBOL	

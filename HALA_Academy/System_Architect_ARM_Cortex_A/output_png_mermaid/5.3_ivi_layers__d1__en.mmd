@@ -1,0 +1,18 @@
+flowchart TB
+    subgraph controller["IVI Controller (Userspace)"]
+        logic["Layer Management Logic"]
+    end
+
+    subgraph screen["Display (Screen)"]
+        popup["Layer 3000: Warning/Popup<br/>Surface 30: Battery Low"]
+        apps["Layer 2000: Applications<br/>Surface 10: Navigation (Active)<br/>Surface 20: Media Player (Inactive)"]
+        bg["Layer 1000: Background<br/>Surface 1: Wallpaper"]
+    end
+
+    hi["High priority<br/>Always on top"]
+    main["Main application area<br/>Managed by lifecycle"]
+    logic -->|Create/Destroy| popup
+    logic -->|Set Visibility| apps
+    logic -->|Configure| bg
+    popup -.-> hi
+    apps -.-> main

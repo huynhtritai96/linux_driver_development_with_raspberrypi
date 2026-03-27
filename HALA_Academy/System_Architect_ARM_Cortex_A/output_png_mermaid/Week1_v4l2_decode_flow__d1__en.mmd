@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant USER as Userspace (FFmpeg)
+    participant V4L2 as V4L2 Core
+    participant CEDRUS as Cedrus Driver
+    participant VPU as VPU Hardware
+    USER->>USER: Parse H.264 bitstream
+    USER->>V4L2: Set controls (SPS, PPS, Slice)
+    USER->>V4L2: QBUF OUTPUT (bitstream)
+    USER->>V4L2: QBUF CAPTURE (frame buffer)
+    USER->>V4L2: STREAMON
+    V4L2->>CEDRUS: device_run()
+    CEDRUS->>VPU: Program registers
+    CEDRUS->>VPU: Start decode
+    VPU-->>CEDRUS: IRQ (complete)
+    CEDRUS-->>V4L2: job_finish()
+    V4L2-->>USER: DQBUF (decoded frame)

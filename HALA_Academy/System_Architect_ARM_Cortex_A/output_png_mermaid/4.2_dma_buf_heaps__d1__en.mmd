@@ -1,0 +1,28 @@
+flowchart TB
+    subgraph userspace["Userspace"]
+        app["Application (Camera/Display)"]
+    end
+
+    subgraph heaps["Kernel DMA-BUF Heaps"]
+        subgraph system_heap["System Heap"]
+            alloc_pages["alloc_pages()"]
+            sys_note["Non-contiguous (vmalloc)<br/>Cacheable/Uncacheable"]
+        end
+        subgraph cma_heap["CMA Heap"]
+            dma_alloc["dma_alloc_contiguous()"]
+            cma_note["Physically contiguous<br/>For legacy HW"]
+        end
+    end
+
+    subgraph hw["I/O Hardware"]
+        iommu["MMU-Capable (GPU/ISP)"]
+        simple["Simple DMA (Display)"]
+    end
+
+    app -->|/dev/dma_heap/system| alloc_pages
+    app -->|/dev/dma_heap/reserved| dma_alloc
+    alloc_pages -->|OK (via IOMMU)| iommu
+    dma_alloc -->|OK| iommu
+    dma_alloc -->|Required| simple
+    alloc_pages -.-> sys_note
+    dma_alloc -.-> cma_note

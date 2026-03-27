@@ -1,0 +1,29 @@
+sequenceDiagram
+    participant UBOOT as U-Boot
+    participant HEAD as head.S Assembly
+    participant START as start_kernel C code
+    participant REST as rest_init
+    participant KINIT as kernel_init PID 1
+    participant INIT as /sbin/init Userspace
+    UBOOT->>HEAD: booti jump to _text
+    HEAD->>HEAD: __primary_switch
+    Note right of HEAD: Enable MMU
+    HEAD->>START: Jump to start_kernel
+    START->>START: setup_arch
+    Note right of START: Parse DTB
+    START->>START: mm_init
+    START->>START: sched_init
+    START->>START: early_irq_init
+    START->>START: time_init
+    START->>START: console_init
+    START->>REST: rest_init
+    REST->>KINIT: kernel_thread kernel_init
+    Note right of KINIT: Create PID 1
+    KINIT->>KINIT: kernel_init_freeable
+    KINIT->>KINIT: do_basic_setup
+    Note right of KINIT: Driver probing
+    KINIT->>KINIT: prepare_namespace
+    Note right of KINIT: Mount rootfs
+    KINIT->>INIT: run_init_process /sbin/init
+    INIT->>KINIT: exec replaces kernel_init
+    Note right of INIT: systemd / busybox init<br/>PID 1 in userspace

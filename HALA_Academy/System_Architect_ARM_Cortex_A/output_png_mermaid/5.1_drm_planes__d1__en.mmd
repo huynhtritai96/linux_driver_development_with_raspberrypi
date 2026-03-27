@@ -1,0 +1,20 @@
+flowchart TB
+    subgraph de["Display Engine (DE)"]
+        primary["Primary Plane<br/>(Z-Order: 0)<br/>Framebuffer 1<br/>(UI/Desktop)"]
+        cursor["Cursor Plane<br/>(Z-Order: 2)<br/>Framebuffer 3<br/>(Mouse Icon)"]
+        overlay["Overlay Plane<br/>(Z-Order: 1)<br/>Framebuffer 2<br/>(Video YUV)"]
+        blender["CRTC / Blender"]
+    end
+
+    subgraph output["Output"]
+        encoder["Encoder (HDMI)"]
+        monitor["Monitor"]
+    end
+
+    note["Hardware Scaling<br/>YUV -> RGB Conversion<br/>Zero-Copy Video"]
+    primary -->|alpha blend| blender
+    cursor -->|alpha blend| blender
+    overlay -->|alpha blend| blender
+    blender -->|Pixel Stream| encoder
+    encoder -->|HDMI Signal| monitor
+    overlay -.-> note

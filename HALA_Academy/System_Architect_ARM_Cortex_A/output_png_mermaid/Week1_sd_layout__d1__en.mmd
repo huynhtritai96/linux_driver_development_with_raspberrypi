@@ -1,0 +1,10 @@
+flowchart TB
+    card["SD Card (4GB+)"]
+    mbr["MBR<br/>0 - 8KB"]
+    spl["SPL (U-Boot SPL)<br/>8KB - 40KB"]
+    uboot["U-Boot Proper<br/>40KB - 1MB"]
+    boot["Boot Partition (FAT32)<br/>1MB - 128MB<br/>Image, *.dtb, boot.scr"]
+    rootfs["Root Partition (ext4)<br/>128MB - End<br/>/bin, /lib, /etc, /usr"]
+    summary["Offset Summary<br/>0-8KB: MBR + partition table<br/>8KB-40KB: U-Boot SPL<br/>40KB-1MB: U-Boot proper<br/>1MB-128MB: boot (FAT32)<br/>128MB+: rootfs (ext4)"]
+    card --> mbr --> spl --> uboot --> boot --> rootfs
+    rootfs -.-> summary

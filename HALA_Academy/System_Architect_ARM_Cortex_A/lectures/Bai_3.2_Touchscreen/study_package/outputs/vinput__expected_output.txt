@@ -1,0 +1,16 @@
+Example: vinput
+Status: expected_output_only
+Reason: execution intentionally skipped because this example is not on the auto-run allowlist for the study package.
+
+Build log:
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_3.2_Touchscreen/study_package/examples/vinput modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_3.2_Touchscreen/study_package/examples/vinput/vinput.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_3.2_Touchscreen/study_package/examples/vinput/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_3.2_Touchscreen/study_package/examples/vinput/vinput.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_3.2_Touchscreen/study_package/examples/vinput/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_3.2_Touchscreen/study_package/examples/vinput/vinput.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+Expected behavior:
+Creates the vinput character-device framework and waits for a provider such as vkbd.

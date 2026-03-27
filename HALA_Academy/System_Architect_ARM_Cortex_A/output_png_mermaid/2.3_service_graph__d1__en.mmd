@@ -1,0 +1,51 @@
+flowchart TD
+    subgraph early["Early Boot"]
+        sysinit["sysinit.target"]
+        basic["basic.target"]
+        sysinit -->|Before| basic
+    end
+
+    subgraph system["System Services"]
+        journal["systemd-journald"]
+        udev["systemd-udevd"]
+        dbus["dbus.service"]
+    end
+
+    subgraph graphics["Graphics"]
+        graphical["graphical.target"]
+        weston["weston.service"]
+        graphical -->|Wants| weston
+    end
+
+    subgraph apps["IVI Applications"]
+        launcher["ivi-launcher.service"]
+        media["media-player.service"]
+    end
+
+    subgraph net["Networking"]
+        nm["NetworkManager"]
+        ntarget["network.target"]
+        nwd["systemd-networkd"]
+        sshd["sshd.service"]
+    end
+
+    sysinit -->|Wants| journal
+    sysinit -->|Wants| udev
+    basic -->|Wants| dbus
+    basic -->|Before| ntarget
+    udev -->|After| weston
+    dbus -->|After| weston
+    weston -->|After| launcher
+    weston -->|After| media
+    launcher -->|After| weston
+    nm -->|Before| sshd
+    ntarget -->|Before| sshd
+    nwd -->|Before| sshd
+    dbus -->|After| nm
+
+    weston_note["weston.service<br/>Requires: dbus<br/>After: systemd-udevd<br/>Type: simple"]
+    launcher_note["ivi-launcher.service<br/>After: weston.service<br/>Requires: weston.service<br/>Environment: WAYLAND_DISPLAY=wayland-0"]
+    order_note["Boot Order<br/>1. sysinit.target<br/>2. basic.target<br/>3. dbus.service<br/>4. network.target<br/>5. graphical.target<br/>6. weston.service<br/>7. ivi-launcher.service"]
+    weston -.-> weston_note
+    launcher -.-> launcher_note
+    launcher -.-> order_note

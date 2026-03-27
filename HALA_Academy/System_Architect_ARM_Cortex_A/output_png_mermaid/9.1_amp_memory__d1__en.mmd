@@ -1,0 +1,14 @@
+flowchart LR
+    subgraph dram["DRAM (1GB - 4GB)"]
+        linux["0x40000000<br/>Linux Memory<br/>(Kernel + User)"]
+        shared["0x7F000000<br/>Shared Memory<br/>(IPC, rpmsg)"]
+        rtos["0x7F800000<br/>RTOS Memory<br/>(Code + Data)"]
+        endram["0x80000000<br/>End of RAM"]
+    end
+    note1["Managed by Linux kernel<br/>MMU enabled"]
+    note2["1MB for IPC<br/>TX/RX vrings<br/>Data buffers"]
+    note3["8MB reserved<br/>no-map in DT<br/>Direct access"]
+    linux -.-> note1
+    shared -.-> note2
+    rtos -.-> note3
+    linux --> shared --> rtos --> endram

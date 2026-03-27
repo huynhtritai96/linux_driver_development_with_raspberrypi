@@ -1,0 +1,23 @@
+flowchart LR
+    subgraph cpu["CPU Domain"]
+        src["File Source"]
+        demux["Demuxer"]
+        parser2["Parser Thread 2"]
+        parser["Parser Thread"]
+        mt["Multithreading<br/>Offload CPU 0"]
+        src --> demux
+        demux -->|Stream B| parser2
+        src -->|Stream A| parser
+        parser2 --> parser
+        parser -.-> mt
+    end
+
+    subgraph hw["Hardware Domain"]
+        vpu["VPU Decoder"]
+        display["Display Engine"]
+        acc["Hardware Accel<br/>eBPF Monitored"]
+    end
+
+    parser -->|Slice Data| vpu
+    vpu -->|Zero-Copy (DMA-BUF)| display
+    vpu -.-> acc

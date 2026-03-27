@@ -1,0 +1,16 @@
+flowchart TD
+    attacker["Attacker"]
+    app["Application Security<br/>Input validation, secure coding, auth"]
+    os["OS Hardening<br/>SELinux/AppArmor, minimal services, sysctl"]
+    kernel["Kernel Hardening<br/>KASLR, stack protector, seccomp"]
+    boot["Secure Boot<br/>Signed bootloader, verified kernel, dm-verity"]
+    hw["Hardware Security<br/>TrustZone, secure boot ROM, HW RNG"]
+    first["First line of defense<br/>Most exposed to attacks<br/>Must validate all input"]
+    trust["Trust anchor<br/>Hardest to compromise<br/>Hardware-based root of trust"]
+    attacker -->|Attack entry| app
+    app -->|If breached| os
+    os -->|If breached| kernel
+    kernel -->|If breached| boot
+    boot -->|Final defense| hw
+    app -.-> first
+    hw -.-> trust

@@ -1,0 +1,21 @@
+flowchart TD
+    start((Start))
+    lock["mlockall(MCL_CURRENT | MCL_FUTURE)"]
+    prio["sched_setscheduler(SCHED_FIFO, 80)"]
+    now["clock_gettime(CLOCK_MONOTONIC, &next)"]
+    work["Do RT work"]
+    work_note["Control loop<br/>Sensor read<br/>Actuator write"]
+    next["next.tv_nsec += PERIOD_NS"]
+    sleep["clock_nanosleep(TIMER_ABSTIME, &next)"]
+    running{"running"}
+    done((End))
+    note1["Lock all memory"]
+    note2["Set RT priority"]
+    note3["Sleep until next period"]
+    start --> lock --> prio --> now --> work --> next --> sleep --> running
+    running -->|yes| work
+    running -->|no| done
+    lock -.-> note1
+    prio -.-> note2
+    work -.-> work_note
+    sleep -.-> note3

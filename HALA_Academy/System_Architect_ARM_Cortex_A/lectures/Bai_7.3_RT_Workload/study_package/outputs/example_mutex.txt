@@ -1,0 +1,23 @@
+Example: example_mutex
+Status: executed
+
+Build log:
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_mutex modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_mutex/example_mutex.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_mutex/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_mutex/example_mutex.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_mutex/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_mutex/example_mutex.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+Command log:
+$ sudo insmod /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.3_RT_Workload/study_package/examples/example_mutex/example_mutex.ko
+$ bash -lc sleep 1
+$ sudo rmmod example_mutex
+
+Kernel log delta:
+[12775.636347] example_mutex init
+[12775.636363] mutex is locked
+[12775.636365] mutex is unlocked
+[12776.718526] example_mutex exit

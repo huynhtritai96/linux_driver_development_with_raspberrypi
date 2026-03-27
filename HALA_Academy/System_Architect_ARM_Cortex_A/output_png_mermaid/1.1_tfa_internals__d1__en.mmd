@@ -1,0 +1,21 @@
+flowchart TB
+    bl1["BL1<br/>AP Trusted ROM"]
+    bl1_note["Primary bootloader<br/>Not used on Allwinner<br/>Replaced by Boot0"]
+    bl2["BL2<br/>Trusted Boot Firmware"]
+    bl2_note["Load BL31, BL32, BL33<br/>Not used on Allwinner<br/>Replaced by Boot0"]
+    bl31["BL31<br/>EL3 Runtime"]
+    bl31_note["Always active<br/>Runs at EL3<br/>Handles SMC calls"]
+    bl32["BL32<br/>Secure OS"]
+    bl32_note["Optional (OP-TEE)<br/>Runs at S-EL1<br/>Trusted apps"]
+    bl33["BL33<br/>Non-Secure"]
+    bl33_note["U-Boot<br/>Runs at EL2/EL1<br/>Normal world"]
+    bl1 --> bl2
+    bl2 --> bl31
+    bl2 -. optional secure payload .-> bl32
+    bl31 --> bl33
+    bl32 -. trusted world alongside non-secure boot .-> bl33
+    bl1 -.-> bl1_note
+    bl2 -.-> bl2_note
+    bl31 -.-> bl31_note
+    bl32 -.-> bl32_note
+    bl33 -.-> bl33_note

@@ -1,0 +1,43 @@
+sequenceDiagram
+    participant PWR as Power Supply
+    participant BROM as ROM Code (BROM)
+    participant BOOT0 as Boot0 (eGON)
+    participant TFA as TF-A BL31
+    participant SPL as U-Boot SPL
+    participant UBOOT as U-Boot Proper
+    participant LINUX as Linux Kernel
+    PWR->>BROM: Power good
+    Note right of BROM: 32KB internal ROM<br/>Reads NAND/eMMC/SD<br/>Entry: 0xFFFF0000
+    BROM->>BROM: Check eFUSE
+    BROM->>BROM: Determine boot media
+    BROM->>BOOT0: Load to SRAM (0x20000)
+    Note right of BOOT0: Allwinner first-stage loader<br/>Size: 32KB max<br/>Location: 8KB offset on SD
+    BOOT0->>BOOT0: Init PLLs (CPU, DDR)
+    BOOT0->>BOOT0: Configure DDR PHY
+    BOOT0->>BOOT0: DDR training
+    BOOT0->>BOOT0: Memory test
+    Note right of BOOT0: DRAM base: 0x40000000<br/>Size: 1-4GB
+    BOOT0->>TFA: Load BL31 to SRAM
+    Note right of TFA: Exception Level 3<br/>Secure monitor<br/>PSCI implementation
+    TFA->>TFA: Init GIC-400
+    TFA->>TFA: Set up secure world
+    TFA->>TFA: Register PSCI handlers
+    Note right of TFA: CPU_ON: 0xC4000003<br/>CPU_OFF: 0x84000002<br/>SYSTEM_RESET: 0x84000009
+    TFA->>SPL: Jump to BL33 (EL3 -> EL2)
+    Note right of TFA: TF-A remains resident for SMC handling
+    Note right of SPL: Runs in SRAM<br/>Minimal drivers<br/>Size: about 64KB max
+    SPL->>SPL: board_init_f()
+    SPL->>SPL: serial_init()
+    SPL->>SPL: spl_mmc_load_image()
+    SPL->>UBOOT: Load to DRAM (0x4A000000)
+    Note right of UBOOT: Full featured<br/>Device model<br/>Filesystems
+    UBOOT->>UBOOT: board_init_r()
+    UBOOT->>UBOOT: Init device model
+    UBOOT->>UBOOT: Load environment
+    UBOOT->>UBOOT: Run bootcmd
+    Note right of UBOOT: kernel_addr_r = 0x40080000<br/>fdt_addr_r = 0x4FA00000<br/>ramdisk_addr_r = 0x4FE00000
+    UBOOT->>UBOOT: Load mmc 0:1 Image
+    UBOOT->>UBOOT: Load mmc 0:1 DTB
+    UBOOT->>LINUX: booti (EL2 -> EL1)
+    Note right of LINUX: head.S -> start_kernel()<br/>Set up MMU<br/>Driver probing
+    Note right of LINUX: Boot complete in about 2-4 seconds

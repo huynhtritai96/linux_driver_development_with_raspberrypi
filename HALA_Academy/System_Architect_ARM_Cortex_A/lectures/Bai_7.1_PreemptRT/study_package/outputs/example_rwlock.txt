@@ -1,0 +1,25 @@
+Example: example_rwlock
+Status: executed
+
+Build log:
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_rwlock modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_rwlock/example_rwlock.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_rwlock/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_rwlock/example_rwlock.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_rwlock/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_rwlock/example_rwlock.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+Command log:
+$ sudo insmod /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_7.1_PreemptRT/study_package/examples/example_rwlock/example_rwlock.ko
+$ bash -lc sleep 1
+$ sudo rmmod example_rwlock
+
+Kernel log delta:
+[12768.265241] example_rwlock started
+[12768.265258] Read Locked
+[12768.265261] Read Unlocked
+[12768.265264] Write Locked
+[12768.265266] Write Unlocked
+[12769.344942] example_rwlock exit

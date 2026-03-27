@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant APP as Application
+    participant VPU_DRV as VPU Driver
+    participant DISP_DRV as Display Driver
+    participant VPU_HW as VPU Hardware
+    participant DE_HW as Display Hardware
+    Note over APP,DE_HW: Async Submission
+    APP->>VPU_DRV: Submit decode job
+    VPU_DRV-->>APP: Return dma_fence (Fence A)
+    APP->>DISP_DRV: Submit scanout (Buffer + Fence A)
+    Note right of DISP_DRV: CPU does NOT wait
+    Note over APP,DE_HW: Hardware Execution
+    DISP_DRV->>VPU_HW: Start decode
+    DE_HW->>DE_HW: Wait for Fence A
+    VPU_HW-->>VPU_DRV: IRQ done
+    VPU_DRV-->>DISP_DRV: Signal Fence A
+    Note over APP,DE_HW: Unblock
+    DE_HW-->>DE_HW: Fence A signaled!
+    DE_HW-->>DISP_DRV: Start scanout

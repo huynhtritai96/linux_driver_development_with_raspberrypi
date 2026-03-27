@@ -1,0 +1,1 @@
+/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_2.1_Kernel_DTB/study_package/examples/hello-1/hello-1.o

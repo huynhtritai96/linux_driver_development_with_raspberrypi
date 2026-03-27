@@ -1,0 +1,22 @@
+flowchart TB
+    subgraph vpu["Video Engine (VPU)"]
+        decoder["Decoder Core"]
+        encoder["AFBC Encoder"]
+    end
+
+    subgraph dram["DRAM (System Memory)"]
+        raw["RAW Frame<br/>(12MB / Frame)"]
+        afbc["AFBC Frame<br/>(6MB / Frame)"]
+    end
+
+    subgraph de["Display Engine (DE)"]
+        decoder2["AFBC Decoder"]
+        mixer["Mixer/Blender"]
+    end
+
+    note["50% Bandwidth Saving<br/>Hardware Transparent<br/>Lossless Compression"]
+    decoder -->|On-the-fly| encoder
+    encoder -->|Write compressed| afbc
+    afbc -->|Read compressed| decoder2
+    decoder2 -->|On-the-fly| mixer
+    afbc -.-> note

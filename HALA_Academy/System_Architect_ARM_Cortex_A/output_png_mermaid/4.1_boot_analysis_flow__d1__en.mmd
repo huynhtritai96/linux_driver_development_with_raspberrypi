@@ -1,0 +1,39 @@
+flowchart TD
+    start((Start))
+    subgraph measure["Measurement"]
+        m1["Add initcall_debug to bootargs"]
+        m2["Boot and capture dmesg"]
+        m3["Run systemd-analyze"]
+        m1 --> m2 --> m3
+    end
+    subgraph analysis["Analysis"]
+        a1["Parse slow initcalls"]
+        a2["Identify critical path"]
+        a3["Find optimization targets"]
+        a1 --> a2 --> a3
+    end
+    subgraph optimize["Optimization"]
+        o1["Async probe"]
+        o2["Disable slow drivers"]
+        o3["Defer non-critical"]
+    end
+    subgraph verify["Verification"]
+        v1["Re-measure boot time"]
+        v2{"Target met?"}
+        v3["Document results"]
+        v4["Further analysis"]
+        v1 --> v2
+        v2 -->|yes| v3
+        v2 -->|no| v4
+    end
+    done((End))
+    start --> m1
+    m3 --> a1
+    a3 --> o1
+    a3 --> o2
+    a3 --> o3
+    o1 --> v1
+    o2 --> v1
+    o3 --> v1
+    v3 --> done
+    v4 --> a1

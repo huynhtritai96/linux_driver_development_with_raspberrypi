@@ -1,0 +1,36 @@
+flowchart TB
+    subgraph platform["Platform Layer"]
+        h616["sun50i_h616"]
+        papi["Platform APIs"]
+    end
+    subgraph psci_lib["PSCI Library"]
+        cpu_pwr["CPU Power Mgmt"]
+        sys_pwr["System Power Mgmt"]
+        hotplug["CPU Hotplug"]
+    end
+    subgraph common["Common Libraries"]
+        ctx["Context Mgmt"]
+        intr["Interrupt Mgmt"]
+        exc["Exception Handling"]
+    end
+    subgraph runtime["Runtime Services"]
+        smc["SMC Dispatcher"]
+        psci["PSCI Service"]
+        sip["SiP Service"]
+    end
+    subgraph drivers["Drivers"]
+        gic["GIC-400 Driver"]
+        timer["Timer Driver"]
+        uart["UART Driver"]
+    end
+    h616 --> papi
+    papi -->|Platform hooks| cpu_pwr
+    papi -->|Platform hooks| sys_pwr
+    cpu_pwr -->|Register service| smc
+    sys_pwr -->|Register service| psci
+    ctx -->|Use libs| smc
+    intr -->|Use libs| smc
+    exc -->|Use libs| psci
+    smc -->|Access HW| gic
+    psci -->|Access HW| timer
+    sip -->|Access HW| uart

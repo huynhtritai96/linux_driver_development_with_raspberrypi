@@ -1,0 +1,12 @@
+flowchart TB
+    t0["0 us"] --> s0["Power On / Reset"]
+    s0 --> t1["125,000 us"]
+    t1 --> s1["SPL: board_init_f -> Basic Init (SRAM)"]
+    s1 --> t2["250,000 us"]
+    t2 --> s2["SPL: board_init_r -> DRAM Init"]
+    s2 --> t3["850,000 us"]
+    t3 --> s3["U-Boot: main_loop -> Load Environment"]
+    s3 --> t4["1,200,000 us"]
+    t4 --> s4["bootm_start -> Load Kernel Image and DTB"]
+    s4 --> t5["2,100,000 us"]
+    t5 --> s5["kernel_loaded -> Jump to Linux Kernel"]

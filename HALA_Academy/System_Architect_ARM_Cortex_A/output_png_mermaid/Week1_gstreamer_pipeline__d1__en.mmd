@@ -1,0 +1,23 @@
+flowchart TD
+    subgraph gst["GStreamer Pipeline"]
+        filesrc["filesrc"]
+        demux["qtdemux"]
+        parse["h264parse"]
+        decode["v4l2h264dec"]
+        sink["kmssink"]
+        filesrc -->|MP4 container| demux -->|H.264 NALs| parse -->|Parsed stream| decode -->|dma-buf frames| sink
+    end
+    subgraph kernel["Kernel"]
+        drmkms["DRM/KMS"]
+        v4l2["V4L2 Layer"]
+        cedrus["Cedrus Driver"]
+    end
+    subgraph hw["Hardware"]
+        vpu["VPU"]
+        display["Display Engine"]
+    end
+    sink -->|Atomic commit| drmkms
+    decode -->|ioctl| v4l2
+    v4l2 --> cedrus
+    drmkms -->|Scanout| display
+    cedrus --> vpu

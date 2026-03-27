@@ -1,0 +1,21 @@
+Example: hello-1
+Status: executed
+
+Build log:
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_2.1_Kernel_DTB/study_package/examples/hello-1 modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_2.1_Kernel_DTB/study_package/examples/hello-1/hello-1.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_2.1_Kernel_DTB/study_package/examples/hello-1/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_2.1_Kernel_DTB/study_package/examples/hello-1/hello-1.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_2.1_Kernel_DTB/study_package/examples/hello-1/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_2.1_Kernel_DTB/study_package/examples/hello-1/hello-1.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+Command log:
+$ sudo insmod /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_2.1_Kernel_DTB/study_package/examples/hello-1/hello-1.ko
+$ bash -lc sleep 1
+$ sudo rmmod hello-1
+
+Kernel log delta:
+[12658.147494] Hello world 1.
+[12659.199192] Goodbye world 1.

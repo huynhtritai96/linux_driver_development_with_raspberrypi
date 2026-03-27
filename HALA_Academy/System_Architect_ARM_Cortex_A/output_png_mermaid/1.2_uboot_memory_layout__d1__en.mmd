@@ -1,0 +1,51 @@
+flowchart LR
+    subgraph sram["SRAM (160KB) - SPL Phase"]
+        b0["Boot0 / eGON<br/>32KB"]
+        b0_note["Allwinner first-stage"]
+        tfa["TF-A BL31<br/>~20KB"]
+        tfa_note["Secure Monitor<br/>Resident at EL3"]
+        spl["SPL Code<br/>~50KB"]
+        bi["board_init_f()<br/>DRAM init"]
+        sbase["0x00020000"]
+        sstack["SPL Stack<br/>16KB"]
+        stop["0x00044000"]
+    end
+    b0 --> tfa --> spl --> bi --> sstack
+    b0 -.-> b0_note
+    tfa -.-> tfa_note
+    sbase -. SRAM base .-> b0
+    stop -. SRAM top .-> sstack
+
+    subgraph dram["DRAM (4GB) - 0x40000000 Base"]
+        rsv["Reserved<br/>512KB"]
+        atf["ATF, SCP<br/>Secure areas"]
+        kaddr["0x40080000<br/>Kernel Load<br/>(kernel_addr_r)"]
+        image["zImage / Image<br/>loaded here"]
+        uboot["0x4A000000<br/>U-Boot Proper<br/>(~2MB)"]
+        bir["board_init_r()<br/>Full features"]
+        fdt["0x4FA00000<br/>DTB Load<br/>(fdt_addr_r)"]
+        dtb["Device Tree<br/>~100KB"]
+        ramdisk["0x4FE00000<br/>Ramdisk<br/>(ramdisk_addr_r)"]
+        initramfs["initramfs<br/>Optional"]
+        dbase["0x40000000"]
+        kspace["Kernel Space<br/>variable"]
+        heap["U-Boot Heap<br/>(CONFIG_SYS_MALLOC_LEN)"]
+        stackenv["Stack / Env<br/>(Top of RAM)"]
+        dtop["0xFFFFFFFF<br/>(4GB)"]
+    end
+    dbase --> rsv --> atf --> kaddr --> image --> uboot --> bir --> fdt --> dtb --> ramdisk --> initramfs --> kspace --> heap --> stackenv --> dtop
+
+    subgraph sd["SD Card Layout"]
+        off["8KB Offset<br/>u-boot-sunxi-with-spl.bin<br/>(~1MB)"]
+        contains["Contains:<br/>SPL (sunxi-spl.bin)<br/>U-Boot Proper<br/>Packed together"]
+        boot["Boot Partition<br/>(FAT32, 64MB)"]
+        bootfiles["Image / zImage<br/>sun50i-h616-*.dtb<br/>boot.scr"]
+        root["Root Partition<br/>(ext4, remaining)"]
+    end
+    off --> boot --> bootfiles --> root
+    off -.-> contains
+
+    map["Memory Regions & Sizes<br/>SRAM: 0x20000, 160KB, SPL/TF-A<br/>DRAM: 0x40000000, 1-4GB, Kernel/U-Boot<br/>U-Boot: 8KB offset, ~1MB, Bootloader"]
+    addrs["Important Addresses<br/>kernel_addr_r: 0x40080000<br/>fdt_addr_r: 0x4FA00000<br/>ramdisk_addr_r: 0x4FE00000"]
+    heap -.-> map
+    heap -.-> addrs

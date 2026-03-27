@@ -1,0 +1,39 @@
+flowchart TD
+    subgraph userspace["Userspace"]
+        app["Application"]
+        evtest["evtest"]
+        libinput["libinput"]
+    end
+
+    subgraph core["Kernel - Input Core"]
+        evdev["input_handler: evdev"]
+        mousedev["input_handler: mousedev"]
+        idev["input_dev"]
+    end
+
+    subgraph drivers["Kernel - Drivers"]
+        touchdrv["Touchscreen Driver"]
+        keydrv["Keyboard Driver"]
+        mousedrv["Mouse Driver"]
+    end
+
+    subgraph hw["Hardware"]
+        i2c_touch["I2C Touchscreen"]
+        usb_kbd["USB Keyboard"]
+        usb_mouse["USB Mouse"]
+    end
+
+    app -->|Use| libinput
+    evtest -->|ioctl| evdev
+    libinput -->|/dev/input/eventX| evdev
+    evdev -->|Events| idev
+    mousedev -->|Events| idev
+    touchdrv -->|input_report_abs()| idev
+    keydrv -->|input_report_key()| idev
+    mousedrv -->|input_report_rel()| idev
+    i2c_touch -->|IRQ + I2C| touchdrv
+    usb_kbd -->|USB| keydrv
+    usb_mouse -->|USB| mousedrv
+
+    reg_note["input_register_device()<br/>set_bit(EV_ABS, evbit)<br/>input_set_abs_params()"]
+    idev -.-> reg_note

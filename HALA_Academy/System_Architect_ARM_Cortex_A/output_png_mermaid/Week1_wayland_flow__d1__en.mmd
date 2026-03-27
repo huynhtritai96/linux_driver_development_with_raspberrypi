@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant APP as Client App
+    participant WESTON as Compositor (Weston)
+    participant DRM as DRM/KMS
+    participant DISP as Display
+    APP->>APP: Render to buffer
+    APP->>WESTON: wl_surface.attach(buffer)
+    APP->>WESTON: wl_surface.commit()
+    WESTON->>WESTON: Compose all surfaces
+    WESTON->>DRM: Atomic commit
+    DRM->>DISP: Page flip
+    DISP-->>WESTON: VSync
+    WESTON-->>APP: frame callback
+    Note over WESTON,DRM: 60 FPS = 16.67ms per frame<br/>Receive buffers<br/>Compose<br/>Submit to DRM

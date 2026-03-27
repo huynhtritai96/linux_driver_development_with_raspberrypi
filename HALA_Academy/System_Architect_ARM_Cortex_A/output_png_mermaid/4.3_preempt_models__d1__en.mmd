@@ -1,0 +1,8 @@
+flowchart LR
+    none["PREEMPT_NONE<br/>(Server)<br/>No kernel preemption<br/>Max throughput<br/>High latency (ms)<br/>Use: Servers, batch"]
+    voluntary["PREEMPT_VOLUNTARY<br/>(Desktop)<br/>Preempt at yield points<br/>Good throughput<br/>Medium latency<br/>Use: Desktop"]
+    preempt["PREEMPT<br/>(Low-Latency)<br/>Preempt anywhere<br/>Reduced throughput<br/>Low latency (sub-ms)<br/>Use: Audio/Video"]
+    rt["PREEMPT_RT<br/>(Real-Time)<br/>Full preemption<br/>IRQ threading<br/>Deterministic (us)<br/>Use: Industrial RT"]
+    note["Latency: NONE > VOLUNTARY > PREEMPT > RT<br/>Throughput: NONE > VOLUNTARY > PREEMPT > RT"]
+    none --> voluntary --> preempt --> rt
+    rt -.-> note

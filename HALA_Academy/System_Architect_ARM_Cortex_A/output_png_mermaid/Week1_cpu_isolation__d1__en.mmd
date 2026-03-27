@@ -1,0 +1,11 @@
+flowchart LR
+    subgraph isolated["Isolated CPU"]
+        cpu3["CPU 3<br/>RT task only<br/>No IRQs<br/>No timer ticks<br/>No kernel work"]
+    end
+    subgraph noniso["Non-Isolated CPUs"]
+        cpu0["CPU 0<br/>IRQs<br/>Kernel threads<br/>System services"]
+        cpu1["CPU 1<br/>IRQs<br/>User apps"]
+        cpu2["CPU 2<br/>RCU callbacks<br/>Background work"]
+    end
+    bootargs["bootargs: isolcpus=3 nohz_full=3 rcu_nocbs=3"]
+    cpu3 -.-> bootargs

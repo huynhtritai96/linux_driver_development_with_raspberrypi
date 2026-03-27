@@ -1,0 +1,32 @@
+flowchart TD
+    subgraph userspace["Userspace (Mesa)"]
+        cmd["Command Buffer (Job)"]
+    end
+
+    subgraph kernel["Kernel (Panfrost)"]
+        jm["Job Manager"]
+        mmu_cfg["MMU Config"]
+    end
+
+    subgraph hw["Mali-G31 GPU Hardware"]
+        subgraph slots["Job Slots"]
+            frag["Slot 0: Fragment"]
+            vertex["Slot 1: Vertex/Tiler"]
+            compute["Slot 2: Compute"]
+        end
+        subgraph shader["Shader Cores"]
+            core0["Core 0"]
+            core1["Core 1"]
+        end
+        l2["L2 Cache"]
+        mmu["MMU"]
+    end
+
+    cmd -->|ioctl(SUBMIT)| jm
+    jm -->|Map Memory| mmu_cfg
+    jm -->|Schedule Fragment Job| frag
+    jm -->|Schedule Vertex Job| vertex
+    frag -->|Execute| core0
+    vertex -->|Execute| core1
+    core0 --> l2
+    core1 --> l2

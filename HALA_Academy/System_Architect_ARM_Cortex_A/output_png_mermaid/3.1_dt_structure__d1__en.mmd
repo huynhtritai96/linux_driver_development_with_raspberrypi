@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph root["/ (Root Node)"]
+        props["Properties<br/>model = 'OrangePi Zero3'<br/>compatible = 'allwinner,sun50i-h616'<br/>#address-cells = &lt;2&gt;<br/>#size-cells = &lt;2&gt;"]
+        subgraph cpus["cpus"]
+            cpu0["cpu@0<br/>compatible = 'arm,cortex-a53'<br/>device_type = 'cpu'<br/>reg = &lt;0&gt;"]
+            cpu_note["#address-cells = &lt;1&gt;<br/>#size-cells = &lt;0&gt;"]
+        end
+        subgraph soc["soc"]
+            uart0["serial@5000000 (uart0)<br/>compatible = 'allwinner,sun50i-h616-uart'<br/>reg = &lt;0x05000000 0x400&gt;<br/>interrupts = &lt;GIC_SPI 0 ...&gt;<br/>clocks = &lt;&amp;ccu CLK_BUS_UART0&gt;<br/>status = 'okay'"]
+            i2c0["i2c@5002000 (i2c0)<br/>compatible = 'allwinner,sun50i-h616-i2c'<br/>reg = &lt;0x05002000 0x400&gt;<br/>status = 'okay'"]
+            pio["pinctrl@300b000 (pio)<br/>compatible = 'allwinner,sun50i-h616-pinctrl'<br/>gpio-controller<br/>#gpio-cells = &lt;3&gt;"]
+            soc_note["compatible = 'simple-bus'<br/>#address-cells = &lt;1&gt;<br/>#size-cells = &lt;1&gt;"]
+        end
+    end
+    fmt["Device Tree Format<br/>node-name@unit-address {<br/>compatible = 'vendor,device';<br/>reg = &lt;address size&gt;;<br/>status = 'okay';<br/>};"]
+    props --> cpu0
+    props --> uart0
+    cpu0 -.-> cpu_note
+    uart0 --> i2c0 --> pio
+    pio -.-> soc_note
+    props -.-> fmt

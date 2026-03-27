@@ -1,0 +1,24 @@
+Example: example_tasklet
+Status: executed
+
+Build log:
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/example_tasklet modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/example_tasklet/example_tasklet.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/example_tasklet/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/example_tasklet/example_tasklet.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/example_tasklet/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/example_tasklet/example_tasklet.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+Command log:
+$ sudo insmod /home/htritai/ldd/linux_driver_development_with_raspberrypi/HALA_Academy/System_Architect_ARM_Cortex_A/lectures/Bai_4.3_Scheduler/study_package/examples/example_tasklet/example_tasklet.ko
+$ bash -lc sleep 6
+$ sudo rmmod example_tasklet
+
+Kernel log delta:
+[12735.827197] tasklet example init
+[12735.827419] Example tasklet starts
+[12740.828073] Example tasklet ends
+[12741.029022] Example tasklet init continues...
+[12747.078492] tasklet example exit

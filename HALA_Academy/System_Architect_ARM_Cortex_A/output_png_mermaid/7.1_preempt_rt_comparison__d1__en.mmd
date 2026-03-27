@@ -1,0 +1,17 @@
+flowchart LR
+    subgraph standard["Standard Linux"]
+        irq["IRQ (hardirq)"]
+        softirq["Softirq"]
+        spin["Spinlock"]
+        snote["IRQ in interrupt context<br/>Cannot preempt in spinlock<br/>Latency: ms-level"]
+    end
+    subgraph rt["PREEMPT_RT"]
+        irqt["IRQ Thread"]
+        softt["Softirq Thread"]
+        mutex["Sleeping Spinlock<br/>(rt_mutex)"]
+        rnote["IRQ as kernel thread<br/>Can preempt everywhere<br/>Latency: us-level"]
+    end
+    irq --> softirq --> spin
+    irqt --> softt --> mutex
+    spin -.-> snote
+    mutex -.-> rnote

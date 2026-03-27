@@ -1,0 +1,18 @@
+sequenceDiagram
+    participant CPU as CPU Core
+    participant A as Task A (YouTube)
+    participant B as Task B (Background)
+    participant S as Scheduler
+    Note over CPU,S: Normal Execution
+    CPU->>A: Running for 5ms
+    A->>S: Preempted (time slice expired)
+    S->>B: Switch context
+    CPU->>B: Running
+    Note over CPU,S: Latency Event
+    B->>S: Sleep (yield)
+    S-->>A: Wakeup!
+    Note right of S: Target: switch to A<br/>Timestamp: T1
+    S-->>CPU: Spinlock contention?
+    Note left of CPU: Delay: 7ms (latency!)
+    CPU->>A: Running
+    Note right of A: Timestamp: T2<br/>Latency = T2 - T1

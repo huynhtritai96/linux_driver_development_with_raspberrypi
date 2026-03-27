@@ -1,0 +1,14 @@
+flowchart TB
+    server["OTA Server<br/>Update Artifact (.swu)"]
+    agent["SWUpdate Agent"]
+    subgraph storage["Storage (eMMC/SD)"]
+        data["Data<br/>User Data (Persist)"]
+        sysb["System B (Inactive/Update)<br/>Rootfs B<br/>Kernel B"]
+        sysa["System A (Active)<br/>Rootfs A<br/>Kernel A"]
+        boot["Bootloader<br/>SPL + U-Boot<br/>U-Boot Env"]
+    end
+    env["boot_count = 0<br/>upgrade_available = 1"]
+    server -->|Download| agent
+    agent -->|Stream write| sysb
+    agent -->|Set 'boot_part=B'| boot
+    boot -.-> env

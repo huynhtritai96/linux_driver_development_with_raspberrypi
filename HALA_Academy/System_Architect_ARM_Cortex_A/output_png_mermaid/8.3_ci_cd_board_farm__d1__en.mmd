@@ -1,0 +1,24 @@
+flowchart LR
+    dev["Developer"]
+    subgraph ci["GitLab / CI Server"]
+        repo["Git Repository"]
+        pipeline["CI Pipeline (Docker)"]
+    end
+    subgraph lab["Lab Host (Testing Server)"]
+        serial["Serial Consoles"]
+        runner["GitLab Runner"]
+        labgrid["LabGrid / PDU"]
+    end
+    subgraph dut["Device Under Test (DUT)"]
+        power["Power (Relay)"]
+        uart["UART (FTDI)"]
+        eth["Ethernet"]
+        opi["Orange Pi Zero 3<br/>Linux Kernel<br/>Bootloader"]
+    end
+    dev -->|Push code| repo
+    repo -->|Trigger build| pipeline
+    pipeline -->|Deploy artifacts| runner
+    runner -->|Control| labgrid
+    labgrid -->|Power cycle ON/OFF| power
+    labgrid -->|Send commands / Read logs| uart
+    labgrid -->|Fastboot / TFTP| eth

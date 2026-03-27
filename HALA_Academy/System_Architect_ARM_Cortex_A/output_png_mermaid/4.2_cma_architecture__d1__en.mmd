@@ -1,0 +1,19 @@
+flowchart TB
+    subgraph alloc["Allocators"]
+        dma["dma_alloc_coherent()"]
+        movable_alloc["alloc_pages(GFP_MOVABLE)"]
+    end
+
+    subgraph dram["Physical Memory (DRAM) - 1GB to 4GB"]
+        subgraph cma["CMA Region (256MB)"]
+            dma_buf["Allocated<br/>(DMA buffers)"]
+            cma_free["Free<br/>(reusable by movable)"]
+        end
+        kernel["Kernel Pages<br/>(vmalloc, kmalloc)"]
+        movable["Movable Pages<br/>(User pages, can migrate)"]
+    end
+
+    info["CMA (Contiguous Memory Allocator)<br/>Reserved at boot time<br/>Used by: VPU, GPU, Camera<br/>Movable pages can use when free"]
+    dma -->|Allocate contiguous| dma_buf
+    movable_alloc -->|Use when CMA idle| cma_free
+    cma_free -.-> info

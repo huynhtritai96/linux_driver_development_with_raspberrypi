@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant L as Low Priority L
+    participant M as Medium Priority M
+    participant H as High Priority H
+    participant PI as PI Mutex
+    participant MTX as MUTEX
+    Note over L,MTX: Normal Execution
+    L->>PI: Lock request
+    Note right of PI: L holds lock
+    Note over L,MTX: Inversion Scenario
+    H->>PI: Lock blocked
+    Note right of PI: H needs lock held by L
+    M-->>L: Preempt L (normal scheduler)
+    Note right of H: H runs, L blocked.<br/>H is effectively blocked by M!
+    Note over L,MTX: Priority Inheritance
+    PI-->>L: Boost priority (L -> H)
+    Note right of MTX: Kernel upgrades L to H's priority
+    L->>L: Execute critical section
+    L->>PI: Unlock request
+    PI-->>H: Grant lock
+    H->>H: Execute critical section
+    H->>PI: Unlock request
