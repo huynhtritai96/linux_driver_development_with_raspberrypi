@@ -484,7 +484,6 @@ Result:
 
 ---
 # 9. Why not collapse everything into one object?
-
 Because each layer serves a different purpose.
 
 ## `cdev`

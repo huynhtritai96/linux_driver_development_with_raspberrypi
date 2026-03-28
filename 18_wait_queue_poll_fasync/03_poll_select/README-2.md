@@ -6,7 +6,6 @@ I’ll do two things:
 2. give **senior comments on the code**, including a few important fixes
 
 ---
-
 # Improved senior mental model
 
 ```text
@@ -16,93 +15,63 @@ POLL(), SELECT(), WAIT QUEUES, AND DEVICE READINESS — SENIOR MENTAL MODEL
 
 KEY QUESTION
 ----------------------------------------------------------------------------------------------------
-How can one userspace process wait efficiently for events from one or many file descriptors,
-without:
-
+How can one userspace process wait efficiently for events from one or many file descriptors, without:
     - blocking forever on just one read()
     - busy-looping and wasting CPU
     - creating one thread per fd
 
 This is what poll() and select() solve.
+From the driver side, both are supported through the same file operation: .poll = my_poll
 
-From the driver side, both are supported through the same file operation:
-
-    .poll = my_poll
-
-So the real driver-side question is:
-
-    "How does the driver tell the kernel:
-         'This fd is not ready yet, but here is the wait queue to sleep on.
-          Wake the process when the device becomes readable.' ?"
+So the real driver-side question is: "How does the driver tell the kernel: 'This fd is not ready yet, but here is the wait queue to sleep on. Wake the process when the device becomes readable.' ?"
 
 ====================================================================================================
 PART 1 — THE BIG IDEA
 ====================================================================================================
-
 There are three related but different mechanisms:
 
 1. blocking read()
 ----------------------------------------------------------------------------------------------------
-Userspace calls:
-
-    read(fd, ...)
-
-If device has no data:
-    driver may put this process to sleep
+Userspace calls: read(fd, ...)
+If device has no data: driver may put this process to sleep
 
 This waits on ONE fd only.
 
 2. non-blocking read()
 ----------------------------------------------------------------------------------------------------
 Userspace opens fd with O_NONBLOCK
-
-If device has no data:
-    driver returns -EAGAIN immediately
-
+If device has no data: driver returns -EAGAIN immediately
 This never sleeps, but userspace must retry or use event mechanisms.
 
 3. poll()/select()
 ----------------------------------------------------------------------------------------------------
-Userspace gives kernel a SET of file descriptors and says:
-
-    "Sleep until one or more of these become ready."
+Userspace gives kernel a SET of file descriptors and says: "Sleep until one or more of these become ready."
 
 This is the event-driven model.
 
 Senior summary:
 ----------------------------------------------------------------------------------------------------
-read() answers:
-    "give me data now"
-
-poll()/select() answer:
-    "tell me when it makes sense to call read()"
-
+read() answers: "give me data now"
+poll()/select() answer: "tell me when it makes sense to call read()"
 That distinction is the heart of this lesson.
 
 ====================================================================================================
 PART 2 — WHAT poll()/select() REALLY WAIT FOR
 ====================================================================================================
-
 poll() and select() do NOT read data by themselves.
-
-They do NOT transfer payload bytes.
-
-They only wait for readiness.
+They do NOT transfer payload bytes. They only wait for readiness.
 
 Meaning:
 ----------------------------------------------------------------------------------------------------
 The driver does not send data during .poll().
 
-Instead, .poll() answers a question like:
+Instead, .poll() answers a question like: "Is this file descriptor readable right now?"
 
-    "Is this file descriptor readable right now?"
-
-If yes:
-    return a readiness bitmask
+If yes: return a readiness bitmask
 
 If no:
-    return 0,
-    but also register the wait queue that should wake the process later
+    - return 0,
+    - but also register the wait queue that should wake the process later
 
 Senior mental model:
 ----------------------------------------------------------------------------------------------------
@@ -110,7 +79,6 @@ Senior mental model:
 .poll() is the readiness path
 
 Then later:
-
     userspace sees fd is readable
         ↓
     userspace calls read()
@@ -127,24 +95,17 @@ Button press on GPIO 20
 
 Driver meaning:
 ----------------------------------------------------------------------------------------------------
-Button press means:
-    "new event happened"
-
-Previous wait-queue lesson used:
-    data_available = 0 / 1
-
-Improved poll lesson uses:
-    event_count
+Button press means: "new event happened"
+Previous wait-queue lesson used: data_available = 0 / 1
+Improved poll lesson uses: event_count
 
 Why event_count is better:
 ----------------------------------------------------------------------------------------------------
 A single shared boolean is too weak once multiple fds are open.
 
-With multiple opens, if one open consumes the flag,
-the others may miss the event.
+With multiple opens, if one open consumes the flag, the others may miss the event.
 
 So this lesson upgrades the model to:
-
     global event counter
         +
     per-open last seen event
@@ -158,13 +119,11 @@ PART 4 — GLOBAL STATE vs PER-OPEN STATE
 GLOBAL DEVICE STATE
 ----------------------------------------------------------------------------------------------------
 shared by all opens:
-
     static unsigned int event_count;
     static DECLARE_WAIT_QUEUE_HEAD(my_wait_queue);
     static char message[] = "Hello from Kernel!";
 
-Meaning:
-    event_count counts how many device events happened globally
+Meaning: event_count counts how many device events happened globally
 
 PER-OPEN STATE
 ----------------------------------------------------------------------------------------------------
@@ -174,58 +133,39 @@ stored in file->private_data:
         unsigned int last_event;
     };
 
-Meaning:
-    each open file descriptor remembers:
-        "What was the last event number I already observed?"
+Meaning: each open file descriptor remembers: "What was the last event number I already observed?"
 
 This is the crucial scaling idea.
 
 Senior mental model:
 ----------------------------------------------------------------------------------------------------
-event_count
-    = producer-side global timeline
-
-last_event
-    = consumer-side per-fd cursor into that timeline
+event_count = producer-side global timeline
+last_event = consumer-side per-fd cursor into that timeline
 
 This is much more powerful than one shared `data_available` flag.
 
 ====================================================================================================
 PART 5 — WHAT HAPPENS ON open()
 ====================================================================================================
-
-Userspace:
-    fd = open("/dev/my_cdev0", O_RDONLY);
-
-Kernel path:
-    my_open(inode, file)
+Userspace: fd = open("/dev/my_cdev0", O_RDONLY);
+Kernel path: my_open(inode, file)
 
 Driver does:
 ----------------------------------------------------------------------------------------------------
 1. allocate one `struct my_dev_data`
-2. initialize:
-
-       data->last_event = event_count;
-
-3. store it in:
-
-       file->private_data = data;
+2. initialize: data->last_event = event_count;
+3. store it in: file->private_data = data;
 
 Meaning:
 ----------------------------------------------------------------------------------------------------
 This file descriptor is synchronized to "now".
 
-So it will only see FUTURE events,
-not old events that happened before this open.
+So it will only see FUTURE events, not old events that happened before this open.
 
 Diagram:
 ----------------------------------------------------------------------------------------------------
-
-open fd1:
-    file1->private_data ---> { last_event = current event_count }
-
-open fd2:
-    file2->private_data ---> { last_event = current event_count }
+open fd1: file1->private_data ---> { last_event = current event_count }
+open fd2: file2->private_data ---> { last_event = current event_count }
 
 So each fd gets its own view of event progress.
 
@@ -252,9 +192,8 @@ Important:
 The ISR does NOT copy data to userspace.
 The ISR does NOT directly call read().
 The ISR only does two things:
-
-    publish readiness
-    notify sleepers
+    - publish readiness
+    - notify sleepers
 
 Senior mental model:
 ----------------------------------------------------------------------------------------------------
@@ -266,18 +205,12 @@ PART 7 — BLOCKING read() IN THIS IMPROVED MODEL
 
 Driver-side read logic:
 ----------------------------------------------------------------------------------------------------
-Get per-open state:
-
-    struct my_dev_data *data = file->private_data;
-
-Then compare:
-
-    if (data->last_event == event_count)
+Get per-open state: struct my_dev_data *data = file->private_data;
+Then compare: if (data->last_event == event_count)
 
 Meaning:
 ----------------------------------------------------------------------------------------------------
 This fd has not seen any new event yet.
-
 Now there are two branches:
 
 A) non-blocking open
@@ -285,17 +218,13 @@ A) non-blocking open
 if (file->f_flags & O_NONBLOCK)
     return -EAGAIN;
 
-Meaning:
-    "No new event for this fd right now."
+Meaning: "No new event for this fd right now."
 
 B) blocking open
 ----------------------------------------------------------------------------------------------------
-sleep until:
+sleep until: data->last_event != event_count
 
-    data->last_event != event_count
-
-This means:
-    "Wake me only when a newer event exists than the one this fd already consumed."
+This means: "Wake me only when a newer event exists than the one this fd already consumed."
 
 After wakeup:
 ----------------------------------------------------------------------------------------------------
@@ -303,8 +232,7 @@ After wakeup:
     copy_to_user(..., message, sizeof(message));
     return sizeof(message);
 
-Meaning:
-    this fd is now caught up to the latest event
+Meaning: this fd is now caught up to the latest event
 
 Senior mental model:
 ----------------------------------------------------------------------------------------------------
@@ -315,43 +243,30 @@ PART 8 — WHY THIS PER-FD DESIGN MATTERS
 ====================================================================================================
 
 Suppose two fds are open:
-
     fd1
     fd2
 
-Both have:
-    last_event = 7
-
-Then button press occurs:
-    event_count becomes 8
-
-Now both see:
-
-    last_event != event_count
+Both have: last_event = 7
+Then button press occurs: event_count becomes 8
+Now both see: last_event != event_count
 
 So both are readable.
-
 Then:
-
     read(fd1) -> fd1.last_event becomes 8
     read(fd2) -> fd2.last_event becomes 8
 
 Result:
 ----------------------------------------------------------------------------------------------------
 Both file descriptors independently observe the same event once.
-
 This is exactly what you want for a multi-fd poll demo.
-
 If you had only a single shared boolean:
 ----------------------------------------------------------------------------------------------------
 One reader could clear it before the other notices it.
-
 That would make the multi-fd example behave incorrectly.
 
 Senior takeaway:
 ----------------------------------------------------------------------------------------------------
-shared event source + per-open consumption state
-is the correct architecture for this demo
+shared event source + per-open consumption state is the correct architecture for this demo
 
 ====================================================================================================
 PART 9 — WHAT .poll() REALLY DOES
@@ -373,7 +288,6 @@ static __poll_t my_poll(struct file *file, struct poll_table_struct *wait)
 }
 
 This function has two responsibilities:
-
 1. register the wait queue
 ----------------------------------------------------------------------------------------------------
     poll_wait(file, &my_wait_queue, wait);
@@ -390,25 +304,19 @@ Senior mental model:
 .poll() does not sleep directly
 .poll() does not move data
 .poll() only:
-
     - tells kernel where this task should be woken from
     - tells kernel whether fd is ready right now
 
 ====================================================================================================
 PART 10 — VERY IMPORTANT: poll_wait() DOES NOT SLEEP
 ====================================================================================================
-
 This is the most commonly misunderstood part.
 
-`poll_wait()` does NOT mean:
-    "put the process to sleep now"
+`poll_wait()` does NOT mean: "put the process to sleep now"
 
-It only means:
-    "if the kernel decides this task must sleep,
-     associate this wait queue with that sleep"
+It only means: "if the kernel decides this task must sleep, associate this wait queue with that sleep"
 
 So the actual sequence is:
-
     userspace calls poll()
         ↓
     kernel calls driver's .poll()
@@ -436,7 +344,6 @@ Userspace:
 
 Kernel-side conceptual flow:
 ----------------------------------------------------------------------------------------------------
-
     poll()
         ↓
     call my_poll(file, wait)
@@ -488,19 +395,10 @@ PART 12 — WHY .poll() AND read() MUST AGREE
 ====================================================================================================
 
 A very important driver design rule:
-
-If `.poll()` says:
-    "fd is readable"
-
+If `.poll()` says: "fd is readable"
 then `read()` should actually be able to make progress.
-
-In this driver, both use the same condition:
-
-    data->last_event != event_count
-
-So they are consistent.
-
-That is correct design.
+In this driver, both use the same condition: data->last_event != event_count
+So they are consistent. That is correct design.
 
 If `.poll()` and `read()` used different readiness logic:
 ----------------------------------------------------------------------------------------------------
@@ -515,22 +413,18 @@ Senior rule:
 ====================================================================================================
 PART 13 — WHY POLLIN / POLLRDNORM ARE RETURNED
 ====================================================================================================
-
 Readable mask usually includes:
-
     POLLIN
     POLLRDNORM
 
 Meaning:
 ----------------------------------------------------------------------------------------------------
 This fd has normal data ready for reading.
-
 That is the standard mask for a read-oriented character device.
 
 Senior note:
 ----------------------------------------------------------------------------------------------------
 In driver `.poll()`, prefer returning:
-
     POLLIN | POLLRDNORM
 
 not EPOLLIN names directly, even though values are related.
@@ -549,15 +443,12 @@ From userspace:
 But from the driver side:
 ----------------------------------------------------------------------------------------------------
 they both go through the same `.poll` file operation
-
 So:
-
     userspace poll()
         ↓
     driver .poll()
 
 and
-
     userspace select()
         ↓
     driver .poll()
@@ -565,7 +456,6 @@ and
 Meaning:
 ----------------------------------------------------------------------------------------------------
 There is no separate `.select` file operation in the driver.
-
 That is why your driver implementation is identical for both.
 
 Senior takeaway:
@@ -598,17 +488,13 @@ Senior mental model:
 select() is the older bitmask model
 poll() is the structured descriptor-array model
 
-But both ask the same kernel question:
-    "Which of these fds are ready now?"
+But both ask the same kernel question: "Which of these fds are ready now?"
 
 ====================================================================================================
 PART 16 — MULTI-FD POLL IS THE REAL DEMO
 ====================================================================================================
-
 The strongest part of this lesson is the multi-fd example.
-
 Userspace monitors:
-
     fds[0] = STDIN
     fds[1] = fd1 for /dev/my_cdev0
     fds[2] = fd2 for /dev/my_cdev0
@@ -618,7 +504,6 @@ One single `poll()` call watches all three.
 Meaning:
 ----------------------------------------------------------------------------------------------------
 One thread can wait for:
-
     - keyboard input
     - device instance 1 event
     - device instance 2 event
@@ -640,9 +525,7 @@ poll() is a readiness multiplexer
 ====================================================================================================
 PART 17 — WHY THE MULTI-FD VERSION NEEDED private_data
 ====================================================================================================
-
-Without private_data and per-fd `last_event`,
-both device fds would share identical state too crudely.
+Without private_data and per-fd `last_event`, both device fds would share identical state too crudely.
 
 With private_data:
 ----------------------------------------------------------------------------------------------------
@@ -653,16 +536,14 @@ So after one interrupt:
 both fd1 and fd2 become readable independently
 
 That is why in the kernel log you saw:
-    two poll events
-    two read calls
+    - two poll events
+    - two read calls
 
-And after fixing userspace printf newline buffering,
-you saw both messages printed.
+And after fixing userspace printf newline buffering, you saw both messages printed.
 
 Senior takeaway:
 ----------------------------------------------------------------------------------------------------
-This is the first place where private_data becomes essential
-for correct per-open behavior in an event-driven driver.
+This is the first place where private_data becomes essential for correct per-open behavior in an event-driven driver.
 
 ====================================================================================================
 PART 18 — WHAT THE USERSPACE TEST APPS PROVE
@@ -691,32 +572,20 @@ This is the real value of poll/select.
 PART 19 — IMPORTANT DESIGN DISTINCTIONS
 ====================================================================================================
 
-read()
-----------------------------------------------------------------------------------------------------
-moves actual data
+read() : moves actual data
 
-.poll()
-----------------------------------------------------------------------------------------------------
-reports readiness only
+.poll() : reports readiness only
 
-wait_event_interruptible()
-----------------------------------------------------------------------------------------------------
-used in driver's blocking read path
+wait_event_interruptible() : used in driver's blocking read path
 
-poll_wait()
-----------------------------------------------------------------------------------------------------
-used in driver's readiness-registration path
+poll_wait() : used in driver's readiness-registration path
 
-wake_up_interruptible()
-----------------------------------------------------------------------------------------------------
-same wakeup mechanism can wake:
+wake_up_interruptible() : same wakeup mechanism can wake:
     - blocking readers sleeping in wait_event_interruptible()
     - poll/select waiters registered through poll_wait()
 
 This is a powerful design point:
-----------------------------------------------------------------------------------------------------
 the same wait queue can support both:
-
     direct blocking read()
 and
     poll/select readiness waiting
@@ -733,41 +602,33 @@ PART 20 — CODE ISSUES / SENIOR FIXES
 1. Syntax bug
 ----------------------------------------------------------------------------------------------------
 You have:
-
     static struct cdev my_cdev;2
 
 That is a compile error.
 It should be:
-
     static struct cdev my_cdev;
 
 2. Use POLLIN / POLLRDNORM in driver
 ----------------------------------------------------------------------------------------------------
 Prefer:
-
     mask |= POLLIN | POLLRDNORM;
-
 instead of EPOLLIN / EPOLLRDNORM in `.poll()`.
 
 3. event_count concurrency
 ----------------------------------------------------------------------------------------------------
 `event_count` is modified in interrupt context and read in process context.
 
-For a teaching demo this may appear okay,
-but better designs would consider:
-
+For a teaching demo this may appear okay, but better designs would consider:
     - atomic_t
     - READ_ONCE / WRITE_ONCE
     - locking if needed
 
 Example better direction:
-
     static atomic_t event_count = ATOMIC_INIT(0);
 
 4. Need private_data NULL checks
 ----------------------------------------------------------------------------------------------------
 In `my_read()` and `my_poll()`, safer to validate:
-
     if (!data)
         return ...
 
@@ -778,7 +639,6 @@ Good that you return -ENOMEM.
 6. my_release() should null out pointer
 ----------------------------------------------------------------------------------------------------
 Not strictly necessary here, but clearer:
-
     kfree(file->private_data);
     file->private_data = NULL;
 
@@ -786,9 +646,7 @@ Not strictly necessary here, but clearer:
 ----------------------------------------------------------------------------------------------------
 Current init error labels are incomplete.
 
-If `device_create()` succeeded and GPIO setup fails,
-you should still call:
-
+If `device_create()` succeeded and GPIO setup fails, you should still call:
     device_destroy(my_class, dev_nr);
 
 before class_destroy()
@@ -825,21 +683,15 @@ This lesson is best understood as a two-phase design:
 PHASE 1 — readiness detection
 ----------------------------------------------------------------------------------------------------
 Driver implements `.poll()` and says:
+    "This fd is readable when: data->last_event != event_count"
 
-    "This fd is readable when:
-         data->last_event != event_count"
-
-If not ready:
-    register wait queue through poll_wait()
+If not ready: register wait queue through poll_wait()
 
 PHASE 2 — actual transfer
 ----------------------------------------------------------------------------------------------------
-Once userspace is told the fd is readable,
-it calls `read()`,
-and the driver copies payload bytes to user space.
+Once userspace is told the fd is readable, it calls `read()`, and the driver copies payload bytes to user space.
 
 So the real architecture is:
-
     hardware event
         ↓
     ISR increments global event timeline
@@ -862,33 +714,24 @@ That is the correct mental model for poll/select in Linux drivers.
 ```
 
 # Senior comments in plain words
-
 The **three most important ideas** here are these:
 
 ### 1. `.poll()` does not send data
-
 It only answers:
-
 ```text
 Can read() make progress right now?
 ```
-
 That is all.
 
 ### 2. `poll_wait()` does not sleep
-
 It only says:
-
 ```text
 If you later decide to sleep this task, use this wait queue.
 ```
-
 The actual sleeping is done by the kernel’s poll/select infrastructure.
 
 ### 3. `event_count + last_event` is much better than `data_available`
-
 Because it gives you:
-
 * one global event source
 * one per-open event cursor
 

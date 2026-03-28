@@ -60,7 +60,6 @@ Once set, `read()` will never sleep — it returns immediately.
 ---
 
 ## Driver-Side Implementation
-
 Inside the driver's `.read()` callback, we check the `O_NONBLOCK` flag by inspecting `file->f_flags`:
 
 ```c++
@@ -100,21 +99,17 @@ static ssize_t my_read(struct file *file,
 
 Blocking Mode:
 
-
 User → read() → Driver → data_available == 0 → Sleep → ISR sets data_available = 1 → Wake up → Return data
 
 
 Non-Blocking Mode:
-
 User → read() → Driver → data_available == 0 → Return -EAGAIN immediately
 
 ---
 
-
 1. Load driver
 2. Open device normally
-3. Call `read()`
-   → Terminal hangs (blocking)
+3. Call `read()` → Terminal hangs (blocking)
 
 -------------------------------------
 #### Full Driver Code:    
@@ -173,7 +168,6 @@ Because the file was opened with `O_NONBLOCK` and `data_available == 0`, the dri
 
 
 #### *Step 3* — Press the hardware button
-
 The falling edge on GPIO 20 triggers the ISR:
 ```
 my_cdev: GPIO Interrupt occoured
@@ -200,7 +194,6 @@ Because `data_available == 1`, the driver skips the blocking check,
 resets `data_available = 0`, copies the message to user space,  and returns.
 
 ### Test 2: Blocking Read with `cat`
-
 #### *Step 1* : run test program
 
 ```bash
@@ -213,7 +206,6 @@ while (read(fd, buf, size) > 0)
 ```
 
 What happens:
-
 `data_available == 0` → my_read enters blocking mode and spins in `cpu_relax()`.
  ```c++
  while (!data_available) 

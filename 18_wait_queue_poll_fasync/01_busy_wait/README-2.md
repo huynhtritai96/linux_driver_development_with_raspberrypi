@@ -16,13 +16,11 @@ BLOCKING I/O, NON-BLOCKING I/O, AND WAIT QUEUES — SENIOR MENTAL MODEL
 KEY QUESTION
 ----------------------------------------------------------------------------------------------------
 When userspace does:
-
     read(fd, ...)
 
 and your driver has no data ready yet, what should happen?
 
 There are only two correct models:
-
     1. NON-BLOCKING MODE
        return immediately with -EAGAIN
 
@@ -44,7 +42,6 @@ Logical driver event:
     "button press means data is now available"
 
 So the architecture is:
-
     button press
         ↓
     GPIO interrupt occurs
@@ -54,8 +51,7 @@ So the architecture is:
         ↓
     blocked readers may proceed
 
-This is the key bridge:
-    a hardware event becomes a driver readiness event
+This is the key bridge: a hardware event becomes a driver readiness event
 
 ====================================================================================================
 TWO I/O MODES — THE REAL DIFFERENCE
@@ -64,32 +60,25 @@ TWO I/O MODES — THE REAL DIFFERENCE
 A) NON-BLOCKING I/O
 ----------------------------------------------------------------------------------------------------
 If userspace opened the device with:
-
     O_NONBLOCK
 
 then `read()` must NEVER sleep.
 
-If data is available:
-    return data immediately
+If data is available: return data immediately
+If data is not available: return -EAGAIN immediately
 
-If data is not available:
-    return -EAGAIN immediately
-
-Mental model:
-    "Do not wait for me. Just tell me whether data is ready right now."
+Mental model: "Do not wait for me. Just tell me whether data is ready right now."
 
 B) BLOCKING I/O
 ----------------------------------------------------------------------------------------------------
 If userspace did NOT open with O_NONBLOCK,
 then `read()` is allowed to sleep until data becomes available.
 
-Mental model:
-    "Wait until you have something for me."
+Mental model: "Wait until you have something for me."
 
 Senior summary:
 ----------------------------------------------------------------------------------------------------
 non-blocking mode changes the contract of `read()`:
-
     no data:
         blocking  -> sleep
         nonblock  -> -EAGAIN
@@ -99,15 +88,12 @@ WHERE THE DRIVER DECIDES THIS
 ====================================================================================================
 
 Inside `.read()`, the driver checks:
-
     file->f_flags & O_NONBLOCK
 
 So the decision happens per-open file instance.
-
 That means:
 ----------------------------------------------------------------------------------------------------
 two processes can open the same device differently:
-
     process A -> blocking open
     process B -> non-blocking open
 
@@ -121,25 +107,20 @@ This is a very important senior point:
 ====================================================================================================
 CURRENT DRIVER-SIDE READINESS STATE
 ====================================================================================================
-
 Code uses:
-
     static int data_available = 0;
     static char message[] = "Hello from kernel\n";
 
 Meaning:
 ----------------------------------------------------------------------------------------------------
-`data_available`
-    is the simplest possible readiness flag
+`data_available` is the simplest possible readiness flag
 
     0 = no data ready
     1 = data ready
 
-`message`
-    is the payload returned when data becomes available
+`message` is the payload returned when data becomes available
 
 So the driver is behaving like:
-
     one shared event flag
     +
     one fixed message
@@ -172,7 +153,6 @@ If later `data_available == 1`:
     return message length
 
 So non-blocking path means:
-
     no data:
         no sleep
         no wait queue
@@ -195,7 +175,6 @@ BLOCKING READ — THE WRONG FIRST VERSION
 ====================================================================================================
 
 First version uses:
-
     while (!data_available)
         cpu_relax();
 
@@ -212,12 +191,9 @@ What really happens:
 
 Process state:
 ----------------------------------------------------------------------------------------------------
-it remains effectively runnable / running,
-not sleeping in the proper wait state
+it remains effectively runnable / running, not sleeping in the proper wait state
 
-So although it looks like "blocking" from userspace
-because `read()` does not return,
-internally it is a bad implementation.
+So although it looks like "blocking" from userspace because `read()` does not return, internally it is a bad implementation.
 
 Senior mental model:
     busy wait is not real sleep
@@ -230,9 +206,7 @@ WHY BUSY WAIT IS BAD
 Problem 1 — wastes CPU
 ----------------------------------------------------------------------------------------------------
 The process consumes CPU just to repeatedly check one variable.
-
 So:
-
     cat /dev/my_cdev0
 
 can show:
@@ -245,21 +219,17 @@ signals like Ctrl+C or kill -9 are not acted on immediately.
 
 Why:
 ----------------------------------------------------------------------------------------------------
-the signal may become pending,
-but the task is not returning to a point where normal signal handling can complete cleanly.
+the signal may become pending, but the task is not returning to a point where normal signal handling can complete cleanly.
 
 Problem 3 — module unload problems
 ----------------------------------------------------------------------------------------------------
-The process still holds an open file descriptor,
-so the module reference count does not drop to zero.
+The process still holds an open file descriptor, so the module reference count does not drop to zero.
 
-If the process is stuck spinning in driver code,
-unloading becomes hard or impossible until the read path exits.
+If the process is stuck spinning in driver code, unloading becomes hard or impossible until the read path exits.
 
 Problem 4 — bad design for real drivers
 ----------------------------------------------------------------------------------------------------
-A real kernel driver must not waste CPU waiting for an event
-that can be represented as a sleep/wakeup condition.
+A real kernel driver must not waste CPU waiting for an event that can be represented as a sleep/wakeup condition.
 
 Senior takeaway:
 ----------------------------------------------------------------------------------------------------
@@ -270,16 +240,11 @@ WHY PRESSING THE BUTTON “FREES” THE STUCK PROCESS
 ====================================================================================================
 
 While spinning:
-
     while (!data_available)
         cpu_relax();
 
-the only exit path is:
-    data_available becomes 1
-
-That happens only when ISR runs:
-
-    data_available = 1;
+the only exit path is: data_available becomes 1
+That happens only when ISR runs: data_available = 1;
 
 So after button press:
 ----------------------------------------------------------------------------------------------------
@@ -291,8 +256,7 @@ my_read() returns
     ↓
 pending signal / process cleanup can finally complete
 
-That is why kill may appear to “do nothing”
-until the button is pressed.
+That is why kill may appear to “do nothing” until the button is pressed.
 
 Senior mental model:
     the process is not kill-proof
@@ -307,16 +271,10 @@ A wait queue is a kernel-managed sleep/wakeup mechanism.
 
 Mental model:
 ----------------------------------------------------------------------------------------------------
-Instead of doing this:
-
-    "keep checking the condition in a loop"
-
-you do this:
-
-    "put me to sleep until the condition becomes true"
+Instead of doing this: "keep checking the condition in a loop"
+you do this: "put me to sleep until the condition becomes true"
 
 So a wait queue is conceptually:
-
     condition is false
         ↓
     process goes to sleep
@@ -358,9 +316,7 @@ Senior mental model:
 ====================================================================================================
 WAIT QUEUE DECLARATION
 ====================================================================================================
-
 Two common forms:
-
 1. Static declaration
 ----------------------------------------------------------------------------------------------------
     DECLARE_WAIT_QUEUE_HEAD(my_queue);
@@ -381,7 +337,6 @@ THE REAL BLOCKING PATH WITH wait_event_interruptible()
 ====================================================================================================
 
 Correct read-side model:
-
     if (!data_available) {
         if (file->f_flags & O_NONBLOCK)
             return -EAGAIN;
@@ -394,12 +349,8 @@ Correct read-side model:
 Meaning:
 ----------------------------------------------------------------------------------------------------
 If data is not ready:
-
-    non-blocking open
-        -> return -EAGAIN immediately
-
-    blocking open
-        -> sleep on wait queue until data_available != 0
+    non-blocking open -> return -EAGAIN immediately
+    blocking open -> sleep on wait queue until data_available != 0
 
 If a signal interrupts the sleep:
     wait_event_interruptible() returns nonzero
@@ -408,16 +359,13 @@ If a signal interrupts the sleep:
 Senior mental model:
 ----------------------------------------------------------------------------------------------------
 `wait_event_interruptible(queue, condition)` means:
-
-    "Sleep here until condition becomes true,
-     but allow signals to interrupt the sleep."
+    "Sleep here until condition becomes true, but allow signals to interrupt the sleep."
 
 ====================================================================================================
 WHY THE CONDITION IS RECHECKED
 ====================================================================================================
 
-The wait queue does not mean:
-    "blindly wake and continue"
+The wait queue does not mean: "blindly wake and continue"
 
 It means:
     wake up
@@ -430,8 +378,7 @@ Correct mental model:
 wake_up_interruptible(...)
     does NOT mean data is automatically consumed
 
-It means:
-    "Readers waiting on this condition should run again and check whether they may proceed now."
+It means: "Readers waiting on this condition should run again and check whether they may proceed now."
 
 That is why the API is condition-based.
 
@@ -444,7 +391,6 @@ Producer in this lesson:
 GPIO interrupt service routine
 
 ISR does:
-
     data_available = 1;
     wake_up_interruptible(&my_queue);
 
@@ -456,11 +402,9 @@ Meaning:
 Important ordering:
 ----------------------------------------------------------------------------------------------------
 Set the condition first:
-
     data_available = 1;
 
 Then wake:
-
     wake_up_interruptible(...)
 
 Because the reader wakes and rechecks the condition.
@@ -480,7 +424,7 @@ Blocking reader path:
 Userspace:
     cat /dev/my_cdev0
         ↓
-    read()
+      read()
 
 Kernel:
     my_read()
@@ -516,8 +460,7 @@ Userspace:
 
 Then `cat` reads again:
 ----------------------------------------------------------------------------------------------------
-if no new button press,
-reader sleeps again
+if no new button press, reader sleeps again
 
 This is exactly how a proper blocking event-driven device should behave.
 
@@ -526,7 +469,6 @@ WHY CTRL+C NOW WORKS
 ====================================================================================================
 
 Because the process is no longer spinning in a busy loop.
-
 It is sleeping in an interruptible wait.
 
 So when signal arrives:
@@ -541,8 +483,7 @@ This is a huge practical improvement.
 
 Senior takeaway:
 ----------------------------------------------------------------------------------------------------
-wait queues are not only about CPU efficiency,
-they are also about correct interaction with signals and task lifecycle.
+wait queues are not only about CPU efficiency, they are also about correct interaction with signals and task lifecycle.
 
 ====================================================================================================
 WHAT NON-BLOCKING MODE LOOKS LIKE AFTER WAIT QUEUE IS ADDED
@@ -553,7 +494,6 @@ Important:
 The non-blocking path does NOT fundamentally change.
 
 Even after adding wait queues:
-
     if O_NONBLOCK and no data
         return -EAGAIN
 
@@ -568,7 +508,6 @@ USERSpace TEST PROGRAM — WHAT IT PROVES
 ====================================================================================================
 
 The test app does:
-
     open(argv[1], O_RDONLY | O_NONBLOCK)
     read(fd, buffer, sizeof(buffer))
     print result
@@ -576,19 +515,13 @@ The test app does:
 
 If no data is available:
 ----------------------------------------------------------------------------------------------------
-read fails with:
-    Resource temporarily unavailable
-
-That proves:
-    driver correctly returned -EAGAIN
+read fails with: Resource temporarily unavailable
+That proves: driver correctly returned -EAGAIN
 
 If button was pressed first:
 ----------------------------------------------------------------------------------------------------
-read succeeds and receives:
-    Hello from kernel
-
-That proves:
-    data_available flag and ISR event path work
+read succeeds and receives: Hello from kernel
+That proves: data_available flag and ISR event path work
 
 The `cat` test proves the blocking path:
 ----------------------------------------------------------------------------------------------------
@@ -617,17 +550,14 @@ Per-open state:
 
 Important:
 ----------------------------------------------------------------------------------------------------
-This lesson is not yet using `file->private_data`.
-So readiness is device-global, not per-open.
+This lesson is not yet using `file->private_data`. So readiness is device-global, not per-open.
 
 That means:
-    one button press makes data available for the device as a whole,
-    not for one specific open session.
+    one button press makes data available for the device as a whole, not for one specific open session.
 
 Senior interpretation:
 ----------------------------------------------------------------------------------------------------
-This is okay for learning event-driven I/O,
-but a more advanced design may later move readiness and buffering into per-open or per-device context structs.
+This is okay for learning event-driven I/O, but a more advanced design may later move readiness and buffering into per-open or per-device context structs.
 
 ====================================================================================================
 WHAT THIS LESSON IS REALLY TEACHING
@@ -637,7 +567,6 @@ This is not mainly a GPIO lesson.
 GPIO is only the event source.
 
 This is really a lesson about:
-
     driver read semantics
 
 It teaches three levels:
@@ -693,26 +622,20 @@ CODE / DESIGN ISSUES TO NOTICE
 
 1. `argc` validation missing in test program
 ----------------------------------------------------------------------------------------------------
-You use:
-    argv[1]
-
-So you should validate:
-    argc < 2
+You use: argv[1]
+So you should validate: argc < 2
 
 2. test buffer should ideally be initialized
 ----------------------------------------------------------------------------------------------------
-Safer:
-    char buffer[64] = {0};
+Safer: char buffer[64] = {0};
 
 3. busy-wait version is intentionally wrong
 ----------------------------------------------------------------------------------------------------
-That is okay pedagogically,
-but must be clearly treated as a demonstration of what NOT to do in production.
+That is okay pedagogically, but must be clearly treated as a demonstration of what NOT to do in production.
 
 4. `copy_to_user(buff, message, sizeof(message))`
 ----------------------------------------------------------------------------------------------------
-This copies the trailing '\0' too, which is fine for demo,
-but the exact returned length should be thought about deliberately.
+This copies the trailing '\0' too, which is fine for demo, but the exact returned length should be thought about deliberately.
 
 5. `data_available` is shared and not protected
 ----------------------------------------------------------------------------------------------------
@@ -734,7 +657,6 @@ FINAL SENIOR TAKEAWAY
 ====================================================================================================
 
 This lesson is best understood as:
-
     hardware event source
         ↓
     readiness condition in driver
@@ -760,13 +682,9 @@ That is why wait queues are fundamental for real blocking I/O in Linux drivers.
 ```
 
 ## Senior comments that matter most
-
 The three deepest ideas here are:
-
 ### 1. Blocking I/O is not “loop until ready”
-
 It is:
-
 ```text
 sleep until ready
 ```
@@ -776,9 +694,7 @@ That difference is everything.
 ---
 
 ### 2. Non-blocking I/O is a contract, not an optimization
-
 It means:
-
 ```text
 this syscall must not sleep
 ```
@@ -789,7 +705,6 @@ It is the correct protocol.
 ---
 
 ### 3. Wait queue is not “data storage”
-
 It is only a sleep/wakeup mechanism
 guarded by a condition.
 

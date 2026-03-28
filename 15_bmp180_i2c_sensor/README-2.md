@@ -1,12 +1,7 @@
-
-
-
-
 ```
 ====================================================================================================
 BMP180 I2C CLIENT DRIVER — SENIOR MENTAL MODEL
 ====================================================================================================
-
 [ PHYSICAL WORLD ]
 ----------------------------------------------------------------------------------------------------
 Raspberry Pi I2C controller
@@ -30,7 +25,6 @@ COMMENT:
 ====================================================================================================
 [ KERNEL OBJECT MODEL ]
 ====================================================================================================
-
 physical controller hardware
         |
         v
@@ -43,7 +37,7 @@ struct i2c_client
 struct i2c_driver
         |
         v
-probe()
+     probe()
         |
         v
 sysfs files:
@@ -52,7 +46,6 @@ sysfs files:
 
 COMMENT:
 This is the most important object chain.
-
 - i2c_adapter = one I2C bus instance
 - i2c_client  = one concrete slave device on that bus
 - i2c_driver  = software that knows how to use that slave
@@ -122,7 +115,6 @@ So matching gives you:
 
 COMMENT:
 Think of this as a tiny dispatch table:
-
     if matched name is bmp180-a
         use metadata A
 
@@ -149,7 +141,6 @@ COMMENT:
 ====================================================================================================
 [ SIMPLE PROBE — FIRST REAL VALIDATION ]
 ====================================================================================================
-
 my_probe(client)
     |
     | get matched id
@@ -199,7 +190,6 @@ COMMENT:
 - This is the correct layering.
 
 So the mental model is:
-
     device driver
         asks
     I2C subsystem
@@ -225,7 +215,6 @@ But:
 
 COMMENT:
 This distinction is critical:
-
     driver object exists
     device object may not exist
 
@@ -260,10 +249,12 @@ Result:
 COMMENT:
 This is the first full bind path:
     create client
-        ->
+        |
+        v
     match driver
-        ->
-    probe
+        |
+        v
+      probe
 
 It is very useful for learning because it makes the binding process visible.
 
@@ -357,17 +348,12 @@ This is not the driver.
 This is the description used to instantiate the device object.
 
 So separate these mentally:
-
-    i2c_driver
-        = software logic
-
-    i2c_board_info
-        = board/device description
+    i2c_driver = software logic
+    i2c_board_info = board/device description
 
 ====================================================================================================
 [ AUTOMATIC CREATION FLOW ]
 ====================================================================================================
-
 module load
     |
     +--> i2c_add_driver(&my_driver)
@@ -380,48 +366,46 @@ module load
 
 Detailed flow:
     register driver
-        ->
+        |
+        v
     get adapter 1
-        ->
+        |
+        v
     create i2c_client on bus 1 addr 0x77
-        ->
+        |
+        v
     I2C core matches client against driver
-        ->
+        |
+        v
     probe() called automatically
 
 COMMENT:
 This is the in-kernel equivalent of sysfs new_device.
 
 So compare:
-
-    sysfs new_device
-        = user-space initiated client creation
-
-    i2c_new_client_device()
-        = kernel-initiated client creation
+    sysfs new_device = user-space initiated client creation
+    i2c_new_client_device() = kernel-initiated client creation
 
 Both end at:
     real i2c_client object
-        ->
-    match
-        ->
-    probe
+        |
+        v
+      match
+        |
+        v
+      probe
 
 ====================================================================================================
 [ WHY i2c_get_adapter() / i2c_put_adapter() EXIST ]
 ====================================================================================================
 
-    i2c_get_adapter(1)
-        = get reference to adapter object for bus 1
-
-    i2c_put_adapter(adapter)
-        = release that extra reference
+    i2c_get_adapter(1) = get reference to adapter object for bus 1
+    i2c_put_adapter(adapter) = release that extra reference
 
 COMMENT:
 This is reference/lifetime management.
 
-You need the adapter to create the client,
-but once client creation is done, you should not keep an unnecessary extra reference.
+You need the adapter to create the client, but once client creation is done, you should not keep an unnecessary extra reference.
 
 This is standard kernel object discipline.
 
@@ -442,12 +426,8 @@ Meaning:
 
 COMMENT:
 Correct order is:
-
-    create:
-        driver -> adapter ref -> client
-
-    destroy:
-        client -> driver
+    create: driver -> adapter ref -> client
+    destroy: client -> driver
 
 Senior rule:
     acquire in dependency order
@@ -470,9 +450,11 @@ The final driver adds real sensor logic:
 
 This is the production-style direction:
     concrete device object
-        ->
+        |
+        v
     attach driver-private per-device state
-        ->
+        |
+        v
     use it everywhere later
 
 COMMENT:
@@ -500,20 +482,25 @@ So actual data path is:
     calibration EEPROM
         +
     raw measurements
-        ->
+        |
+        v
     compensation formula
-        ->
+        |
+        v
     final human values
 
 COMMENT:
 This is the classic sensor-driver pattern:
 
     transport raw bytes
-        ->
+        |
+        v
     decode
-        ->
+        |
+        v
     calibrate / compensate
-        ->
+        |
+        v
     export engineering units
 
 Without calibration, your values are not useful yet.
@@ -523,7 +510,8 @@ Without calibration, your values are not useful yet.
 ====================================================================================================
 
     bmp_read_block(client, start_reg, buf, len)
-        ->
+        |
+        v
     i2c_smbus_read_i2c_block_data(...)
 
 Meaning:
@@ -554,7 +542,8 @@ COMMENT:
 The important mental model is:
 
     sensor stores calibration as raw register bytes
-        ->
+        |
+        v
     driver parses bytes into meaningful typed fields
 
 This is a one-time initialization job in probe().
@@ -580,7 +569,8 @@ The driver is now doing it inside the kernel instead of a shell command.
 
 So you should always connect:
     userspace prototype transaction
-        ->
+        |
+        v
     final driver implementation
 
 That is a very good engineering workflow.
@@ -704,7 +694,8 @@ This is how driver data becomes normal files.
 
 That is the Linux design beauty:
     internal driver operation
-        ->
+        |
+        v
     simple text files visible to user space
 
 ====================================================================================================
@@ -741,32 +732,32 @@ user:
     cat /sys/bus/i2c/devices/1-0077/temp_input
         |
         v
-VFS/sysfs
+    VFS/sysfs
         |
         v
-temp_input_show()
+    temp_input_show()
         |
         v
-to_i2c_client(dev)
+    to_i2c_client(dev)
         |
         v
-i2c_get_clientdata(client)
+    i2c_get_clientdata(client)
         |
         v
-bmp_read_raw_temp()
+    bmp_read_raw_temp()
         |
         v
-bmp_read_raw_pres()
+    bmp_read_raw_pres()
         |
         v
-bmp_compensate()
+    bmp_compensate()
         |
         v
-scnprintf(buf, ..., temp10)
+    scnprintf(buf, ..., temp10)
         |
         v
-user receives text:
-    "200\n"
+    user receives text:
+        "200\n"
 
 Meaning:
     200 = 20.0 °C
@@ -774,13 +765,17 @@ Meaning:
 COMMENT:
 This is the full stack:
     file read
-        ->
+        |
+        v
     sysfs callback
-        ->
+        |
+        v
     I2C transactions
-        ->
+        |
+        v
     sensor math
-        ->
+        |
+        v
     text output
 
 That is a beautiful kernel-driver-to-userspace path to understand deeply.
@@ -793,13 +788,13 @@ user:
     cat /sys/bus/i2c/devices/1-0077/pressure_input
         |
         v
-pressure_input_show()
+    pressure_input_show()
         |
         v
-read raw values
+    read raw values
         |
         v
-compensate
+    compensate
         |
         v
 return pressure text in Pa
@@ -904,15 +899,19 @@ Important:
     it is NOT talking directly to BMP180 over I2C
 
 Instead:
-    app
-        ->
+       app
+        |
+        v
     sysfs file
-        ->
+        |
+        v
     driver callback
-        ->
-    I2C core
-        ->
-    BMP180
+        |
+        v
+     I2C core
+        |
+        v
+      BMP180
 
 COMMENT:
 So the user app validates the driver interface,
@@ -950,7 +949,8 @@ PHYSICAL:
 
 KERNEL OBJECTS:
     i2c_adapter
-        ->
+        |
+        v
     i2c_client
         <->
     i2c_driver
@@ -962,18 +962,23 @@ MEASUREMENT FLOW:
     read calibration once
         +
     read raw values
-        ->
+        |
+        v
     compensate
-        ->
+        |
+        v
     export sysfs files
 
 USER FLOW:
     read sysfs file
-        ->
+        |
+        v
     callback runs
-        ->
+        |
+        v
     live I2C transaction happens
-        ->
+        |
+        v
     value returned
 
 ====================================================================================================

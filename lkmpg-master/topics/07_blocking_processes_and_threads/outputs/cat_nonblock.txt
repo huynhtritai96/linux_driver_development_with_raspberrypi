@@ -1,0 +1,20 @@
+# Example: cat_nonblock
+# Timestamp: 2026-03-28T00:00:27+07:00
+# Kernel: 6.12.47+rpt-rpi-v8
+
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+/home/htritai/ldd/lkmpg-master/examples/other/cat_nonblock.c: In function ‘main’:
+/home/htritai/ldd/lkmpg-master/examples/other/cat_nonblock.c:41:19: warning: comparison of integer expressions of different signedness: ‘size_t’ {aka ‘long unsigned int’} and ‘int’ [-Wsign-compare]
+   41 |         if (bytes == -1) {
+      |                   ^~
+/home/htritai/ldd/lkmpg-master/examples/other/cat_nonblock.c:51:31: warning: comparison of integer expressions of different signedness: ‘int’ and ‘size_t’ {aka ‘long unsigned int’} [-Wsign-compare]
+   51 |             for (int i = 0; i < bytes; i++)
+      |                               ^
+Open would block
+
+# Exit code: 0
+
+# dmesg delta
+[14707.455314] /proc/sleep created

@@ -654,7 +654,7 @@ So the complete mental model is:
         ↓
     major/minor lookup
         ↓
-    cdev
+      cdev
         ↓
     file_operations callback
         ↓

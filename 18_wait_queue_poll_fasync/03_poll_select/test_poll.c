@@ -8,12 +8,14 @@
 int main(int argc, char *argv[])
 {
     int fd = open(argv[1], O_RDONLY );
-    if (fd < 0) {
+    if (fd < 0)
+    {
         perror("Failed to open\n");
         return fd;
     }
 
-    struct pollfd pfd = {
+    struct pollfd pfd =
+    {
         .fd = fd,
         .events = POLLIN,
     };
@@ -22,17 +24,20 @@ int main(int argc, char *argv[])
 
     printf("Waiting for button press.. (Ctrl + C to exit)\n");
 
-    while(1) {
+    while(1)
+    {
         int ret = poll(&pfd, 1, -1);
-        if (ret < 0) {
+        if (ret < 0) 
+        {
             perror("poll failed\n");
             break;
         }
 
-        if (pfd.revents & POLLIN) {
-
+        if (pfd.revents & POLLIN) 
+        {
             int n = read(fd, buffer, sizeof(buffer) - 1);
-            if (n < 0) {
+            if (n < 0)
+            {
                 perror("read failed\n");
                 break;
             }

@@ -16,12 +16,14 @@ struct my_data {
 /* Create and initilize an empty list */
 static LIST_HEAD(my_list); // my_list -> list_head at comple time
 
-static int __init my_init(void) {
+static int __init my_init(void)
+{
     struct my_data *tmp, *next;
     struct list_head *ptr;
 
     tmp = kmalloc(sizeof(struct my_data), GFP_KERNEL);
-    if (!tmp) {
+    if (!tmp)
+    {
         goto mem_free;
     }
 
@@ -31,7 +33,8 @@ static int __init my_init(void) {
 
 
     tmp = kmalloc(sizeof(struct my_data), GFP_KERNEL);
-    if (!tmp) {
+    if (!tmp)
+    {
         goto mem_free;
     }
 
@@ -41,7 +44,8 @@ static int __init my_init(void) {
 
 
     tmp = kmalloc(sizeof(struct my_data), GFP_KERNEL);
-    if (!tmp) {
+    if (!tmp)
+    {
         goto mem_free;
     }
 
@@ -50,7 +54,8 @@ static int __init my_init(void) {
     list_add_tail(&tmp->list, &my_list);
 
     /* iterate */
-    list_for_each(ptr, &my_list) {
+    list_for_each(ptr, &my_list)
+    {
         tmp = list_entry(ptr, struct my_data, list);
         pr_info("%s: Element id:%d name:%s \n", device_name, tmp->id, tmp->name);
     }
@@ -61,7 +66,8 @@ static int __init my_init(void) {
     return 0;
 
 mem_free:
-    list_for_each_entry_safe(tmp, next, &my_list, list) {
+    list_for_each_entry_safe(tmp, next, &my_list, list)
+    {
         list_del(&tmp->list);
         kfree(tmp);
     }
@@ -70,9 +76,11 @@ mem_free:
     return -ENOMEM;
 }
 
-static void __exit my_exit(void) {
+static void __exit my_exit(void)
+{
     struct my_data *tmp, *next;
-    list_for_each_entry_safe(tmp, next, &my_list, list) {
+    list_for_each_entry_safe(tmp, next, &my_list, list)
+    {
         list_del(&tmp->list);
         kfree(tmp);
     }

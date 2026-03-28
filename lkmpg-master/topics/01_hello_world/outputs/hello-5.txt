@@ -1,0 +1,21 @@
+# Example: hello-5
+# Timestamp: 2026-03-28T00:00:05+07:00
+# Kernel: 6.12.47+rpt-rpi-v8
+
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+# Exit code: 0
+
+# dmesg delta
+[14685.842636] Hello, world 5
+               =============
+[14685.842651] myshort is a short integer: 1
+[14685.842656] myint is an integer: 420
+[14685.842660] mylong is a long integer: 9999
+[14685.842663] mystring is a string: blah
+[14685.842666] myintarray[0] = 420
+[14685.842669] myintarray[1] = 420
+[14685.842672] got 0 arguments for myintarray.
+[14685.898655] Goodbye, world 5

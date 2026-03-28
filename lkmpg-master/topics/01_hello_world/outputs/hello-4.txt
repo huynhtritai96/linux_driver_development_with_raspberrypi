@@ -1,0 +1,13 @@
+# Example: hello-4
+# Timestamp: 2026-03-28T00:00:04+07:00
+# Kernel: 6.12.47+rpt-rpi-v8
+
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+# Exit code: 0
+
+# dmesg delta
+[14684.116453] Hello, world 4
+[14684.155621] Goodbye, world 4

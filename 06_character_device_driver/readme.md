@@ -3,11 +3,8 @@
 [![Youtube Video](https://img.youtube.com/vi/MZDzAPh2DhA/0.jpg)](https://www.youtube.com/watch?v=MZDzAPh2DhA) 
 
 ## Block and Character Devices
-
 ## Major & Minor 
-
 ### Where do device files live and why are they “virtual”?
-
 * The `/dev` directory contains special files called device nodes.
 ```
 ls /dev
@@ -47,7 +44,6 @@ brw-rw---- 1 root disk 179, 1 Mar  7 21:17 /dev/mmcblk0p1 <---- First partition>
 ```
 # show all list major number corresponding to list of device driver
 $ cat /proc/devices
-
     Character devices:
     1 mem
     4 /dev/vc/0

@@ -34,13 +34,15 @@ static char message[] = "Hello from kernel\n";
 /* ------------------------------------------------------------------ */
 /*  File operations                                                   */
 /* ------------------------------------------------------------------ */
-
-static ssize_t my_read(struct file *file, char __user *buff, size_t len, loff_t *off) {
+static ssize_t my_read(struct file *file, char __user *buff, size_t len, loff_t *off)
+{
     pr_info("%s: read called\n", my_device);
 
-    if (!data_available) {
+    if (!data_available)
+    {
         /* Non-blocking: return immediately with -EAGAIN */
-        if (file->f_flags & O_NONBLOCK) {
+        if (file->f_flags & O_NONBLOCK)
+        {
             pr_info("%s: non-blocking mode - no data\n", my_device);
             return -EAGAIN;
         }
@@ -83,9 +85,10 @@ static struct file_operations fops = {
 /* ------------------------------------------------------------------ */
 /*  GPIO Interrupt Service Routine                                    */
 /* ------------------------------------------------------------------ */
-static irqreturn_t isr(int irq, void *dev_id) {
+static irqreturn_t isr(int irq, void *dev_id) 
+{
     pr_info("%s: GPIO Interrupt occoured\n", my_device);
-    
+
     data_available = 1;
 
     return IRQ_HANDLED;
@@ -94,20 +97,22 @@ static irqreturn_t isr(int irq, void *dev_id) {
 /* ------------------------------------------------------------------ */
 /*  GPIO / IRQ setup                                                  */
 /* ------------------------------------------------------------------ */
-
-static int external_gpio_irq_setup(unsigned int gpio) {
+static int external_gpio_irq_setup(unsigned int gpio)
+{
     int status;
 
     /* get GPIO descriptor for pin <gpio> */
     button = gpio_to_desc(gpio);
-    if (!button) {
+    if (!button)
+    {
         pr_err("%s: unable to get GPIO descriptor for gpio: %d\n", my_device, gpio);
         return status;
     }
 
     /* set gpio direction to input */
     status = gpiod_direction_input(button);
-    if (status) {
+    if (status)
+    {
         pr_err("%s: Failed to set GPIO %d as input\n", my_device, gpio);
         return status;
     }
@@ -115,7 +120,8 @@ static int external_gpio_irq_setup(unsigned int gpio) {
     /* Set gpi ISR */
     irq_number = gpiod_to_irq(button);
     status = request_irq(irq_number, isr, IRQF_TRIGGER_FALLING, "irq_handler", NULL);
-    if (status) {
+    if (status)
+    {
         pr_info("%s: Failed to request IRQ\n", my_device);
         return status;
     }
@@ -126,11 +132,12 @@ static int external_gpio_irq_setup(unsigned int gpio) {
 /* ------------------------------------------------------------------ */
 /*  Module init / exit                                                */
 /* ------------------------------------------------------------------ */
-
-static int __init my_init(void) {
+static int __init my_init(void)
+{
     int status;
     status = alloc_chrdev_region(&dev_nr, 0, MINORMASK + 1, my_device);
-    if (status) {
+    if (status)
+    {
         pr_err("%s: Character device registration failed\n", my_device);
         return status;
     }
@@ -138,26 +145,30 @@ static int __init my_init(void) {
     cdev_init(&my_cdev, &fops);
 
     status = cdev_add(&my_cdev, dev_nr, MINORMASK + 1);
-    if (status) {
+    if (status)
+    {
         pr_err("%s: cdev_add failed\n", my_device);
         goto free_device_nr;
     }
 
     my_class = class_create("my_class");
-    if (!my_class) {
+    if (!my_class)
+    {
         pr_err("%s:  class_create failed\n",my_device);
         status = ENOMEM;
         goto delete_cdev;
     }
 
-    if (!device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0)) {
+    if (!device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0))
+    {
         pr_err("%s: device_create failed\n", my_device);
         status = ENOMEM;
         goto delete_class;
     }
 
     status = external_gpio_irq_setup(button_gpio);
-    if (status) { // set gpio 20 as exteranl gpio interrupt
+    if (status) // set gpio 20 as exteranl gpio interrupt
+    {
        pr_err("%s: GPIO %d failed to set up as external interrupt\n", my_device, button_gpio);
        goto free_gpio;
     }
@@ -182,7 +193,8 @@ free_device_nr:
     return status;
 }
 
-static void __exit my_exit(void) {
+static void __exit my_exit(void) 
+{
     free_irq(irq_number, NULL);
 
     device_destroy(my_class, dev_nr);

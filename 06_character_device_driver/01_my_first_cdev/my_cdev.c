@@ -15,10 +15,12 @@ static struct device *my_device_object; // device object structure for creating 
 static struct file_operations fops = { //  file characteristic for device file/node file
 };
 
-static int __init my_init(void) {
+static int __init my_init(void)
+{
     int status;
     status = alloc_chrdev_region(&dev_nr, 0, MINORMASK + 1, my_device);
-    if (status) {
+    if (status)
+    {
         pr_err("%s: character device registation failed\n", my_device);
         return status;
     }
@@ -28,14 +30,16 @@ static int __init my_init(void) {
     my_cdev.owner = THIS_MODULE;
 
     status = cdev_add(&my_cdev, dev_nr, MINORMASK + 1);
-    if (status) {
+    if (status)
+    {
         pr_err("%s: error adding cdev\n", my_device);
         goto free_device_nr; // if cdev_add fails, we need to free the device number that we allocated with alloc_chrdev_region, so we jump to the free_device_nr label to do that.
     }
 
     // create: /sys/class/my_class  
     my_class = class_create("my_class");
-    if (IS_ERR(my_class)) { // class_create returns a pointer, so we need to check if it is an error pointer using IS_ERR macro.
+    if (IS_ERR(my_class)) // class_create returns a pointer, so we need to check if it is an error pointer using IS_ERR macro.
+    {
         pr_err("%s: Could not create class my_class\n",my_device);
         status = ENOMEM;
         goto delete_cdev; // if class_create fails, we need to delete the cdev that we added with cdev_add + free the device number that we allocated with alloc_chrdev_region, so we jump to the delete_cdev label to do that.
@@ -43,7 +47,8 @@ static int __init my_init(void) {
 
     // create: /sys/class/my_class/my_cdev0 and /dev/my_cdev0
     my_device_object = device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0);
-     if (IS_ERR(my_device_object)) { // device_create returns a pointer, so we need to check if it is an error pointer using IS_ERR macro.
+    if (IS_ERR(my_device_object)) // device_create returns a pointer, so we need to check if it is an error pointer using IS_ERR macro.
+    { 
         pr_err("%s: Could not create device my_cdev0\n", my_device);
         status = ENOMEM;
         goto delete_class; // if device_create fails, we need to destroy the class that we created with class_create + delete the cdev that we added with cdev_add + free the device number that we allocated with alloc_chrdev_region, so we jump to the delete_class label to do that.
@@ -66,7 +71,8 @@ free_device_nr:
     return status;
 }
 
-static void __exit my_exit(void) {
+static void __exit my_exit(void)
+{
     device_destroy(my_class, dev_nr);
 
     class_destroy(my_class);

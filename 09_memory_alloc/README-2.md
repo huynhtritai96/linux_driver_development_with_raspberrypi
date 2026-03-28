@@ -7,14 +7,12 @@ GOAL OF THIS MODULE
 ────────────────────────────────────────────────────────────────────────────────────────────────────────
 This module is not a device driver interface example.
 It is a kernel-memory allocation demo that compares FOUR allocation mechanisms:
-
     1) kmalloc      -> small, physically contiguous kernel memory
     2) kzalloc      -> kmalloc + zero initialization
     3) vmalloc      -> virtually contiguous kernel memory for larger regions
     4) slab cache   -> efficient repeated allocation of fixed-size objects
 
 So the real learning goal is:
-
     "When kernel code needs memory, which allocator should I choose, why, and what cleanup order follows?"
 
 ========================================================================================================
@@ -30,7 +28,6 @@ KERNEL CODE NEEDS MEMORY
 
 Linux does NOT use a single allocator path for all cases.
 Instead it gives specialized allocation mechanisms, because different workloads need different properties:
-
     +----------------+----------------------+----------------------+-------------------------------+
     | allocator      | virtual contiguous?  | physical contiguous? | best use case                 |
     +----------------+----------------------+----------------------+-------------------------------+
@@ -49,7 +46,6 @@ insmod memory_alloc_example.ko
         ▼
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ my_init()                                                                                            │
-│                                                                                                      │
 │   1. kmalloc_ptr = kmalloc(ALLOC_SIZE_SMALL, GFP_KERNEL)                                             │
 │   2. kzalloc_ptr = kzalloc(ALLOC_SIZE_SMALL, GFP_KERNEL)                                             │
 │   3. vmalloc_ptr = vmalloc(ALLOC_SIZE_LARGE)                                                         │
@@ -61,7 +57,6 @@ insmod memory_alloc_example.ko
 └──────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 This is a classic kernel resource-acquisition pattern:
-
     acquire resources in dependency order
     free them in reverse order on failure
 
@@ -78,7 +73,6 @@ ALLOC_SIZE_SMALL = 1024 bytes
 MENTAL MODEL
 ────────────
 kmalloc asks the kernel for a block of memory that is:
-
     - virtually contiguous
     - physically contiguous
     - suitable for normal kernel access
@@ -139,7 +133,6 @@ CODE
 MENTAL MODEL
 ────────────
 kzalloc is:
-
     kmalloc + memset(..., 0, size)
 
 So it has the same allocation characteristics as kmalloc, but the returned memory is zero-filled.
@@ -188,7 +181,6 @@ ALLOC_SIZE_LARGE = 1 MB
 MENTAL MODEL
 ────────────
 vmalloc returns memory that is:
-
     - virtually contiguous
     - NOT necessarily physically contiguous
 
@@ -196,7 +188,6 @@ That means the kernel gives you one clean virtual range, but underneath it may s
 
 DIAGRAM
 ───────
-
 kernel virtual address space
     vmalloc_ptr
         │
@@ -265,7 +256,6 @@ CODE
 MENTAL MODEL
 ────────────
 The slab allocator is for repeated allocation of many objects of the same size/type.
-
 Instead of saying:
     "give me arbitrary bytes"
 
@@ -276,7 +266,6 @@ Then the kernel can manage object reuse efficiently.
 
 DIAGRAM
 ───────
-
 create cache:
     my_cache
        │
@@ -352,7 +341,6 @@ If later acquisition fails, earlier ones must be released.
 
 FAILURE PATH DIAGRAM
 ────────────────────
-
 if obj1 allocation fails:
     goto label_kmem_cache_free
         │
@@ -553,7 +541,6 @@ FINAL SENIOR TAKEAWAY
 ========================================================================================================
 
 This code is best understood as a memory-allocation decision tree:
-
     Need kernel memory
         │
         ├── small / ordinary / contiguous?         -> kmalloc

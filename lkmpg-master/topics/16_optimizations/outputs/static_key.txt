@@ -1,0 +1,29 @@
+# Example: static_key
+# Timestamp: 2026-03-28T00:01:01+07:00
+# Kernel: 6.12.47+rpt-rpi-v8
+
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+disabled
+enabled
+disabled
+
+# Exit code: 0
+
+# dmesg delta
+[14741.849294] I was assigned major number 236
+[14741.849737] Device created on /dev/key_state
+[14741.874382] fastpath 1
+[14741.874399] fastpath 2
+[14741.897474] fastpath 1
+[14741.897491] fastpath 2
+[14741.918890] fastpath 1
+[14741.918906] do unlikely thing
+[14741.921920] fastpath 2
+[14741.921973] ttyS ttyS0: 1 input overrun(s)
+[14741.944180] fastpath 1
+[14741.944197] do unlikely thing
+[14741.947258] fastpath 2
+[14741.962451] fastpath 1
+[14741.962464] fastpath 2

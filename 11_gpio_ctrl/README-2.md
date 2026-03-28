@@ -7,11 +7,9 @@ LINUX GPIO CONTROL IN A KERNEL MODULE — SENIOR MENTAL MODEL
 
 KEY QUESTION
 ----------------------------------------------------------------------------------------------------
-How does a Linux kernel module safely take control of a GPIO line, configure it,
-use it, and then release it without conflicting with the rest of the system?
+How does a Linux kernel module safely take control of a GPIO line, configure it, use it, and then release it without conflicting with the rest of the system?
 
 This lesson answers four practical steps:
-
     1. identify the GPIO line
     2. acquire a kernel handle to it
     3. configure direction and state
@@ -22,9 +20,7 @@ This is the first real hardware-resource management lesson.
 ====================================================================================================
 LAYER 0 — PHYSICAL WORLD
 ====================================================================================================
-
 On the Raspberry Pi board, you physically wire:
-
     GPIO 21  ---> LED
     GPIO 20  ---> Button
 
@@ -33,15 +29,11 @@ Meaning:
     GPIO 20 is an INPUT
 
 Physical behavior:
-    OUTPUT line:
-        the Pi actively drives voltage level
-
-    INPUT line:
-        the Pi samples external voltage level
+    OUTPUT line: the Pi actively drives voltage level
+    INPUT line: the Pi samples external voltage level
 
 COMMENT:
-At board level, this looks simple:
-    "one pin for LED, one pin for button"
+At board level, this looks simple: "one pin for LED, one pin for button"
 
 But Linux does not manage “pins” directly in the casual header sense.
 It manages GPIO lines through GPIO controller hardware.
@@ -51,24 +43,18 @@ LAYER 1 — KERNEL VIEW OF GPIO
 ====================================================================================================
 
 Linux sees GPIO through GPIO controller chips.
-
 Example userspace discovery:
-
     gpiodetect
 
 Possible result:
-
     gpiochip0  -> pinctrl-bcm2711
     gpiochip1  -> raspberrypi-exp-gpio
 
 Meaning:
-    Linux does not start with:
-        "header pin 40"
-    It starts with:
-        "GPIO controller X, line Y"
+    Linux does not start with: "header pin 40"
+    It starts with: "GPIO controller X, line Y"
 
 Conceptual model:
-
     gpiochip0
         ├── line 0
         ├── line 1
@@ -86,21 +72,15 @@ Important:
 
 COMMENT:
 This is the first big conceptual shift:
-
-    board view:
-        "I use GPIO 21"
-
-    kernel view:
-        "I use one line inside one GPIO controller"
+    board view: "I use GPIO 21"
+    kernel view: "I use one line inside one GPIO controller"
 
 That is why GPIO APIs are more abstract than just “pin number”.
 
 ====================================================================================================
 LAYER 2 — DRIVER VIEW
 ====================================================================================================
-
 A kernel module wants to do this:
-
     acquire line
         ↓
     configure direction
@@ -113,9 +93,7 @@ A kernel module wants to do this:
 This is resource ownership.
 
 Senior mental model:
-
-    a GPIO line is not just a number
-    it is a shared hardware resource
+    a GPIO line is not just a number, it is a shared hardware resource
 
 So good driver behavior means:
     claim it
@@ -128,7 +106,6 @@ RASPBERRY PI NUMBERING IN THIS EXAMPLE
 ====================================================================================================
 
 Code:
-
     #define LED_GPIO 21
     #define BUTTON_GPIO 20
     #define GPIO_OFFSET 512
@@ -140,22 +117,16 @@ Meaning:
     this example uses the old global GPIO numbering model
 
 If gpiochip0 base is 512:
-
     BCM GPIO 20 -> Linux global GPIO 532
     BCM GPIO 21 -> Linux global GPIO 533
 
 So:
-
     LED line    = 533
     Button line = 532
 
 Important distinction:
-
-    hardware-relative line:
-        21
-
-    legacy Linux global number:
-        533
+    hardware-relative line:     21
+    legacy Linux global number: 533
 
 COMMENT:
 This often confuses beginners badly.
@@ -164,9 +135,7 @@ The code is NOT saying:
     GPIO 21 changed into another physical pin
 
 It is saying:
-    Linux legacy API flattened
-        (chip base + line number)
-    into one global integer namespace.
+    Linux legacy API flattened (chip base + line number) into one global integer namespace.
 
 So 533 is not a new pin.
 It is Linux’s old-style identifier for that GPIO line.
@@ -191,8 +160,7 @@ Main functions:
     gpio_set_value()
     gpio_get_value()
 
-Mental model:
-    "I know the old global GPIO number; let me manage it directly."
+Mental model: "I know the old global GPIO number; let me manage it directly."
 
 B) DESCRIPTOR-BASED GPIO API
 ----------------------------------------------------------------------------------------------------
@@ -218,8 +186,7 @@ Senior takeaway:
 
 COMMENT:
 The newer descriptor model is conceptually better because:
-    it treats GPIO as a kernel object,
-not just an integer.
+    it treats GPIO as a kernel object, not just an integer.
 
 That fits better with:
     Device Tree
@@ -254,7 +221,6 @@ STEP 1 — gpio_request()
 ====================================================================================================
 
 Code:
-
     gpio_request(led_gpio, "led_gpio");
 
 Meaning:
@@ -290,12 +256,10 @@ STEP 2 — gpio_direction_output()
 ====================================================================================================
 
 Code:
-
     gpio_direction_output(led_gpio, 0);
 
 Meaning:
-    configure the line as output
-    and drive initial value LOW
+    configure the line as output and drive initial value LOW
 
 Electrical effect:
     the SoC now actively drives the pin
@@ -311,9 +275,7 @@ Because there is no undefined window in between.
 
 COMMENT:
 This is a very senior hardware rule:
-
-    when turning a pin into an output,
-    choose the initial level deliberately
+    when turning a pin into an output, choose the initial level deliberately
 
 Why?
 Because some hardware reacts instantly.
@@ -326,7 +288,6 @@ STEP 3 — REQUEST BUTTON INPUT
 ====================================================================================================
 
 Code:
-
     gpio_request(button_gpio, "button_gpio");
 
 Same meaning as LED request:
@@ -352,7 +313,6 @@ STEP 4 — gpio_direction_input()
 ====================================================================================================
 
 Code:
-
     gpio_direction_input(button_gpio);
 
 Meaning:
@@ -370,12 +330,8 @@ Observed value depends on:
 
 COMMENT:
 This is another important conceptual difference:
-
-    OUTPUT:
-        kernel drives the world
-
-    INPUT:
-        kernel observes the world
+    OUTPUT: kernel drives the world
+    INPUT: kernel observes the world
 
 That is the simplest clean mental model for GPIO direction.
 
@@ -384,14 +340,12 @@ STEP 5 — gpio_set_value()
 ====================================================================================================
 
 Code:
-
     gpio_set_value(led_gpio, 1);
 
 Meaning:
     drive output HIGH
 
 Signal path:
-
     driver
         ↓
     GPIO subsystem
@@ -406,8 +360,7 @@ Result:
     LED turns on
 
 COMMENT:
-Once direction is already OUTPUT,
-`gpio_set_value()` is no longer about ownership or mode.
+Once direction is already OUTPUT, `gpio_set_value()` is no longer about ownership or mode.
 It is just about changing the driven logic level.
 
 ====================================================================================================
@@ -415,14 +368,12 @@ STEP 6 — gpio_get_value()
 ====================================================================================================
 
 Code:
-
     gpio_get_value(button_gpio);
 
 Meaning:
     sample the current logical value seen at the input line
 
 Signal path:
-
     external button state
         ↓
     GPIO controller input sample/latch
@@ -431,11 +382,9 @@ Signal path:
         ↓
     driver gets 0 or 1
 
-Important:
-    this is a snapshot read
+Important: this is a snapshot read
 
-It answers:
-    "What is the line level right now?"
+It answers: "What is the line level right now?"
 
 It does NOT do:
     interrupts
@@ -446,8 +395,7 @@ COMMENT:
 This lesson is synchronous GPIO usage.
 It is not yet event-driven GPIO.
 
-So `gpio_get_value()` is just a direct sample,
-not a monitoring system.
+So `gpio_get_value()` is just a direct sample, not a monitoring system.
 
 ====================================================================================================
 LEGACY MODULE UNLOAD FLOW
@@ -472,7 +420,6 @@ Meaning of gpio_free():
 
 COMMENT:
 This is the inverse of module init:
-
     request
     configure
     use
@@ -486,7 +433,6 @@ FAILURE UNWIND MODEL
 ====================================================================================================
 
 Resource acquisition order:
-
     1. request LED
     2. set LED direction
     3. request button
@@ -541,7 +487,6 @@ WHAT A GPIO DESCRIPTOR REALLY IS
 ====================================================================================================
 
 Type:
-
     struct gpio_desc *led;
     struct gpio_desc *button;
 
@@ -561,12 +506,8 @@ Why this is better:
 
 COMMENT:
 The key mental upgrade is:
-
-    raw number model:
-        “I know line 533”
-
-    descriptor model:
-        “I hold a handle to the GPIO object”
+    raw number model: “I know line 533”
+    descriptor model: “I hold a handle to the GPIO object”
 
 That is a more kernel-native way to think.
 
@@ -575,7 +516,6 @@ gpio_to_desc()
 ====================================================================================================
 
 Code:
-
     led = gpio_to_desc(led_gpio);
     button = gpio_to_desc(button_gpio);
 
@@ -589,8 +529,7 @@ Important nuance:
 So it is not yet the most modern full consumer-acquisition pattern.
 
 COMMENT:
-This example teaches the API shape difference,
-not yet the full production-grade device-model acquisition pattern.
+This example teaches the API shape difference, not yet the full production-grade device-model acquisition pattern.
 
 In real modern drivers, you often obtain descriptors from:
     Device Tree
@@ -603,7 +542,6 @@ gpiod_direction_output / gpiod_direction_input
 ====================================================================================================
 
 Examples:
-
     gpiod_direction_output(led, 0)
     gpiod_direction_input(button)
 
@@ -622,7 +560,6 @@ gpiod_set_value / gpiod_get_value
 ====================================================================================================
 
 Examples:
-
     gpiod_set_value(led, 1)
     gpiod_get_value(button)
 
@@ -639,7 +576,6 @@ WHY THIS DESCRIPTOR EXAMPLE DOES NOT CALL gpio_free()
 ====================================================================================================
 
 Because this teaching example does not use:
-
     gpio_request()
     gpio_free()
 
@@ -647,11 +583,9 @@ It only converts raw number → descriptor
 then operates on the descriptor.
 
 Senior interpretation:
-    this is a simplified educational contrast,
-    not the final recommended production pattern
+    this is a simplified educational contrast, not the final recommended production pattern
 
 In real modern drivers, preferred pattern is usually:
-
     devm_gpiod_get(...)
     devm_gpiod_get_optional(...)
     etc.
@@ -660,8 +594,7 @@ That gives proper managed lifetime tied to `struct device`.
 
 COMMENT:
 Very important:
-do not over-generalize this example into
-“descriptor APIs never need cleanup”.
+do not over-generalize this example into “descriptor APIs never need cleanup”.
 
 That is not the real lesson.
 
@@ -704,18 +637,15 @@ WHAT THIS LESSON IS REALLY TEACHING
 ====================================================================================================
 
 This is NOT yet:
-
     interrupt-driven GPIO
     event-driven GPIO
     debounced GPIO
     background-monitored GPIO
 
 This IS:
-
     claim/control/read basic GPIO resources
 
 Architecturally it teaches:
-
     GPIO as hardware resource ownership
         +
     direction configuration
@@ -798,7 +728,6 @@ FINAL SENIOR TAKEAWAY
 ====================================================================================================
 
 This GPIO lesson is fundamentally about hardware-resource ownership:
-
     identify line
         ↓
     acquire kernel representation
@@ -810,15 +739,10 @@ This GPIO lesson is fundamentally about hardware-resource ownership:
     release ownership when done
 
 And it introduces the API evolution:
-
-    old Linux style:
-        raw global GPIO number
-
-    newer Linux style:
-        GPIO descriptor handle
+    old Linux style: raw global GPIO number
+    newer Linux style: GPIO descriptor handle
 
 So the deep mental model is:
-
     a GPIO is not "just a pin number";
     it is a kernel-managed hardware resource line owned through the GPIO subsystem.
 

@@ -3,7 +3,6 @@
 [![Youtube Video](https://img.youtube.com/vi/EOFFbRfHxlQ/0.jpg)](https://www.youtube.com/watch?v=EOFFbRfHxlQ)
 
 # 1. Virtual Memory
-
 Early computers had very limited and expensive RAM.
 Even though CPUs could theoretically address more memory, the physical RAM installed was often much smaller.
 

@@ -1,0 +1,20 @@
+# Example: example_atomic
+# Timestamp: 2026-03-28T00:00:37+07:00
+# Kernel: 6.12.47+rpt-rpi-v8
+
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+# Exit code: 0
+
+# dmesg delta
+[14718.104912] example_atomic started
+[14718.104927] chris: 50, debbie: 52
+[14718.104933] Bits 0: 00000000
+[14718.104936] Bits 1: 00101000
+[14718.104939] Bits 2: 00001000
+[14718.104942] Bits 3: 00000000
+[14718.104945] Bits 4: 00001000
+[14718.104947] Bits 5: 11111111
+[14718.155557] example_atomic exit

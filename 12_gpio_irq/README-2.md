@@ -9,7 +9,6 @@ KEY QUESTION
 How does a physical GPIO button press turn into driver code execution?
 
 The full chain is:
-
     Electrical edge
         ↓
     GPIO controller detects edge
@@ -25,7 +24,6 @@ The full chain is:
     driver logic completes
 
 Three distinct engineering problems appear:
-
     1) interrupt delivery
     2) signal debouncing
     3) latency management (top-half vs bottom-half)
@@ -35,11 +33,8 @@ LAYER 0 — PHYSICAL HARDWARE EVENT
 ====================================================================================================
 
 Button connected to GPIO input.
-
 Pressing the button changes the electrical state.
-
 Example wiring:
-
         VCC
          │
         [R]
@@ -53,14 +48,12 @@ Button press:
     GPIO = LOW
 
 Electrical event:
-
     HIGH ───────┐
                 └──── LOW
 
 This falling edge is what the GPIO controller detects.
 
-Important:
-    the driver does NOT monitor the pin continuously.
+Important: the driver does NOT monitor the pin continuously.
 
 The hardware detects the edge.
 
@@ -69,26 +62,20 @@ LAYER 1 — GPIO CONTROLLER DETECTS EDGE
 ====================================================================================================
 
 Inside the SoC there is a GPIO controller.
-
 The controller can detect:
-
     rising edge
     falling edge
     both edges
     level triggers
 
 Driver configures the trigger:
-
     IRQF_TRIGGER_FALLING
 
 Meaning:
-
     interrupt occurs when signal transitions
-
         HIGH → LOW
 
 Hardware event:
-
     GPIO20 falling edge
         ↓
     GPIO controller signals interrupt controller
@@ -98,9 +85,7 @@ LAYER 2 — INTERRUPT CONTROLLER + IRQ NUMBER
 ====================================================================================================
 
 Hardware interrupt lines are mapped to Linux IRQ numbers.
-
 Example mapping:
-
     GPIO line 20
         ↓
     internal interrupt line
@@ -108,11 +93,8 @@ Example mapping:
     Linux IRQ number (example: 58)
 
 Driver obtains this mapping:
-
     gpio_to_irq(button_gpio)
-
 or
-
     gpiod_to_irq(desc)
 
 Important concept:
@@ -120,7 +102,6 @@ Important concept:
     IRQ number ≠ GPIO number
 
 Example:
-
     GPIO 532 → IRQ 58
 
 IRQ numbers represent entries in the Linux IRQ subsystem.
@@ -130,7 +111,6 @@ LAYER 3 — DRIVER REGISTERS INTERRUPT HANDLER
 ====================================================================================================
 
 Driver registers handler:
-
     request_irq(
         irq_number,
         button_isr,
@@ -146,15 +126,12 @@ After registration the IRQ subsystem stores:
         name    = btn_irq_handler
 
 Visible in:
-
     /proc/interrupts
 
 Example:
-
     58:  12  btn_irq_handler
 
 Meaning:
-
     interrupt 58 fired 12 times
     handled by this driver
 
@@ -163,7 +140,6 @@ LAYER 4 — IRQ DISPATCH FLOW
 ====================================================================================================
 
 Full runtime interrupt path:
-
     Button pressed
         ↓
     GPIO controller detects falling edge
@@ -177,11 +153,9 @@ Full runtime interrupt path:
     button_isr()
 
 This execution occurs in:
-
     HARD IRQ CONTEXT
 
 Important properties:
-
     cannot sleep
     must run quickly
     interrupts temporarily disabled
@@ -191,31 +165,25 @@ TOP-HALF ISR RULES
 ====================================================================================================
 
 ISR example:
-
     static irqreturn_t button_isr(int irq, void *dev_id)
 
 Purpose:
-
     immediate response to interrupt
 
 Allowed operations:
-
     read GPIO state
     update small variables
     schedule deferred work
 
 Avoid:
-
     long processing
     sleeping
     blocking operations
 
 Return value:
-
     IRQ_HANDLED
 
 Meaning:
-
     this driver handled the interrupt.
 
 ====================================================================================================
@@ -223,42 +191,32 @@ PROBLEM — MECHANICAL BUTTON BOUNCE
 ====================================================================================================
 
 Real switches do not produce clean transitions.
-
 Ideal signal:
-
     HIGH ────────────────┐
                          └──── LOW
 
 Actual signal:
-
     HIGH ─────┐ ┌─┐ ┌────┐
               └─┘ └─┘    └──── LOW
 
 Each bounce may generate interrupts.
-
 Example sequence:
-
     press button
 
 interrupt events:
-
     IRQ1
     IRQ2
     IRQ3
     IRQ4
 
 Driver ISR toggles LED each time.
-
 Result:
-
     LED toggles multiple times.
 
 Visible behavior:
-
     unpredictable LED state.
 
 Problem source:
-
     mechanical contact bounce.
 
 ====================================================================================================
@@ -266,31 +224,25 @@ DEBOUNCE STRATEGY
 ====================================================================================================
 
 Goal:
-
     convert many noisy interrupts into one logical press.
 
 Approach used:
-
     timer-based validation.
 
 Algorithm:
-
     interrupt occurs
         ↓
     record button state
         ↓
     schedule timer (20 ms)
         ↓
-    if new interrupt occurs:
-        restart timer
+    if new interrupt occurs: restart timer
         ↓
-    when timer expires:
-        check stable state
+    when timer expires: check stable state
         ↓
     accept as real button press
 
 Key idea:
-
     wait for signal to stabilize.
 
 ====================================================================================================
@@ -298,22 +250,17 @@ DEBOUNCE IMPLEMENTATION FLOW
 ====================================================================================================
 
 ISR:
-
     read button state
     save state
     restart timer
 
 Code concept:
-
-    mod_timer(&debounce_timer,
-              jiffies + msecs_to_jiffies(20));
+    mod_timer(&debounce_timer, jiffies + msecs_to_jiffies(20));
 
 Important property:
-
     mod_timer() resets the timer if already running.
 
 Bounce scenario:
-
     IRQ1 at t=0
         timer scheduled at t=20
 
@@ -324,7 +271,6 @@ Bounce scenario:
         timer moved to t=30
 
 After signal stabilizes:
-
     timer finally fires once.
 
 ====================================================================================================
@@ -332,20 +278,16 @@ TIMER CALLBACK VALIDATION
 ====================================================================================================
 
 Timer callback:
-
     read button again
     compare with stored state
 
 If same:
-
     valid press
 
 Action:
-
     toggle LED
 
 Event sequence now becomes:
-
     bounce IRQs
         ↓
     timer repeatedly restarted
@@ -363,25 +305,20 @@ TIME MODEL — JIFFIES
 ====================================================================================================
 
 Timer scheduling:
-
     jiffies + msecs_to_jiffies(20)
 
 Meaning:
-
     current kernel tick count
         +
     number of ticks representing 20 ms
 
 Timer wheel resolution depends on:
-
     kernel HZ value.
 
 Typical:
-
     HZ = 250
 
 Meaning:
-
     4 ms tick resolution.
 
 For debounce this is acceptable.
@@ -391,23 +328,17 @@ DEFERRED WORK (BOTTOM-HALF)
 ====================================================================================================
 
 Second example introduces workqueue.
-
 Purpose:
-
     move slow work out of ISR.
 
 Workqueue initialization:
-
     INIT_WORK(&button_work, button_work_handler)
 
 ISR now does:
-
     schedule_work(&button_work)
 
 ISR returns immediately.
-
 Later execution:
-
     worker thread executes handler.
 
 ====================================================================================================
@@ -427,15 +358,12 @@ normal system continues
     ↓
 WORKQUEUE THREAD
     runs button_work_handler()
-    performs slow work
-    toggles LED
+    performs slow work toggles LED
 
 Important difference:
-
     bottom-half runs in process context.
 
 Allowed operations:
-
     sleeping
     blocking
     long operations
@@ -445,21 +373,15 @@ WHY SLEEPING IN ISR IS WRONG
 ====================================================================================================
 
 Example incorrect code:
-
     msleep(1000) inside ISR
 
 This breaks interrupt rules.
-
 Reason:
-
     ISR runs in interrupt context.
 
 Sleeping requires scheduler interaction.
-
 Interrupt context cannot sleep safely.
-
 Solution:
-
     move work to workqueue.
 
 ====================================================================================================
@@ -467,26 +389,20 @@ SAFE MODULE UNLOAD
 ====================================================================================================
 
 Exit cleanup:
-
     free_irq()
     del_timer_sync()
     cancel_work_sync()
 
 Purpose:
-
     ensure no asynchronous callbacks remain.
 
 Why important:
-
-    if callback runs after module unload
-    kernel may jump to invalid memory.
+    if callback runs after module unload kernel may jump to invalid memory.
 
 Senior rule:
-
     every async mechanism must be stopped before unload.
 
 Examples:
-
     IRQ
     timers
     workqueues
@@ -498,25 +414,21 @@ COMPLETE SYSTEM VIEW
 ====================================================================================================
 
 PHYSICAL WORLD
-
     button press
         ↓
     electrical edge
 
 HARDWARE
-
     GPIO controller detects edge
         ↓
     interrupt controller signals CPU
 
 KERNEL IRQ SUBSYSTEM
-
     IRQ number dispatched
         ↓
     ISR executed
 
 DRIVER LOGIC
-
     ISR records event
         ↓
     debounce timer OR workqueue scheduled
@@ -541,7 +453,6 @@ A GPIO interrupt driver solves three independent problems:
    ISR performs minimal work while slow processing is deferred to a bottom-half.
 
 Complete mental model:
-
     electrical edge
         ↓
     GPIO controller

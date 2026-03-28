@@ -12,7 +12,6 @@ GOAL OF THIS MODULE
 ────────────────────────────────────────────────────────────────────────────────────────────────────────
 This module is not about hardware access.
 It is a kernel data-structure example showing how Linux kernel linked lists work with:
-
     1. embedded list metadata inside a user-defined struct
     2. compile-time list head initialization
     3. dynamic node allocation with kmalloc
@@ -21,27 +20,22 @@ It is a kernel data-structure example showing how Linux kernel linked lists work
     6. safe deletion and cleanup
 
 So the real lesson is:
-
-    "How does the Linux kernel represent and manage a doubly linked list without allocating a separate
-     generic node wrapper type?"
+    "How does the Linux kernel represent and manage a doubly linked list without allocating a separate generic node wrapper type?"
 
 ========================================================================================================
 CORE DESIGN IDEA
 ========================================================================================================
 
 Instead of storing data inside a generic linked-list node like:
-
     node -> { data, next, prev }
 
 the Linux kernel usually does this:
-
     your object -> { your fields..., struct list_head list; }
 
 Meaning:
     the list metadata is EMBEDDED inside your real data structure
 
 In this module:
-
     struct my_data {
         uint32_t id;
         char name[32];
@@ -57,7 +51,6 @@ WHAT struct list_head REALLY IS
 ========================================================================================================
 
 Kernel doubly linked list metadata:
-
     struct list_head {
         struct list_head *next;
         struct list_head *prev;
@@ -72,8 +65,7 @@ Important:
 
 It only stores linkage.
 
-So the kernel list system manages topology,
-while your container struct manages actual payload/data.
+So the kernel list system manages topology, while your container struct manages actual payload/data.
 
 ========================================================================================================
 LIST SHAPE IN THIS MODULE
@@ -135,8 +127,7 @@ Output:
     a valid empty circular doubly linked list exists before module init runs
 
 Why this matters:
-    you do NOT need to allocate the list head dynamically
-    and you do NOT need a separate "is_initialized" phase for the head
+    you do NOT need to allocate the list head dynamically and you do NOT need a separate "is_initialized" phase for the head
 
 ========================================================================================================
 MODULE INIT — RESOURCE CREATION PHASE
@@ -182,12 +173,9 @@ Meaning:
 
 Important:
     the kernel list does NOT allocate nodes for you
-    you allocate your object,
-    and because your object contains struct list_head,
-    it can participate in the list
+    you allocate your object, and because your object contains struct list_head, it can participate in the list
 
 Diagram:
-
 before allocation:
     my_list (empty)
 
@@ -236,11 +224,9 @@ MENTAL MODEL
 ────────────
 You are NOT adding `tmp` directly.
 You are adding the embedded list node inside tmp:
-
     &tmp->list
 
 to the list anchored by:
-
     &my_list
 
 So the kernel only manipulates struct list_head links.
@@ -257,7 +243,6 @@ HOW THE CIRCULAR DOUBLY LINKED STRUCTURE LOOKS
 ========================================================================================================
 
 After inserting first node:
-
     my_list <-> node0 <-> my_list
 
 Detailed view:
@@ -269,11 +254,9 @@ Detailed view:
     node0.list.prev ──────────► my_list
 
 After inserting second node at tail:
-
     my_list <-> node0 <-> node1 <-> my_list
 
 After inserting third node at tail:
-
     my_list <-> node0 <-> node1 <-> node2 <-> my_list
 
 Full conceptual view:
@@ -286,7 +269,6 @@ Full conceptual view:
         └────────────────────────────────────────────────────┘
 
 Payload attached to each node:
-
     node0.list belongs to struct my_data { id=0, name="MP Coding", ... }
     node1.list belongs to struct my_data { id=1, name="Hello World", ... }
     node2.list belongs to struct my_data { id=2, name="Madhawa Polkotuwa", ... }
@@ -309,13 +291,10 @@ CODE
 MENTAL MODEL
 ────────────
 The macro `list_for_each` iterates using a cursor of type:
-
     struct list_head *ptr
 
 So it walks through linkage nodes, not your payload type directly.
-
 Traversal sequence:
-
     ptr = my_list.next
     while (ptr != &my_list) {
         ...
@@ -345,12 +324,9 @@ But you actually want:
     tmp -> pointer to the surrounding struct my_data
 
 So `list_entry` performs the classic kernel "container_of" style conversion:
-
-    "Given pointer to member `list`,
-     compute pointer to parent struct `my_data` that contains it."
+    "Given pointer to member `list`, compute pointer to parent struct `my_data` that contains it."
 
 Diagram:
-
     struct my_data
     ┌───────────────────────────────┐
     │ id                            │
@@ -362,8 +338,7 @@ Diagram:
       tmp returned by list_entry(...)
 
 Why this is powerful:
-    a single generic list implementation can work for any struct type
-    as long as that struct embeds a list_head member
+    a single generic list implementation can work for any struct type as long as that struct embeds a list_head member
 
 ========================================================================================================
 WHAT GETS PRINTED DURING ITERATION
@@ -374,7 +349,6 @@ For each element:
     tmp->name
 
 So iteration output is logically:
-
     Element id:0 name:MP Coding
     Element id:1 name:Hello World
     Element id:2 name:Madhawa Polkotuwa
@@ -394,7 +368,6 @@ Without cleanup:
     kernel memory leaks
 
 So the module uses:
-
     goto mem_free
 
 This label performs cleanup of every node already inserted into my_list.
@@ -417,7 +390,6 @@ CODE
 MENTAL MODEL
 ────────────
 This macro iterates directly in terms of your container type:
-
     tmp  = current struct my_data *
     next = saved next struct my_data *
 
@@ -583,9 +555,7 @@ The kernel list API only provides:
     - container conversion helpers
 
 This is a critical senior understanding:
-
-    Linux kernel lists manage relationships between objects,
-    not object lifetime by themselves.
+    Linux kernel lists manage relationships between objects, not object lifetime by themselves.
 
 ========================================================================================================
 FINAL SHAPE AFTER SUCCESSFUL INIT

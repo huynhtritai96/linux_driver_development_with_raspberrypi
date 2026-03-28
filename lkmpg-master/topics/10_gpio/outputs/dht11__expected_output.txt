@@ -1,0 +1,8 @@
+# Example: dht11
+# Status: expected-output-only
+# Timestamp: 2026-03-28T00:00:44+07:00
+
+Reason: GPIO/Sensor resources unavailable on this host.
+
+Expected behavior summary:
+Typical dmesg: Unable to request GPIOs for dht11: -16.

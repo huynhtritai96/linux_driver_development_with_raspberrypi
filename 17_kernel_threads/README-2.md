@@ -8,7 +8,6 @@ LINUX KERNEL THREADS — SENIOR MENTAL MODEL
 [ BIG PICTURE ]
 ----------------------------------------------------------------------------------------------------
 Linux system execution entities can be viewed like this:
-
     CPU Scheduler
         |
         +--> user process thread
@@ -61,7 +60,6 @@ COMMENT:
 ====================================================================================================
 [ WHAT IS A THREAD? ]
 ====================================================================================================
-
 A thread is the smallest schedulable execution path inside a process.
 
 Threads in the same process share:
@@ -77,7 +75,6 @@ Each thread has its own:
     - program counter / execution context
 
 Mental picture:
-
     One Process
       |
       +-- shared address space
@@ -143,12 +140,8 @@ Have:
 COMMENT:
 The biggest conceptual difference is not “both are threads”.
 The biggest difference is:
-
-    user thread
-        -> lives inside a user process context
-
-    kernel thread
-        -> lives entirely inside kernel execution context
+    user thread -> lives inside a user process context
+    kernel thread -> lives entirely inside kernel execution context
 
 So a kernel thread is not "a faster pthread".
 It is a kernel-managed execution worker.
@@ -156,7 +149,6 @@ It is a kernel-managed execution worker.
 ====================================================================================================
 [ WHERE KERNEL THREADS LIVE ]
 ====================================================================================================
-
 User space:
     applications
     libraries
@@ -170,7 +162,6 @@ Kernel space:
     kernel threads
 
 Mental picture:
-
     User Building
         ├── bash
         ├── firefox
@@ -192,7 +183,6 @@ A kernel thread is a worker that never leaves the kernel building.
 ====================================================================================================
 [ HOW KERNEL THREADS APPEAR IN THE SYSTEM ]
 ====================================================================================================
-
 Kernel threads:
     - have task_struct
     - are visible to process listing tools
@@ -219,9 +209,7 @@ COMMENT:
 ====================================================================================================
 [ WHY DRIVERS USE KERNEL THREADS ]
 ====================================================================================================
-
 Drivers use kernel threads when they need long-lived background execution such as:
-
     - periodic polling
     - waiting/sleeping loops
     - blocking operations
@@ -249,9 +237,7 @@ But it is a very natural fit for persistent background driver logic.
 ====================================================================================================
 [ YOUR EXAMPLE — WHAT OBJECTS EXIST ]
 ====================================================================================================
-
 Global state in your module:
-
     static struct task_struct *thread_1;
     static struct task_struct *thread_2;
 
@@ -259,12 +245,8 @@ Global state in your module:
     static int t2 = 2;
 
 Meaning:
-
-    thread_1 / thread_2
-        = handles to the kernel thread tasks created by kthread_run()
-
-    t1 / t2
-        = simple pieces of per-thread input data passed to the thread function
+    thread_1 / thread_2 = handles to the kernel thread tasks created by kthread_run()
+    t1 / t2 = simple pieces of per-thread input data passed to the thread function
 
 COMMENT:
 - The task_struct pointer is not "the thread code".
@@ -276,7 +258,6 @@ COMMENT:
 ====================================================================================================
 
 In module init:
-
     thread_1 = kthread_run(thread_function, &t1, "kthread_1");
     thread_2 = kthread_run(thread_function, &t2, "kthread_2");
 
@@ -296,19 +277,15 @@ So you must check:
 
 COMMENT:
 `kthread_run()` is conceptually:
-
     create + start
 
-It is a convenience helper.
-That is why it feels very direct.
+It is a convenience helper. That is why it feels very direct.
 
 ====================================================================================================
 [ THREAD ENTRY FUNCTION ]
 ====================================================================================================
 
-Your thread entry point:
-
-    static int thread_function(void *data)
+Your thread entry point: static int thread_function(void *data)
 
 Input:
     data = whatever pointer you passed from kthread_run()
@@ -328,11 +305,10 @@ This is a very important lesson:
 You do NOT need different functions to create different threads.
 
 You can do:
-
     same function
-    +
+        +
     different input data
-    =
+        =
     multiple independent thread instances
 
 This is exactly how many real driver workers are written.
@@ -342,17 +318,12 @@ This is exactly how many real driver workers are written.
 ====================================================================================================
 
 Creation:
-
     kthread_run(thread_function, &t1, "kthread_1")
     kthread_run(thread_function, &t2, "kthread_2")
 
 Runtime view:
-
-    thread instance A
-        executes thread_function(data=&t1)
-
-    thread instance B
-        executes thread_function(data=&t2)
+    thread instance A : executes thread_function(data=&t1)
+    thread instance B : executes thread_function(data=&t2)
 
 Even though function code is the same:
     - each thread has its own stack
@@ -360,17 +331,12 @@ Even though function code is the same:
     - each thread has its own timing
     - each thread has its own local variables during execution
 
-COMMENT:
-This is one of the easiest beginner confusions.
+COMMENT: This is one of the easiest beginner confusions.
 
-People often think:
-    "same function" means "shared execution"
+People often think: "same function" means "shared execution"
 
 No.
-It means:
-    same code text
-but
-    separate runtime execution contexts
+It means: same code text but separate runtime execution contexts
 
 So your `counter` local variable is independent in each thread because each thread has its own stack frame.
 
@@ -379,7 +345,6 @@ So your `counter` local variable is independent in each thread because each thre
 ====================================================================================================
 
 Your loop:
-
     while (!kthread_should_stop()) {
         pr_info(...);
         ssleep(thread_id);
@@ -388,20 +353,15 @@ Your loop:
 Meaning:
     keep running until someone requests stop
 
-`kthread_should_stop()`
-    returns true after another context calls `kthread_stop()` for this task
+`kthread_should_stop()` : returns true after another context calls `kthread_stop()` for this task
 
 `ssleep(thread_id)`
     thread 1 sleeps 1 second
     thread 2 sleeps 2 seconds
 
 So runtime behavior becomes:
-
-    thread 1:
-        wake -> print -> sleep 1s -> wake -> print -> sleep 1s ...
-
-    thread 2:
-        wake -> print -> sleep 2s -> wake -> print -> sleep 2s ...
+    thread 1: wake -> print -> sleep 1s -> wake -> print -> sleep 1s ...
+    thread 2: wake -> print -> sleep 2s -> wake -> print -> sleep 2s ...
 
 COMMENT:
 This is the standard kernel-thread pattern:
@@ -418,7 +378,6 @@ If you remember only one kthread structure, remember this one.
 ====================================================================================================
 [ WHY THE THREAD DOES NOT EAT 100% CPU ]
 ====================================================================================================
-
 Because it calls:
     ssleep(...)
 
@@ -434,8 +393,7 @@ COMMENT:
 Kernel threads are not special here.
 Just like user threads, a loop with no blocking/sleep can consume an entire CPU core.
 
-So in background worker threads:
-    always think carefully about pacing
+So in background worker threads: always think carefully about pacing
 
 Common pacing methods:
     ssleep()
@@ -463,7 +421,6 @@ Meaning of kthread_stop():
     - return the thread function's return value
 
 So stop flow is:
-
     module exit
         |
         v
@@ -482,14 +439,10 @@ So stop flow is:
     kthread_stop() completes
 
 COMMENT:
-This is why module unload may take a little time:
-the caller waits for the thread to actually finish.
+This is why module unload may take a little time: the caller waits for the thread to actually finish.
 
-So `kthread_stop()` is not just:
-    "send signal and forget"
-
-It is more like:
-    "request stop and join the thread"
+So `kthread_stop()` is not just: "send signal and forget"
+It is more like: "request stop and join the thread"
 
 ====================================================================================================
 [ WHY UNLOAD WAITS A LITTLE ]
@@ -507,21 +460,18 @@ So when `kthread_stop()` is called:
 That is why unload may feel delayed.
 
 COMMENT:
-This is a very important real-world observation:
-stopping a thread is cooperative.
+This is a very important real-world observation: stopping a thread is cooperative.
 
 The thread must eventually return from its loop.
 So your loop structure determines how quickly shutdown happens.
 
-If you need fast shutdown:
-    avoid very long uninterruptible waits inside the loop.
+If you need fast shutdown: avoid very long uninterruptible waits inside the loop.
 
 ====================================================================================================
 [ ERROR HANDLING IN INIT ]
 ====================================================================================================
 
 Creation order:
-
     create thread_1
     create thread_2
 
@@ -538,7 +488,6 @@ Meaning:
 
 COMMENT:
 This is classic kernel resource-lifetime discipline:
-
     acquire resources in order
     if later acquisition fails,
     unwind earlier acquisitions before returning error
@@ -549,14 +498,10 @@ Threads are resources too.
 [ SCHEDULER VIEW ]
 ====================================================================================================
 
-Scheduler does not think:
-    "this is a magical kernel helper"
-
-Scheduler thinks:
-    "this is another runnable task"
+Scheduler does not think: "this is a magical kernel helper"
+Scheduler thinks: "this is another runnable task"
 
 So internally:
-
     CPU Scheduler
          |
          +-- user thread A
@@ -640,26 +585,13 @@ If you can replay this lifecycle in your head, you already understand the exampl
 [ BEST SIMPLE MENTAL MODEL ]
 ====================================================================================================
 
-Process
-    = resource container in user space
-
-Thread
-    = execution worker inside that container
-
-Kernel thread
-    = execution worker that lives entirely in kernel space
-
-kthread_run()
-    = create + start worker
-
-thread_function()
-    = worker entry point
-
-while (!kthread_should_stop())
-    = cooperative run loop
-
-kthread_stop()
-    = request stop + wait for worker to exit
+Process = resource container in user space
+Thread = execution worker inside that container
+Kernel thread = execution worker that lives entirely in kernel space
+kthread_run() = create + start worker
+thread_function() = worker entry point
+while (!kthread_should_stop()) = cooperative run loop
+kthread_stop() = request stop + wait for worker to exit
 
 ====================================================================================================
 [ SENIOR COMMENTS TO HELP YOU REMEMBER ]

@@ -1,0 +1,8 @@
+# Example: bottomhalf
+# Status: expected-output-only
+# Timestamp: 2026-03-28T00:00:52+07:00
+
+Reason: GPIO request fails on this host before IRQ setup.
+
+Expected behavior summary:
+Typical dmesg: bottomhalf_init; Unable to request GPIOs for LEDs: -517.

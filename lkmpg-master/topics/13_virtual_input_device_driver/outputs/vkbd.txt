@@ -1,0 +1,23 @@
+# Example: vkbd
+# Timestamp: 2026-03-28T00:00:54+07:00
+# Kernel: 6.12.47+rpt-rpi-v8
+
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+/dev/vinput0
++30
+
+# Exit code: 0
+
+# dmesg delta
+[14736.345437] vinput: Loading virtual input driver
+[14736.367025] vinput: registered new virtual input device 'vkbd'
+[14736.382631] input: vkbd as /devices/virtual/vinput/vinput0/input5
+[14736.382738] vinput vinput0: Registered virtual input vkbd 0
+[14736.402360] vinput vinput0: Event VINPUT_PRESS code 30
+[14736.544158] vinput: unregistered virtual input device 'vkbd'
+[14736.603292] vinput: Unloading virtual input driver

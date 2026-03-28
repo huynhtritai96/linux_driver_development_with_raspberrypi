@@ -14,13 +14,15 @@ static struct task_struct *thread_2;
 static int t1 = 1;
 static int t2 = 2;
 
-static int thread_function(void *data) {
+static int thread_function(void *data)
+{
     unsigned long counter = 0;
     int thread_id = *(int *)data;
     pr_info("%s: Thread %d started \n", module_name, thread_id);
 
     /* Main loop */
-    while(!kthread_should_stop()) {
+    while(!kthread_should_stop())
+    {
         pr_info("%s: Thread %d running - iteration %lu\n", module_name, thread_id, counter++);
         ssleep(thread_id); // thread 1 sleep 1 second, thread 2 sleep 2 seconds
     }
@@ -36,13 +38,15 @@ static int thread_function(void *data) {
 static int __init my_init(void)
 {
     thread_1 = kthread_run(thread_function, &t1, "kthread_1");
-    if (IS_ERR(thread_1)) {
+    if (IS_ERR(thread_1))
+    {
         pr_err("%s: Failed to create Thread 1\n", module_name);
         return PTR_ERR(thread_1);
     }
 
     thread_2 = kthread_run(thread_function, &t2, "kthread_2");
-    if (IS_ERR(thread_2)) {
+    if (IS_ERR(thread_2))
+    {
         pr_err("%s: Failed to create Thread 2\n", module_name);
         kthread_stop(thread_1);
         return PTR_ERR(thread_2);

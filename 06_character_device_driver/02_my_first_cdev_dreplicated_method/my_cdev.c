@@ -19,13 +19,13 @@ static int __init my_init(void)
 
     status = register_chrdev(MY_MAJOR, my_device, &fops);
 
-    if (status) {
+    if (status)
+    {
         pr_err("%s: character device registration failed\n", my_device);
         return status;
     }
 
-    pr_info("%s: Character device registered, Major number: %d\n",
-            my_device, MY_MAJOR);
+    pr_info("%s: Character device registered, Major number: %d\n", my_device, MY_MAJOR);
 
     return 0;
 }

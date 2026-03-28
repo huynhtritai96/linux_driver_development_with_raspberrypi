@@ -7,7 +7,6 @@
 ========================================================================================================
 PRIVATE DATA IN A CHARACTER DEVICE — SENIOR MENTAL MODEL (ONE COMPLETE TEXT DIAGRAM)
 ========================================================================================================
-
 GOAL OF THIS VERSION
 ────────────────────────────────────────────────────────────────────────────────────────────────────────
 Previous version:
@@ -19,13 +18,11 @@ This version:
         struct file -> private_data
 
 So the design changes from:
-
     shared device state
         ↓
     all processes use same buffer
 
 to:
-
     per-open state
         ↓
     each open gets its own buffer
@@ -34,16 +31,15 @@ to:
 LIFETIME MODEL
 ========================================================================================================
 
-MODULE LOAD TIME                                   OPEN TIME                                  CLOSE TIME
+MODULE LOAD TIME                                  OPEN TIME                                  CLOSE TIME
 ───────────────                                   ─────────                                  ──────────
-
 insmod my_cdev.ko                                 open("/dev/my_cdev0")                      close(fd)
       │                                                   │                                      │
       ▼                                                   ▼                                      ▼
 ┌───────────────────────┐                    ┌──────────────────────────────┐        ┌──────────────────────────────┐
 │ module init runs      │                    │ my_open(inode, file)         │        │ my_release(inode, file)      │
 │                       │                    │                              │        │                              │
-│ creates cdev/class/   │                    │ kzalloc(64)                 │        │ buffer = file->private_data  │
+│ creates cdev/class/   │                    │ kzalloc(64)                  │        │ buffer = file->private_data  │
 │ /dev node             │                    │     ↓                        │        │ if (buffer) kfree(buffer)    │
 │                       │                    │ returns per-open buffer      │        │                              │
 │ BUT NO DATA BUFFER    │                    │                              │        │ per-open memory disappears   │
@@ -190,13 +186,13 @@ User does:
     write(fd, user_buf, count);
 
 Kernel path:
-    user buffer
+       user buffer
         ↓
-    write syscall
+      write syscall
         ↓
-    VFS
+       VFS
         ↓
-    my_write(file, user_buf, count, pOffset)
+       my_write(file, user_buf, count, pOffset)
 
 Inside my_write():
     1. dev_buffer = (char *)file->private_data
@@ -256,7 +252,6 @@ Why this works independently across two terminals:
     terminal B opens device -> gets buffer B
 
 So:
-
     terminal A write("hello")
     terminal B write("world")
 
@@ -353,7 +348,6 @@ MULTI-INSTANCE VIEW (THE MOST IMPORTANT IDEA OF THIS LESSON)
 ========================================================================================================
 
 Two terminals open the same device node at the same time:
-
 Terminal 1                              Terminal 2
 ──────────                              ──────────
 open("/dev/my_cdev0")                   open("/dev/my_cdev0")

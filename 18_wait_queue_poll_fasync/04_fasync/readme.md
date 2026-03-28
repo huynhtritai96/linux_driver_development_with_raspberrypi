@@ -16,8 +16,7 @@ In both cases, the process(user-space app) has to wait. It cannot do other work 
 The process registers interest in the device, then continues running normally. It does not sit in a blocking read, and it does not stay inside a poll loop waiting.   
 In our example:    
 When the button is pressed, the kernel delivers a `SIGIO` signal to the process.     
-interrupting whatever the process is currently doing,     
-and then the signal handler in user space can call `read()` to fetch the data from the driver.
+interrupting whatever the process is currently doing, and then the signal handler in user space can call `read()` to fetch the data from the driver.
 
 |              |                           |
 ---------------|---------------------------|
@@ -36,11 +35,9 @@ How It Works ( with our button ISR )
 ```c++
 USER SPACE                          KERNEL SPACE
 ──────────────                  ──────────────────────────
-
 fcntl(fd, F_SETOWN, getpid())
 fcntl(fd, F_SETFL, O_ASYNC)  ──────►  my_fasync()
-                                      fasync_helper() adds this
-                                      fd to async_queue
+                                      fasync_helper() adds this fd to async_queue
         │
         ▼
 signal(SIGIO, my_handler)
@@ -76,7 +73,6 @@ signal(SIGIO, my_handler)
 The process is never removed from the run queue. It runs continuously and is only briefly interrupted by the signal handler when data arrives.
 
 ## Driver-Side Implementation
-
 ### 1.  Add a `fasync_struct` pointer
 ```c++
 /* Linked list of processes that registered for async notification on this device */
@@ -96,7 +92,6 @@ static int my_fasync(int fd, struct file *file, int on)
 Register it in `fops`:
 ```c++
 static struct file_operations fops = {
-
     .fasync  = my_fasync,   /* <-- add this */
 };
 ```
@@ -139,7 +134,6 @@ fasync Registration Flow
 ```c++
   USER SPACE                          KERNEL SPACE
 ──────────────                  ──────────────────────────
-
 fcntl(fd, F_SETOWN, getpid())
         │
         ▼
@@ -164,7 +158,6 @@ fasync Notification Flow
 ```c++
 USER SPACE                          KERNEL SPACE
 ──────────────                  ──────────────────────────
-
   /* Doing other work */
         │
         │                       (Button pressed → ISR fires)

@@ -1,0 +1,15 @@
+# Example: example_mutex
+# Timestamp: 2026-03-28T00:00:32+07:00
+# Kernel: 6.12.47+rpt-rpi-v8
+
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+# Exit code: 0
+
+# dmesg delta
+[14712.901155] example_mutex init
+[14712.901170] mutex is locked
+[14712.901173] mutex is unlocked
+[14712.935238] example_mutex exit

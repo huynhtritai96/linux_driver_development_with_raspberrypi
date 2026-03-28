@@ -21,9 +21,7 @@ This lesson:
     driver reacts to asynchronous hardware events
 
 So the real engineering question is:
-
-    "How does a GPIO input become a Linux IRQ, how does the ISR run, why does button bounce break it,
-     and how do timer debounce and bottom-half work solve different parts of the problem?"
+    "How does a GPIO input become a Linux IRQ, how does the ISR run, why does button bounce break it, and how do timer debounce and bottom-half work solve different parts of the problem?"
 
 ========================================================================================================
 PHYSICAL EVENT FLOW
@@ -60,7 +58,7 @@ later processing happens
 LED toggled / logic completed
 
 Core mental shift:
-    GPIO input is no longer just a pin value to poll
+    GPIO input is no longer just a pin value to poll 
     it becomes an asynchronous event source
 
 ========================================================================================================
@@ -131,12 +129,10 @@ Meaning of each field:
     the top-half handler function to run immediately on interrupt
 
 3. IRQF_TRIGGER_FALLING
-    trigger policy:
-        run when signal transitions from high to low
+    trigger policy: run when signal transitions from high to low
 
     In button hardware terms:
-        pressing the button likely pulls the line low
-        so falling edge means "button press event"
+        pressing the button likely pulls the line low so falling edge means "button press event"
 
 4. "btn_irq_handler"
     human-readable IRQ consumer name
@@ -172,8 +168,7 @@ Inputs:
 
 Return:
     IRQ_HANDLED
-        means:
-            "yes, this interrupt belonged to me and I handled it"
+        means: "yes, this interrupt belonged to me and I handled it"
 
 Core rule of top-half:
     do as little as possible, as fast as possible
@@ -210,11 +205,11 @@ Diagram:
 
     GPIO 20 falling edge
          ↓
-    IRQ 58
+        IRQ 58
          ↓
-    button_isr
+       button_isr
          ↓
-    LED = !LED
+        LED = !LED
 
 This works electrically, but a mechanical push button is not clean.
 
@@ -225,9 +220,7 @@ PART 5 — WHY BUTTON BOUNCE CAUSES MULTIPLE INTERRUPTS
 REAL BUTTON PRESS IS NOT A PERFECT SINGLE EDGE
 ───────────────────────────────────────────────
 When you press a mechanical switch, the contacts physically bounce.
-
 Instead of one clean transition:
-
     ideal press:
         1 ────────────────┐
                           └──────── 0
@@ -244,8 +237,7 @@ Interrupt subsystem sees:
     edge 3 -> IRQ
     ...
 
-If ISR toggles LED on every interrupt:
-    one button press may toggle multiple times
+If ISR toggles LED on every interrupt: one button press may toggle multiple times
 
 Example problem:
     expected: OFF -> ON
@@ -267,7 +259,6 @@ ADDED STATE
     static struct timer_list debounce_timer;
 
 Meaning:
-
 last_button_state
     stores the state seen at interrupt time
 
@@ -278,7 +269,6 @@ DEBOUNCE STRATEGY
 ─────────────────
 Do NOT trust the first instantaneous edge as final truth.
 Instead:
-
     1. interrupt occurs
     2. record current button state
     3. start/restart timer for 20 ms
@@ -345,9 +335,7 @@ Meaning:
     "The state observed now, after 20ms settling time, matches the state captured during IRQ"
 
 So the LED toggling is intentionally moved OUT of the ISR.
-
 New event flow:
-
     button edge burst
         ↓
     ISR records state + arms timer
@@ -370,17 +358,12 @@ TIMER SCHEDULING EXPRESSION
 
 Meaning:
 
-jiffies
-    current kernel tick count
+jiffies : current kernel tick count
+msecs_to_jiffies(20) : convert 20 milliseconds into kernel ticks
 
-msecs_to_jiffies(20)
-    convert 20 milliseconds into kernel ticks
+So combined meaning: "expire 20 ms from current kernel time"
 
-So combined meaning:
-    "expire 20 ms from current kernel time"
-
-This is a low-resolution kernel-timer scheduling model,
-good enough for debounce-scale delays like 20 ms.
+This is a low-resolution kernel-timer scheduling model, good enough for debounce-scale delays like 20 ms.
 
 ========================================================================================================
 PART 10 — CLEANUP OF IRQ + TIMER
@@ -393,20 +376,14 @@ MODULE EXIT
 
 Meaning:
 
-free_irq
-    unregister this handler from Linux IRQ subsystem
-    after this, button IRQ no longer invokes this module's ISR
+free_irq : unregister this handler from Linux IRQ subsystem after this, button IRQ no longer invokes this module's ISR
 
-del_timer_sync
-    stop timer safely and wait if callback is currently running
+del_timer_sync : stop timer safely and wait if callback is currently running
 
-Why order matters conceptually:
-    on unload, no asynchronous activity should still point into module code
+Why order matters conceptually: on unload, no asynchronous activity should still point into module code
 
 Senior lifetime rule:
-    any asynchronous kernel mechanism you registered
-        (IRQ, timer, workqueue, thread, tasklet, etc.)
-    must be shut down safely before module memory/code disappears
+    any asynchronous kernel mechanism you registered (IRQ, timer, workqueue, thread, tasklet, etc.) must be shut down safely before module memory/code disappears
 
 ========================================================================================================
 PART 11 — DESCRIPTOR API VERSION OF IRQ FLOW
@@ -529,7 +506,6 @@ Interrupt context rules:
     - sleeping there is generally illegal/unsafe
 
 So the workqueue bottom-half example is teaching the correct separation:
-
     interrupt occurs now
         ↓
     ISR schedules later work
@@ -624,23 +600,17 @@ On module unload:
 PART 18 — ONE-LINE SENIOR DISTINCTIONS
 ========================================================================================================
 
-gpio_to_irq / gpiod_to_irq
-    = map GPIO event source to Linux IRQ identity
+gpio_to_irq / gpiod_to_irq = map GPIO event source to Linux IRQ identity
 
-request_irq
-    = register top-half handler with IRQ subsystem
+request_irq = register top-half handler with IRQ subsystem
 
-ISR / top-half
-    = immediate, minimal, fast interrupt reaction
+ISR / top-half = immediate, minimal, fast interrupt reaction
 
-debounce timer
-    = filter noisy repeated edges from mechanical button bounce
+debounce timer = filter noisy repeated edges from mechanical button bounce
 
-workqueue bottom-half
-    = move slow processing out of interrupt context
+workqueue bottom-half = move slow processing out of interrupt context
 
-free_irq / del_timer_sync / cancel_work_sync
-    = shut down asynchronous callbacks safely before unload
+free_irq / del_timer_sync / cancel_work_sync = shut down asynchronous callbacks safely before unload
 
 ========================================================================================================
 FINAL SENIOR TAKEAWAY
@@ -659,7 +629,6 @@ This lesson is best understood as three stacked concepts:
        ISR reacts immediately and minimally; slower work is deferred to a safe later context
 
 So the full mental model is:
-
     button electrical edge
         ↓
     GPIO controller

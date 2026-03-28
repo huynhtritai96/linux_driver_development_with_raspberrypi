@@ -14,14 +14,12 @@ GOAL OF THIS LESSON
 This is the first step from "foundation code" into "real hardware interaction".
 
 The module is doing 4 practical things:
-
     1. identify which GPIO lines it wants to use
     2. configure one line as output  (LED)
     3. configure one line as input   (button)
     4. drive/read the pins during module load/unload
 
 So the real engineering question is:
-
     "How does a kernel module take a GPIO line from the system, configure it safely, use it, and release it?"
 
 ========================================================================================================
@@ -74,9 +72,7 @@ You ran:
     gpiodetect
 
 This shows there are multiple GPIO chips.
-
 Conceptually:
-
     gpiochip0  (main SoC GPIO controller)
         ├── line 0
         ├── line 1
@@ -294,8 +290,7 @@ Same conceptual model as LED:
     claim exclusive use of input pin before operating on it
 
 Important failure handling:
-    if button request fails after LED request already succeeded,
-    LED must be freed before returning
+    if button request fails after LED request already succeeded, LED must be freed before returning
 
 That is why the code does:
     gpio_free(led_gpio);
@@ -316,8 +311,7 @@ MENTAL MODEL
 This programs the GPIO controller so the line is sampled as INPUT.
 
 Unlike output:
-    no initial value parameter is needed,
-    because the driver is not driving the line
+    no initial value parameter is needed, because the driver is not driving the line
 
 Now the pin state will reflect external electrical condition:
     button not pressed -> maybe 0
@@ -389,11 +383,8 @@ Output:
     module prints current button state in dmesg
 
 This is a snapshot read, not interrupt-driven detection.
-So it answers:
-    "what is the input value right now during init?"
-
-It does NOT yet mean:
-    "notify me automatically when button changes"
+So it answers: "what is the input value right now during init?"
+It does NOT yet mean: "notify me automatically when button changes"
 
 That will come later with interrupts.
 
@@ -421,8 +412,7 @@ Meaning of gpio_free():
     this module no longer owns that GPIO resource
 
 After free:
-    line may later be requested by other code,
-    or left unused depending on system configuration
+    line may later be requested by other code, or left unused depending on system configuration
 
 Senior resource model:
     request -> configure -> use -> free
@@ -440,7 +430,6 @@ Acquisition order:
 If a later step fails, earlier steps must be undone.
 
 Examples:
-
 If LED direction set fails:
     free LED
     return
@@ -500,7 +489,6 @@ you now hold:
 This is better because the kernel API can operate on a typed handle rather than a raw integer.
 
 Diagram:
-
     legacy style:
         int gpio = 533
 
@@ -526,12 +514,10 @@ MENTAL MODEL
 ────────────
 This converts the old integer GPIO number into the kernel descriptor object.
 
-So this lesson's descriptor example still starts from a global number,
-but after conversion it uses the gpiod API.
+So this lesson's descriptor example still starts from a global number, but after conversion it uses the gpiod API.
 
 Important subtle point:
-    this is not the most modern full device-tree consumer flow yet,
-    but it is a bridge toward descriptor-based thinking
+    this is not the most modern full device-tree consumer flow yet, but it is a bridge toward descriptor-based thinking
 
 Output:
     led/button become descriptor handles for later operations
@@ -541,14 +527,9 @@ gpiod_direction_output / gpiod_direction_input
 ========================================================================================================
 
 Same conceptual behavior as legacy API, but now the argument is a descriptor.
-
 Examples:
-
-    gpiod_direction_output(led, 0)
-        -> configure descriptor's line as output, initial low
-
-    gpiod_direction_input(button)
-        -> configure descriptor's line as input
+    gpiod_direction_output(led, 0) -> configure descriptor's line as output, initial low
+    gpiod_direction_input(button)  -> configure descriptor's line as input
 
 Meaning:
     the operation is now bound to the GPIO object handle rather than raw integer id
@@ -558,12 +539,8 @@ gpiod_set_value / gpiod_get_value
 ========================================================================================================
 
 Examples:
-
-    gpiod_set_value(led, 1)
-        -> drive output high
-
-    gpiod_get_value(button)
-        -> sample input
+    gpiod_set_value(led, 1) -> drive output high
+    gpiod_get_value(button) -> sample input
 
 Functionally same lesson as before:
     one line controlled as output
@@ -578,23 +555,20 @@ WHY THIS VERSION DOES NOT CALL gpio_free()
 In this particular demo, the code uses:
     gpio_to_desc()
 
-and then operates through descriptors,
-but it does not use an explicit legacy gpio_request/gpio_free pair.
+and then operates through descriptors, but it does not use an explicit legacy gpio_request/gpio_free pair.
 
 The tutorial explanation says:
     "we didn't request them explicitly, so we don't free them explicitly"
 
 Senior interpretation:
-    this is a simplified learning example contrasting the two API styles,
-    not a full production-grade resource-managed consumer pattern yet.
+    this is a simplified learning example contrasting the two API styles, not a full production-grade resource-managed consumer pattern yet.
 
 In real modern drivers, the preferred pattern is usually:
     obtain descriptors through proper consumer APIs
     often device-managed (devm_*) if you have a struct device context
 
 So the deep lesson is:
-    this example is primarily showing the operational difference in API shape,
-    not the final best-practice full platform-driver pattern yet.
+    this example is primarily showing the operational difference in API shape, not the final best-practice full platform-driver pattern yet.
 
 ========================================================================================================
 COMPLETE SIGNAL FLOW FOR THIS LESSON
@@ -609,16 +583,20 @@ module init
     ├── set value high
     ▼
 GPIO controller drives line
+    │
     ▼
 LED lights up
 
 BUTTON INPUT PATH
 ─────────────────
 external button electrical state
+    │
     ▼
 GPIO controller samples line
+    │
     ▼
 driver calls gpio_get_value / gpiod_get_value
+    │
     ▼
 driver prints state in kernel log
 
@@ -735,12 +713,8 @@ This GPIO lesson is best understood as a hardware-resource ownership flow:
     release ownership when done
 
 And it also introduces the API evolution:
-
-    old model:
-        raw GPIO number + manual request/free
-
-    newer model:
-        GPIO descriptor handle + gpiod operations
+    old model: raw GPIO number + manual request/free
+    newer model: GPIO descriptor handle + gpiod operations
 
 That is the core engineering mental model behind this Raspberry Pi GPIO control example.
 

@@ -7,7 +7,8 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2) {
+    if (argc < 2)
+    {
         fprintf(stderr, "Usage: %s <device>\n", argv[0]);
         return 1;
     }
@@ -16,13 +17,15 @@ int main(int argc, char *argv[])
     int fd1 = open(argv[1], O_RDONLY);
     int fd2 = open(argv[1], O_RDONLY);
 
-    if (fd1 < 0 || fd2 < 0) {
+    if (fd1 < 0 || fd2 < 0)
+    {
         perror("open failed");
         return 1;
     }
 
     /* Monitor three fds simultaneously */
-    struct pollfd fds[3] = {
+    struct pollfd fds[3] = 
+    {
         { .fd = STDIN_FILENO, .events = POLLIN },  /* fds[0]: stdin keybod input   */
         { .fd = fd1,          .events = POLLIN },  /* fds[1]: device instance 1 */
         { .fd = fd2,          .events = POLLIN },  /* fds[2]: device instance 2 */
@@ -33,35 +36,42 @@ int main(int argc, char *argv[])
     printf("Monitoring stdin + 2x /dev/my_cdev0\n");
     printf("Press the button OR type something and press Enter\n\n");
 
-    while (1) {
-
+    while (1)
+    {
         /* Single poll() call monitors all three fds at once */
         int ret = poll(fds, 3, -1);
-        if (ret < 0) {
+        if (ret < 0)
+        {
             perror("poll failed");
             break;
         }
 
         /* Check each fd independently */
-        if (fds[0].revents & POLLIN) {
+        if (fds[0].revents & POLLIN) 
+        {
             int n = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
-            if (n > 0) {
+            if (n > 0)
+            {
                 buffer[n] = '\0';
                 printf("[stdin]  Typed: %s", buffer);
             }
         }
 
-        if (fds[1].revents & POLLIN) {
+        if (fds[1].revents & POLLIN) 
+        {
             int n = read(fd1, buffer, sizeof(buffer) - 1);
-            if (n > 0) {
+            if (n > 0)
+            {
                 buffer[n] = '\0';
                 printf("[fd1]    Received: %s \n", buffer);
             }
         }
 
-        if (fds[2].revents & POLLIN) {
+        if (fds[2].revents & POLLIN)
+        {
             int n = read(fd2, buffer, sizeof(buffer) - 1);
-            if (n > 0) {
+            if (n > 0)
+            {
                 buffer[n] = '\0';
                 printf("[fd2]    Received: %s \n", buffer);
             }

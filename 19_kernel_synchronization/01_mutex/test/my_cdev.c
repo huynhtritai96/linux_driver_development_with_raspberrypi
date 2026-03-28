@@ -10,11 +10,8 @@ MODULE_AUTHOR("MPCoding - LDD");
 MODULE_DESCRIPTION("Kernel Synchronization: Mutex -> test");
 
 static const char *my_device = "my_cdev";
-
 static dev_t dev_nr;
-
 static struct cdev my_cdev;
-
 static struct class *my_class;
 
 /* Size of the device's internal buffer */
@@ -24,17 +21,20 @@ static struct class *my_class;
 static char *dev_buffer;
 static struct mutex dev_mutex;
 
-static int my_open(struct inode *pInode, struct file *pFile) {
+static int my_open(struct inode *pInode, struct file *pFile)
+{
     pr_info("%s: my_open called, Major: %d Minor: %d\n", my_device, imajor(pInode), iminor(pInode));
     return 0;
 }
-static int my_release(struct inode *pInode, struct file *pFile) {
+static int my_release(struct inode *pInode, struct file *pFile)
+{
     pr_info("%s: my_release called, file is closed\n", my_device);
     return 0;
 }
 
 /* read: copy data from kernel buffer -> user-space buffer*/
-static	ssize_t my_read(struct file *pFile, char __user *pUser_buff, size_t count, loff_t *pOffset) {
+static	ssize_t my_read(struct file *pFile, char __user *pUser_buff, size_t count, loff_t *pOffset)
+{
     size_t bytes_to_copy, not_copied, copied;
 
     if (mutex_lock_interruptible(&dev_mutex))
@@ -62,7 +62,8 @@ static	ssize_t my_read(struct file *pFile, char __user *pUser_buff, size_t count
 }
 
 /* write: copy data from user-space buffer -> kernel buffer */
-static	ssize_t my_write(struct file *pFile, const char __user *pUser_buff, size_t count, loff_t *pOffset) {
+static	ssize_t my_write(struct file *pFile, const char __user *pUser_buff, size_t count, loff_t *pOffset)
+{
     size_t bytes_to_copy, not_copied, copied;
 
     if (mutex_lock_interruptible(&dev_mutex))
@@ -71,14 +72,19 @@ static	ssize_t my_write(struct file *pFile, const char __user *pUser_buff, size_
     // Simulate the busy critical section.
     msleep(5000);
     
-    if (*pOffset >= DEV_BUFFER_SIZE) {
+    if (*pOffset >= DEV_BUFFER_SIZE) 
+    {
         pr_info("%s: no space left to write\n", my_device);
         mutex_unlock(&dev_mutex);
         return -ENOSPC;
-    }else if (count > DEV_BUFFER_SIZE - (size_t)*pOffset) {
+    } 
+    else if (count > DEV_BUFFER_SIZE - (size_t)*pOffset) 
+    {
         bytes_to_copy = DEV_BUFFER_SIZE - (size_t)*pOffset;
         pr_info("%s: only %zu bytes left to write\n", my_device, bytes_to_copy);
-    } else {
+    } 
+    else 
+    {
         bytes_to_copy = count;
         pr_info("%s: writing %zu bytes\n", my_device, bytes_to_copy);
     }
@@ -88,7 +94,8 @@ static	ssize_t my_write(struct file *pFile, const char __user *pUser_buff, size_
     not_copied = copy_from_user(dev_buffer + *pOffset, pUser_buff, bytes_to_copy);
     copied = bytes_to_copy - not_copied;
 
-    if (not_copied) {
+    if (not_copied) 
+    {
         pr_warn("%s: copy_from_user: only copied %zu/%zu\n", my_device, copied, bytes_to_copy);
     }
 
@@ -108,22 +115,25 @@ static struct file_operations fops = {
     .write = my_write,
 };
 
-static int __init my_init(void) {
+static int __init my_init(void)
+{
     int status;
 
     /* allocate kernel buffer */
     dev_buffer = kmalloc(DEV_BUFFER_SIZE, GFP_KERNEL);
-    if (!dev_buffer) {
+    if (!dev_buffer)
+    {
         pr_err("%s: Failed to allocate device buffer\n", my_device);
         return -ENOMEM;
     }
+
     /* initialize mutex */
     mutex_init(&dev_mutex);
-    /* clear dev_buffer */
-    memset(dev_buffer, 0, DEV_BUFFER_SIZE);
+    memset(dev_buffer, 0, DEV_BUFFER_SIZE); /* clear dev_buffer */
 
     status = alloc_chrdev_region(&dev_nr, 0, MINORMASK + 1, my_device);
-    if (status) {
+    if (status)
+    {
         pr_err("%s: character device registation failed\n", my_device);
         return status;
     }
@@ -132,19 +142,22 @@ static int __init my_init(void) {
     my_cdev.owner = THIS_MODULE;
 
     status = cdev_add(&my_cdev, dev_nr, MINORMASK + 1);
-    if (status) {
+    if (status)
+    {
         pr_err("%s: error adding cdev\n", my_device);
         goto free_device_nr;
     }
 
     my_class = class_create("my_class");
-    if (!my_class) {
+    if (!my_class)
+    {
         pr_err("%s: Could not create class my_class\n",my_device);
         status = ENOMEM;
         goto delete_cdev;
     }
 
-    if (!device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0)) {
+    if (!device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0))
+    {
         pr_err("%s: Could not create device my_cdev0\n", my_device);
         status = ENOMEM;
         goto delete_class;
@@ -165,10 +178,10 @@ free_device_nr:
     unregister_chrdev_region(dev_nr, MINORMASK + 1); 
 
     return status;
-
 }
 
-static void __exit my_exit(void) {
+static void __exit my_exit(void)
+{
     device_destroy(my_class, dev_nr);
     class_destroy(my_class);
     cdev_del(&my_cdev);

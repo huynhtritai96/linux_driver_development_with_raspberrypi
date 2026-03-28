@@ -1,0 +1,8 @@
+# Example: dt-overlay
+# Status: expected-output-only
+# Timestamp: 2026-03-28T00:01:01+07:00
+
+Reason: Overlay application is board/firmware-specific and not validated here.
+
+Expected behavior summary:
+Expected flow: compile .dts -> .dtbo, apply overlay, observe devicetree probe logs.

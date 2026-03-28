@@ -1,0 +1,17 @@
+# Example: example_rwlock
+# Timestamp: 2026-03-28T00:00:36+07:00
+# Kernel: 6.12.47+rpt-rpi-v8
+
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+# Exit code: 0
+
+# dmesg delta
+[14716.380309] example_rwlock started
+[14716.380324] Read Locked
+[14716.380327] Read Unlocked
+[14716.380330] Write Locked
+[14716.380332] Write Unlocked
+[14716.422402] example_rwlock exit

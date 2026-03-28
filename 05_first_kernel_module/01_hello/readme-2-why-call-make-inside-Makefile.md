@@ -28,8 +28,7 @@ It acts mainly as a **wrapper around the kernel build system (Kbuild)**.
 obj-m += hello.o
 ```
 
-This is **Kbuild syntax**, not normal Makefile logic.
-It tells the kernel build system:
+This is **Kbuild syntax**, not normal Makefile logic. It tells the kernel build system:
 > Build `hello.o` as a **loadable kernel module**.
 
 ### What Kbuild will generate
@@ -306,7 +305,7 @@ modules.order
 ```
 
 ---
-# 11. Why `$(MAKE)` instead of `make`
+# 11. Why `$(MAKE)` instead of `make` <-------- 
 Correct practice:
 ```
 $(MAKE)
@@ -316,8 +315,7 @@ instead of
 ```
 make
 ```
-
-because it preserves:
+because it preserves: <-------- 
 ```
 -j
 -V
@@ -334,22 +332,21 @@ propagates automatically.
 ---
 
 # 12. Debug / Inspection Options
-### `make V=1`
+### `make V=1` <-------- 
 Shows full compile commands.
 Example:
 
 ```
-aarch64-linux-gnu-gcc -D__KERNEL__ -Wall ...
+aarch64-linux-gnu-gcc -D__KERNEL__ -Wall ...    <-------- 
 ```
 
 ---
-### `make -n`
+### `make -n` <-------- 
 Dry-run mode.
 ```
-make -n
+make -n     <-------- 
 ```
-Shows commands without executing.
-Useful for understanding the build graph.
+Shows commands without executing. Useful for understanding the build graph.
 
 ---
 ### `make -j`
@@ -367,7 +364,7 @@ Print variable values.
 Example:
 
 ```
-make -V KDIR
+make -V KDIR  <-------- 
 ```
 
 ---
@@ -376,15 +373,15 @@ make -V KDIR
 Key Kbuild variables:
 | Variable         | Meaning                  |
 | ---------------- | ------------------------ |
-| obj-m            | module objects           |
-| obj-y            | built-in kernel objects  |
-| ccflags-y        | compiler flags           |
-| subdir-ccflags-y | flags for subdirectories |
+| obj-m            | module objects           | <-------- 
+| obj-y            | built-in kernel objects  | <-------- 
+| ccflags-y        | compiler flags           | <-------- 
+| subdir-ccflags-y | flags for subdirectories | <-------- 
 
 Example multi-file module:
 ```
 obj-m += driver.o
-driver-objs := core.o net.o ioctl.o
+driver-objs := core.o net.o ioctl.o <-------- 
 ```
 
 Result:
@@ -393,7 +390,7 @@ core.c
 net.c
 ioctl.c
    ↓
-driver.ko
+driver.ko  <-------- 
 ```
 
 ---
@@ -405,7 +402,7 @@ make V=1
 
 Example output:
 ```
-make -C /lib/modules/.../build M=/home/user/module modules
+make -C /lib/modules/.../build M=/home/user/module modules  <-------- 
 
 CC [M] hello.o
 LD [M] hello.ko
@@ -413,9 +410,9 @@ LD [M] hello.ko
 
 This shows:
 ```
-CC = compile
-LD = link
-[M] = module
+CC = compile      <-------- 
+LD = link         <-------- 
+[M] = module      <-------- 
 ```
 
 ---
@@ -423,10 +420,10 @@ LD = link
 The Linux kernel uses this design because:
 | Reason                      | Benefit              |
 | --------------------------- | -------------------- |
-| Reuse kernel compiler flags | ABI compatibility    |
-| Ensure same toolchain       | stable module        |
-| Match kernel config         | correct architecture |
-| Prevent symbol mismatch     | safe module loading  |
+| Reuse kernel compiler flags | ABI compatibility    |      <-------- 
+| Ensure same toolchain       | stable module        |      <-------- 
+| Match kernel config         | correct architecture |      <-------- 
+| Prevent symbol mismatch     | safe module loading  |      <-------- 
 
 ---
 # 16. Resulting Kernel Module
@@ -453,19 +450,19 @@ wrapper → kernel build system
 ```
 
 ```
-Your Makefile
+  Your Makefile
       │
       ▼
-Kernel Makefile
+ Kernel Makefile
       │
       ▼
-Kbuild system
+ Kbuild system
       │
       ▼
-GCC / LD
+  GCC / LD
       │
       ▼
-hello.ko
+   hello.ko
 ```
 
 ---

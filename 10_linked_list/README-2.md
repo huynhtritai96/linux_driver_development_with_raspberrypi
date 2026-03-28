@@ -41,7 +41,6 @@ Meaning:
     because it contains embedded list metadata
 
 In your module:
-
     struct my_data {
         uint32_t id;
         char name[32];
@@ -49,7 +48,6 @@ In your module:
     };
 
 So each allocated `struct my_data` is simultaneously:
-
     - a real payload object
     - a linkable node in a kernel list
 
@@ -84,7 +82,6 @@ It only knows:
     "who is after me?"
 
 So:
-
     struct my_data
         owns the real payload
 
@@ -102,7 +99,6 @@ THE TWO THINGS THAT EXIST IN THIS MODULE
 1. THE SENTINEL HEAD
 ----------------------------------------------------------------------------------------------------
     static LIST_HEAD(my_list);
-
 This is the anchor of the list.
 
 2. THE REAL DATA OBJECTS
@@ -111,10 +107,8 @@ This is the anchor of the list.
         ├── id
         ├── name
         └── list
-
 Mental picture:
 ----------------------------------------------------------------------------------------------------
-
     my_list         = permanent anchor/sentinel
     nodeA,my_data   = real object
     nodeB,my_data   = real object
@@ -214,9 +208,7 @@ The list API owns only:
 
 COMMENT:
 This is one of the most important senior understandings:
-
-    kernel linked lists manage relationships between objects
-    not the lifetime of the objects themselves
+    kernel linked lists manage relationships between objects not the lifetime of the objects themselves
 
 The list does not magically free memory for you.
 
@@ -273,18 +265,14 @@ but `tmp` is not yet in the list
 
 Diagram:
 ----------------------------------------------------------------------------------------------------
-
     tmp  --->  [ id=?, name=?, list.next=?, list.prev=? ]
 
 Important distinction:
 ----------------------------------------------------------------------------------------------------
 allocation != insertion
 
-Allocation means:
-    memory exists
-
-Insertion means:
-    memory is linked into topology
+Allocation means: memory exists
+Insertion means: memory is linked into topology
 
 COMMENT:
 This distinction matters a lot in debugging.
@@ -353,8 +341,7 @@ So the logical order becomes:
 COMMENT:
 This is the second huge kernel-list insight:
 
-    list API works on the embedded member
-    not on the containing object directly
+    list API works on the embedded member not on the containing object directly
 
 That is why recovery via `list_entry()` exists later.
 
@@ -383,14 +370,12 @@ More detailed conceptual picture:
         +-------------------------------------------------------+
 
 And each node belongs to a bigger object:
-
     node0.list is inside struct my_data { id=0, name="MP Coding", ... }
     node1.list is inside struct my_data { id=1, name="Hello World", ... }
     node2.list is inside struct my_data { id=2, name="Madhawa Polkotuwa", ... }
 
 COMMENT:
-The list walks through `list_head` links,
-but the real useful content lives in the surrounding objects.
+The list walks through `list_head` links, but the real useful content lives in the surrounding objects.
 
 ====================================================================================================
 TRAVERSAL — LOW-LEVEL VIEW
@@ -448,8 +433,7 @@ But what you actually need is:
 
 So `list_entry()` means:
 ----------------------------------------------------------------------------------------------------
-"Given a pointer to member `list`,
- recover the pointer to the containing struct `my_data`."
+"Given a pointer to member `list`, recover the pointer to the containing struct `my_data`."
 
 Conceptual diagram:
 ----------------------------------------------------------------------------------------------------
@@ -480,12 +464,10 @@ Traversal prints:
 
 Meaning:
 ----------------------------------------------------------------------------------------------------
-list preserved insertion order
-because `list_add_tail()` was used
+list preserved insertion order because `list_add_tail()` was used
 
 COMMENT:
-If you had used `list_add()` instead,
-the list would grow at the head and visible order would differ.
+If you had used `list_add()` instead, the list would grow at the head and visible order would differ.
 
 So insertion API affects observable iteration order.
 
@@ -595,7 +577,6 @@ actually releases the storage
 
 COMMENT:
 This distinction is critical:
-
     list_del()
         = topology change
 

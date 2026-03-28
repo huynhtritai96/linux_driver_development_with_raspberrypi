@@ -7,7 +7,6 @@ GOAL OF THIS LESSON
 ────────────────────────────────────────────────────────────────────────────────────────────────────────
 This lesson is not yet "how to write the BMP180 driver".
 It is the architecture lesson that explains:
-
     1. what I2C is electrically
     2. how Linux models an I2C bus
     3. how user space and kernel space both see the same subsystem differently
@@ -15,18 +14,14 @@ It is the architecture lesson that explains:
     5. how Device Tree and sysfs participate in device creation
 
 So the real engineering question is:
-
-    "When an I2C sensor is connected to a Linux board, how does that physical device become a Linux
-     kernel object, and how does a driver finally get its probe() called?"
+    "When an I2C sensor is connected to a Linux board, how does that physical device become a Linux kernel object, and how does a driver finally get its probe() called?"
 
 ========================================================================================================
 PART 1 — PHYSICAL I2C BUS MODEL
 ========================================================================================================
-
 HARDWARE LEVEL
 ──────────────
 I2C bus uses two wires:
-
     SDA  -> serial data
     SCL  -> serial clock
 
@@ -73,7 +68,6 @@ At board level, you may think:
     "BMP180 is wired to SDA/SCL"
 
 At Linux kernel level, the model is higher-level:
-
     I2C controller hardware
         ↓
     Linux I2C adapter
@@ -105,11 +99,9 @@ BUS SIDE
 
 DEVICE SIDE
 ───────────
-    struct i2c_client
-        represents one slave device instance on one bus at one address
+    struct i2c_client : represents one slave device instance on one bus at one address
 
-    struct i2c_driver
-        represents driver logic for a class/type of slave device
+    struct i2c_driver : represents driver logic for a class/type of slave device
 
 This is the single most important architecture diagram:
 
@@ -222,24 +214,15 @@ It handles:
     - generic transfer APIs
 
 Think of it like this:
-
-    controller driver says:
-        "I have an I2C bus"
-
-    board description / sysfs / device creation says:
-        "There is a client device at address 0x77 on that bus"
-
-    client driver says:
-        "I support bmp180"
-
-    I2C core checks:
-        "Do these belong together?"
+    controller driver says: "I have an I2C bus"
+    board description / sysfs / device creation says: "There is a client device at address 0x77 on that bus"
+    client driver says:  "I support bmp180"
+    I2C core checks: "Do these belong together?"
 
 If yes:
     core calls driver's probe()
 
 This is the real probe path:
-
     adapter appears
         ↓
     client device exists or is created
@@ -294,7 +277,6 @@ PART 7 — WHERE THE CODE LIVES IN THE KERNEL TREE
 The lesson points to drivers/i2c.
 
 Senior mental structure:
-
     drivers/i2c/
         core framework files
         generic user-space bridge
@@ -303,7 +285,6 @@ Senior mental structure:
         transfer algorithms
 
 Important directories mentally:
-
     drivers/i2c/i2c-core*
         core framework
 
@@ -313,8 +294,7 @@ Important directories mentally:
     drivers/i2c/busses/
         adapter/controller drivers
 
-So if debugging:
-    "my bus is missing"
+So if debugging: "my bus is missing"
         -> look toward controller/adapter driver and DT enablement
 
     "my device node exists but probe not called"
@@ -626,11 +606,9 @@ PART 17 — WHAT 1-0050 MEANS IN /sys/bus/i2c/devices
 ========================================================================================================
 
 After dynamic creation, sysfs may show:
-
     1-0050
 
 This name means:
-
     bus number 1
     slave address 0x50
 
@@ -791,42 +769,22 @@ As a client-driver developer, the most important ideas are:
 PART 23 — ONE-LINE MEANINGS OF THE MOST IMPORTANT OBJECTS
 ========================================================================================================
 
-i2c_adapter
-    = one Linux-visible I2C bus controller instance
-
-i2c_algorithm
-    = transfer implementation rules for that adapter
-
-i2c_client
-    = one slave device instance on one adapter at one address
-
-i2c_driver
-    = kernel logic that knows how to operate that device type
-
-i2c core
-    = registration + matching + common bus API infrastructure
-
-i2c-dev
-    = generic user-space bridge to adapters
-
-/dev/i2c-1
-    = user-space file handle for adapter 1, not for one specific sensor
-
-1-0050
-    = kernel sysfs name for client at bus 1, address 0x50
-
-new_device
-    = manual runtime client creation entry
-
-delete_device
-    = manual runtime client removal entry
+i2c_adapter = one Linux-visible I2C bus controller instance
+i2c_algorithm = transfer implementation rules for that adapter
+i2c_client = one slave device instance on one adapter at one address
+i2c_driver = kernel logic that knows how to operate that device type
+i2c core = registration + matching + common bus API infrastructure
+i2c-dev = generic user-space bridge to adapters
+/dev/i2c-1 = user-space file handle for adapter 1, not for one specific sensor
+1-0050 = kernel sysfs name for client at bus 1, address 0x50
+new_device = manual runtime client creation entry
+delete_device = manual runtime client removal entry
 
 ========================================================================================================
 FINAL SENIOR TAKEAWAY
 ========================================================================================================
 
 The Linux I2C subsystem is best understood as a bus framework with one core matchmaker:
-
     controller hardware
         ↓
     i2c_adapter + i2c_algorithm
@@ -837,10 +795,9 @@ The Linux I2C subsystem is best understood as a bus framework with one core matc
         ↓
     matching i2c_driver
         ↓
-    probe()
+      probe()
 
 And the same subsystem is exposed in two parallel views:
-
     user-space bus view:
         /dev/i2c-* via i2c-dev
 
@@ -848,7 +805,6 @@ And the same subsystem is exposed in two parallel views:
         i2c_client / i2c_driver via I2C core
 
 So the true mental model is:
-
     I2C bus exists as an adapter,
     slave chip exists as a client,
     driver logic exists as an i2c_driver,

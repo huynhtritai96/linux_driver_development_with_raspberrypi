@@ -1,0 +1,4 @@
+example_mutex	actual	0
+example_spinlock	actual	0
+example_rwlock	actual	0
+example_atomic	actual	0

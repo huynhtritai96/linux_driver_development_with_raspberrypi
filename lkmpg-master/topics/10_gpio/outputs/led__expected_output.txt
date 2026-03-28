@@ -1,0 +1,8 @@
+# Example: led
+# Status: expected-output-only
+# Timestamp: 2026-03-28T00:00:44+07:00
+
+Reason: GPIO line request returns -517 on this host.
+
+Expected behavior summary:
+Typical dmesg: Unable to request GPIOs for LEDs: -517.

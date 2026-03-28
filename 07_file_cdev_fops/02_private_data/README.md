@@ -26,14 +26,12 @@ There are two different object lifetimes here:
 A) DEVICE LIFETIME
 ----------------------------------------------------------------------------------------------------
 Created when the module loads:
-
     alloc_chrdev_region()
     cdev_add()
     class_create()
     device_create()
 
 Destroyed when the module unloads:
-
     device_destroy()
     class_destroy()
     cdev_del()
@@ -47,11 +45,9 @@ But it does NOT create the per-user data buffer.
 B) OPEN-FILE LIFETIME
 ----------------------------------------------------------------------------------------------------
 Created when a process successfully does:
-
     open("/dev/my_cdev0", ...)
 
 Destroyed when that process later does:
-
     close(fd)
 
 This lifetime creates:
@@ -60,7 +56,6 @@ and in this driver, one private 64-byte kernel buffer.
 
 COMMENT:
 This is the first big conceptual distinction:
-
     device node lifetime
         !=
     open instance lifetime
@@ -79,7 +74,7 @@ User process
 /dev/my_cdev0
     |
     v
-VFS
+   VFS
     |
     +--> inode   = which device node is this?
     |
@@ -103,12 +98,8 @@ file_operations
 
 COMMENT:
 The deep idea is:
-
-    inode
-        = device identity
-
-    file
-        = one active session using that device
+    inode = device identity
+    file = one active session using that device
 
 So `private_data` belongs naturally to `struct file`,
 because it represents state for one open instance.
@@ -118,20 +109,15 @@ LAYER 3 — WHAT private_data REALLY IS
 ====================================================================================================
 
 In this driver:
-
     pFile->private_data = buffer;
 
 where:
-
     buffer = kzalloc(DEV_BUFFER_SIZE, GFP_KERNEL);
 
 So in this lesson:
-
-    private_data
-        = pointer to one per-open kernel buffer
+    private_data = pointer to one per-open kernel buffer
 
 But conceptually, `private_data` could point to anything:
-
     - char buffer
     - per-open context struct
     - protocol session state
@@ -367,9 +353,7 @@ LAYER 9 — WHY THE FIRST VERSION FAILED TO READ AFTER WRITE
 ====================================================================================================
 
 Earlier version still updated file offset.
-
 So sequence was:
-
     write 11 bytes
         -> offset becomes 11
 
@@ -414,7 +398,6 @@ Terminal B:
         -> FB.private_data -> bufferB
 
 Then:
-
     write(FA, "hello")
     read(FA)  -> "hello"
 
@@ -442,19 +425,16 @@ This is the whole point of the lesson.
 `/dev/my_cdev0` is one device entry point,
 but Linux creates one `struct file` per successful open.
 
-And because private_data belongs to `struct file`,
-the state is naturally per-open, not per-device.
+And because private_data belongs to `struct file`, the state is naturally per-open, not per-device.
 
 ====================================================================================================
 LAYER 11 — WHAT THE GLOBAL MUTEX REALLY DOES HERE
 ====================================================================================================
 
 Current driver has:
-
     static struct mutex dev_mutex;
 
 This mutex is GLOBAL.
-
 So:
     all read/write calls are serialized across all opens
 
@@ -464,12 +444,10 @@ but
     lock ownership is still global
 
 Implication:
-    terminal A and terminal B do not share the same data buffer,
-    but they also do not run read/write in parallel because one global mutex protects all sessions
+    terminal A and terminal B do not share the same data buffer, but they also do not run read/write in parallel because one global mutex protects all sessions
 
 COMMENT:
-This is acceptable for a learning example,
-but the more scalable design would be to store a full per-open context in private_data, such as:
+This is acceptable for a learning example, but the more scalable design would be to store a full per-open context in private_data, such as:
 
     struct my_file_ctx {
         char buffer[DEV_BUFFER_SIZE];
@@ -492,7 +470,6 @@ LAYER 12 — USER TEST PROGRAM FLOW
 ====================================================================================================
 
 Test app does:
-
 1. open device
 2. write string from argv[2]
 3. wait for Enter
@@ -502,29 +479,18 @@ Test app does:
 Detailed flow:
 ----------------------------------------------------------------------------------------------------
 
-open(argv[1], O_RDWR)
-    ↓
-creates one struct file with one private buffer
+open(argv[1], O_RDWR) : creates one struct file with one private buffer
 
-write(fd, argv[2], strlen(argv[2]))
-    ↓
-copies string into that file's private kernel buffer
+write(fd, argv[2], strlen(argv[2])) : copies string into that file's private kernel buffer
 
-getchar()
-    ↓
-pause so you can inspect dmesg / run another instance
+getchar() : pause so you can inspect dmesg / run another instance
 
-read(fd, buffer, DEV_BUFFER_SIZE)
-    ↓
-copies content from that file's private kernel buffer back to user space
+read(fd, buffer, DEV_BUFFER_SIZE) : copies content from that file's private kernel buffer back to user space
 
-close(fd)
-    ↓
-frees private buffer
+close(fd) : frees private buffer
 
 COMMENT:
 This test is well chosen because it makes the per-open design very visible:
-
 - one terminal writes one string
 - another terminal writes another string
 - both read back their own content
@@ -571,19 +537,15 @@ WHAT THIS DRIVER IS STILL SIMPLIFYING
 ====================================================================================================
 
 1. offset semantics removed
-----------------------------------------------------------------------------------------------------
 This makes the lesson easier but less file-like.
 
 2. buffer treated like string storage
-----------------------------------------------------------------------------------------------------
 Uses `strlen()`, so not ideal for arbitrary binary payloads.
 
 3. mutex is global, not per-open
-----------------------------------------------------------------------------------------------------
 So multi-open independence is only at the buffer level, not full concurrency level.
 
 4. private_data stores only a raw char*
-----------------------------------------------------------------------------------------------------
 In a more realistic design it would usually store a struct with:
     buffer
     length
@@ -600,7 +562,6 @@ FINAL SENIOR TAKEAWAY
 ====================================================================================================
 
 This lesson is best understood as:
-
     one device node
         ↓
     many open() calls
@@ -612,7 +573,6 @@ This lesson is best understood as:
     each open instance can maintain independent kernel-side state
 
 So the deep mental model is:
-
     `private_data` is the standard VFS hook that lets a driver attach session-local state to an open file.
 
 That is why `file->private_data` is one of the most important fields in Linux file-based driver design.

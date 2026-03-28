@@ -1,0 +1,8 @@
+# Example: bh_threaded
+# Status: expected-output-only
+# Timestamp: 2026-03-28T00:00:52+07:00
+
+Reason: GPIO request fails on this host before IRQ setup.
+
+Expected behavior summary:
+Typical behavior mirrors bottomhalf/intrpt GPIO request failures.

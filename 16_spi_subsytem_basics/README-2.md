@@ -58,9 +58,7 @@ generic SPI bus framework
 
 COMMENT:
 - SPI core is the bus manager.
-- It is the middle layer between:
-      "hardware-specific controller driver"
-  and "device-specific client driver".
+- It is the middle layer between: "hardware-specific controller driver" and "device-specific client driver".
 - This is why Linux drivers stay modular.
 
 ----------------------------------------------------------------------------------------------------
@@ -123,24 +121,14 @@ COMMENT:
 OBJECT MODEL
 ====================================================================================================
 
-struct spi_controller
-    = one SPI bus controller hardware instance
-
-struct spi_device
-    = one slave device on one chip-select of one controller
-
-struct spi_driver
-    = one driver that can bind to matching spi_device objects
-
-struct spi_transfer
-    = one transfer segment (one TX/RX chunk)
-
-struct spi_message
-    = one whole SPI transaction made of one or more spi_transfer objects
+struct spi_controller = one SPI bus controller hardware instance
+struct spi_device = one slave device on one chip-select of one controller
+struct spi_driver = one driver that can bind to matching spi_device objects
+struct spi_transfer = one transfer segment (one TX/RX chunk)
+struct spi_message = one whole SPI transaction made of one or more spi_transfer objects
 
 COMMENT:
 Think about it like this:
-
     controller  = bus hardware
     device      = one slave on that bus
     driver      = software for that slave
@@ -150,14 +138,12 @@ Think about it like this:
 Very often beginners confuse:
     spi_device  vs  spi_driver
 So remember:
-
     spi_device  = the thing that exists in the system
     spi_driver  = the code that knows how to use it
 
 ====================================================================================================
 WHY /dev/spidev0.0 EXISTS
 ====================================================================================================
-
 Device Tree / kernel creates spi0.0
         |
         v
@@ -191,8 +177,7 @@ my_spi_driver contains:
     .id_table    = my_ids
 
 COMMENT:
-- Registering the driver only means:
-      "I am available if a matching SPI device appears."
+- Registering the driver only means: "I am available if a matching SPI device appears."
 - It does NOT guarantee probe() will run.
 - probe() runs only when a concrete spi_device matches this driver.
 
@@ -207,7 +192,6 @@ But existing device was:
     spi0.0 currently bound to spidev
 
 So two problems existed:
-
 1. spi0.0 was already owned by another driver
 2. spi0.0 did not naturally match your id_table
 
@@ -216,7 +200,6 @@ That is why probe() did not run.
 COMMENT:
 This is the most important debugging habit:
 Whenever probe() does not run, ask:
-
     A. does the device object exist?
     B. is it already bound to another driver?
     C. does the device identity actually match my driver table?
@@ -306,7 +289,6 @@ Slave sends:
     0x34
 
 Because SPI is full duplex, during the same clock cycles:
-
     MOSI carries 0x12  ---> slave receives 0x12
     MISO carries 0x34  ---> master receives 0x34
 
@@ -317,16 +299,13 @@ Result:
 COMMENT:
 This is one of the easiest places to get confused.
 
-SPI is NOT:
-    "first send then later receive"
+SPI is NOT: "first send then later receive"
 
 SPI is:
     "every clock shifts one bit out and one bit in at the same time"
 
-So even when you think "I am writing",
-you are also receiving something.
-And even when you think "I am reading",
-you must still transmit dummy bytes to generate the clock.
+So even when you think "I am writing", you are also receiving something.
+And even when you think "I am reading", you must still transmit dummy bytes to generate the clock.
 
 This is a huge conceptual difference from I2C.
 
@@ -334,14 +313,12 @@ This is a huge conceptual difference from I2C.
 spi_transfer vs spi_message
 ====================================================================================================
 
-spi_transfer
-    = one transfer block
+spi_transfer = one transfer block
 
 Example:
     send 1 byte, receive 1 byte
 
-spi_message
-    = container for one or more transfers
+spi_message = container for one or more transfers
 
 Example:
     message:
@@ -351,7 +328,6 @@ Example:
 
 COMMENT:
 A very good mental model is:
-
     spi_transfer = one segment
     spi_message  = one full conversation
 
@@ -364,7 +340,6 @@ But in real drivers:
 ====================================================================================================
 WHERE spi_sync() GOES
 ====================================================================================================
-
 my_probe()
     |
     v
@@ -409,7 +384,6 @@ If you keep this flow in your head, debugging becomes much easier.
 ====================================================================================================
 WHY YOU DID NOT NEED BUS NUMBER OR CHIP SELECT IN YOUR DRIVER
 ====================================================================================================
-
 Because the device was already:
     spi0.0
 
@@ -426,13 +400,11 @@ So your driver just receives the ready-to-use device object.
 COMMENT:
 As a client driver author, you usually do NOT create bus topology yourself.
 You operate on the spi_device passed to you.
-That is why probe() is so important:
-it is the point where Linux hands you the specific hardware instance.
+That is why probe() is so important: it is the point where Linux hands you the specific hardware instance.
 
 ====================================================================================================
 REMOVE FLOW
 ====================================================================================================
-
 rmmod my_spi
     |
     v
@@ -447,11 +419,8 @@ my_remove() called
 COMMENT:
 remove() is the mirror of probe()
 
-probe()
-    acquire / initialize / register runtime things
-
-remove()
-    stop / release / unregister runtime things
+probe() :acquire / initialize / register runtime things
+remove() : stop / release / unregister runtime things
 
 In your tiny demo, remove only prints a message.
 In a real driver, this is where you would free resources.
@@ -520,33 +489,31 @@ KERNEL OBJECTS:
     spi_driver
 
 DATA FLOW:
-    spi_transfer
-        inside
-    spi_message
+    spi_transfer inside spi_message
         executed by
     spi_sync()
 
 CALL PATH:
     client driver
         ->
-    SPI core
+     SPI core
         ->
-    controller driver
+     controller driver
         ->
-    hardware
+      hardware
 
 LIFECYCLE:
-    register driver
+      register driver
         ->
     match device
         ->
-    probe
+      probe
         ->
-    transfer
+      transfer
         ->
-    remove
+      remove
         ->
-    unregister
+     unregister
 
 ====================================================================================================
 SENIOR COMMENTS TO HELP YOU REMEMBER
@@ -564,8 +531,7 @@ It is not the SPI subsystem itself.
 It is only a generic bridge to user space.
 
 4. **probe means “binding happened”**
-Not “module loaded”.
-A module can be loaded with zero probes.
+Not “module loaded”. A module can be loaded with zero probes.
 
 5. **SPI is always simultaneously TX and RX**
 That is why Linux always thinks in terms of transfer buffers, not just pure write-only operations.

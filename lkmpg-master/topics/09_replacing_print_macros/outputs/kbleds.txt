@@ -1,0 +1,23 @@
+# Example: kbleds
+# Timestamp: 2026-03-28T00:00:41+07:00
+# Kernel: 6.12.47+rpt-rpi-v8
+
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+# Exit code: 0
+
+# dmesg delta
+[14721.557863] kbleds: loading
+[14721.557879] kbleds: fgconsole is 6
+[14721.557884] poet_atkm: console[0/63] #0, tty 000000001705b430
+[14721.557892] poet_atkm: console[1/63] #1, tty 0000000000000000
+[14721.557896] poet_atkm: console[2/63] #2, tty 0000000000000000
+[14721.557900] poet_atkm: console[3/63] #3, tty 0000000000000000
+[14721.557903] poet_atkm: console[4/63] #4, tty 0000000000000000
+[14721.557907] poet_atkm: console[5/63] #5, tty 00000000113df1f3
+[14721.557910] poet_atkm: console[6/63] #6, tty 0000000036ed6ad0
+[14721.557914] kbleds: finished scanning consoles
+[14721.557916] kbleds: tty driver name (null)
+[14722.579015] kbleds: unloading...

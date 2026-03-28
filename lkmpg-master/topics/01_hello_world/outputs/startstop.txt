@@ -1,0 +1,14 @@
+# Example: startstop
+# Timestamp: 2026-03-28T00:00:07+07:00
+# Kernel: 6.12.47+rpt-rpi-v8
+
+make: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+make[2]: '/home/htritai/ldd/lkmpg-master/examples/startstop.mod' is up to date.
+  MODPOST /home/htritai/ldd/lkmpg-master/examples/Module.symvers
+make: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+
+# Exit code: 0
+
+# dmesg delta
+[14687.552068] Hello, world - this is the kernel speaking
+[14687.569570] Short is the life of a kernel module

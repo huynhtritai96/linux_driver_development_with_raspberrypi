@@ -24,6 +24,7 @@ sudo reboot
 * Check kernel version
 ```
 uname -r
+    6.12.47+rpt-rpi-v8
 ```
 
 * copy files from old directory(old_dir) and create new directory(new_dir) and paste files from (old_dir)

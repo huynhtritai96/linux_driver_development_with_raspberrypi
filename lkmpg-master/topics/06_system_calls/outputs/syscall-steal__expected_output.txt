@@ -1,0 +1,8 @@
+# Example: syscall-steal
+# Status: expected-output-only
+# Timestamp: 2026-03-28T00:00:25+07:00
+
+Reason: Build fails on ARM64 kernel 6.12.47+rpt-rpi-v8.
+
+Expected behavior summary:
+Representative errors: pt_regs has no member si; implicit declaration of read_cr0.

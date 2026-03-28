@@ -6,8 +6,8 @@
 
 static int fd;
 
-static void sigio_handler(int sig) {
-
+static void sigio_handler(int sig)
+{
     char buffer[64];
 
     int n = read(fd, buffer, sizeof(buffer) - 1);
@@ -21,7 +21,8 @@ static void sigio_handler(int sig) {
 int main(int argc, char *argv[])
 {
     fd = open(argv[1], O_RDONLY);
-    if (fd < 0) {
+    if (fd < 0)
+    {
         perror("open failed");
         return 1;
     }
@@ -40,7 +41,8 @@ int main(int argc, char *argv[])
     printf("Process is running freely — not blocked.\n\n");
 
     int counter = 0;
-    while(1) {
+    while(1)
+    {
         printf("Working... %d\r", counter++);
         fflush(stdout);
         sleep(1);  /* In a real app this would be actual work, not sleep */

@@ -86,7 +86,6 @@ COMMENT:
 The key difference is not just "one is fast, one is slow".
 
 The deeper difference is:
-
     low-res timer:
         optimized for efficiency and scale
 
@@ -144,18 +143,14 @@ period
     = desired timer interval
     = how far into the future each expiration should be
 
-timestamps[]
-    = records actual callback execution times
+timestamps[] = records actual callback execution times
 
-index
-    = how many timestamps were recorded
+index = how many timestamps were recorded
 
-start_time
-    = initial reference point for one-shot timing measurement
+start_time = initial reference point for one-shot timing measurement
 
 COMMENT:
 Think of this module as owning two things:
-
     1. one timer engine      -> my_hrtimer
     2. one measurement log   -> timestamps[]
 
@@ -193,12 +188,8 @@ Mental model:
 
 COMMENT:
 A very useful practical rule:
-
-    ktime_t
-        = use when interacting with timer APIs
-
-    u64 nanoseconds
-        = use when measuring and printing elapsed time
+    ktime_t = use when interacting with timer APIs
+    u64 nanoseconds = use when measuring and printing elapsed time
 
 So:
     schedule with ktime_t
@@ -235,7 +226,6 @@ COMMENT:
 This is one of the easiest places to build a strong intuition.
 
 Read it as:
-
     ktime_set(seconds, nanoseconds)
 
 So:
@@ -267,7 +257,6 @@ my_init()
 
 COMMENT:
 This startup flow has five different responsibilities:
-
     1. create timer object
     2. define clock base
     3. attach callback
@@ -287,12 +276,10 @@ Code:
 What it does:
 ----------------------------------------------------------------------------------------------------
 Initializes the timer object so the kernel knows:
-
     - which clock source to use
     - how expiration values should be interpreted
 
 This does NOT start the timer yet.
-
 It only prepares the object.
 
 COMMENT:

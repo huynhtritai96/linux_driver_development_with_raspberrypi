@@ -16,30 +16,35 @@ static struct gpio_desc *led, *button;
 static int led_gpio = (LED_GPIO + GPIO_OFFSET);
 static int button_gpio = (BUTTON_GPIO + GPIO_OFFSET);
 
-static int __init my_init(void) {
+static int __init my_init(void)
+{
     int status;
 	led = gpio_to_desc(led_gpio);
-	if (!led) {
+	if (!led)
+	{
 		pr_err("%s: unable to get led_gpio 21\n", device_name);
 		return -1;
 	}
 
 	button = gpio_to_desc(button_gpio);
-	if (!button) {
+	if (!button)
+	{
 		pr_err("%s: unable to get button_gpio 20\n", device_name);
 		return -1;
 	}
 
 	// Set pin 21(LED) as GPIO output
 	status = gpiod_direction_output(led, 0);
-	if (status) {
+	if (status)
+	{
 		pr_err("%s: unable to set GPIO 21 as output\n", device_name);
 		return -1;
 	}
 	
 	// Set pin 20(BUTTON) as GPIO input
 	status = gpiod_direction_input(button);
-	if (status) {
+	if (status)
+	{
 		pr_err("%s: unable to set GPIO 20 as input\n", device_name);
 		return -1;
 	}
@@ -51,7 +56,8 @@ static int __init my_init(void) {
 	return 0;
 }
 
-static void __exit my_exit(void) {
+static void __exit my_exit(void)
+{
     gpiod_set_value(led, 0); // Turn OFF
 	pr_info("%s: Goodbye Kernel\n", device_name);
 }

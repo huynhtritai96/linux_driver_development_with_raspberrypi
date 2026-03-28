@@ -1,0 +1,20 @@
+# Topic to Code Map
+
+| Topic | Relevant folder(s) | Relevant source file(s) | Build file(s) | Runnable status | Notes |
+|---|---|---|---|---|---|
+| Hello World | `examples/`, `topics/01_hello_world/study_package/` | `examples/hello-1.c`, `examples/hello-2.c`, `examples/hello-3.c`, `examples/hello-4.c`, `examples/hello-5.c`, `examples/start.c`, `examples/stop.c` | `examples/Makefile` | `directly_runnable` | all mapped examples runnable on this host |
+| Character Device drivers | `examples/`, `topics/02_character_device_drivers/study_package/` | `examples/chardev.c` | `examples/Makefile` | `runnable_with_conditions` | all mapped examples runnable on this host |
+| The /proc Filesystem | `examples/`, `topics/03_proc_filesystem/study_package/` | `examples/procfs1.c`, `examples/procfs2.c`, `examples/procfs3.c`, `examples/procfs4.c` | `examples/Makefile` | `directly_runnable` | all mapped examples runnable on this host |
+| sysfs: Interacting with your module | `examples/`, `topics/04_sysfs_interacting_with_your_module/study_package/` | `examples/hello-sysfs.c` | `examples/Makefile` | `directly_runnable` | all mapped examples runnable on this host |
+| Talking To Device Files | `examples/`, `topics/05_talking_to_device_files/study_package/` | `examples/chardev.h`, `examples/chardev2.c`, `examples/ioctl.c`, `examples/other/userspace_ioctl.c` | `examples/Makefile` | `runnable_with_conditions` | all mapped examples runnable on this host |
+| System Calls | `examples/`, `topics/06_system_calls/study_package/` | `examples/syscall-steal.c` | `examples/Makefile` | `expected_output_only` | syscall-steal: build_fail_arch_specific |
+| Blocking Processes and threads | `examples/`, `topics/07_blocking_processes_and_threads/study_package/` | `examples/completions.c`, `examples/other/cat_nonblock.c`, `examples/sleep.c` | `examples/Makefile` | `runnable_with_conditions` | all mapped examples runnable on this host |
+| Synchronization | `examples/`, `topics/08_synchronization/study_package/` | `examples/example_atomic.c`, `examples/example_mutex.c`, `examples/example_rwlock.c`, `examples/example_spinlock.c` | `examples/Makefile` | `directly_runnable` | all mapped examples runnable on this host |
+| Replacing Print Macros | `examples/`, `topics/09_replacing_print_macros/study_package/` | `examples/kbleds.c`, `examples/print_string.c` | `examples/Makefile` | `directly_runnable` | all mapped examples runnable on this host |
+| GPIO | `examples/`, `topics/10_gpio/study_package/` | `examples/dht11.c`, `examples/led.c` | `examples/Makefile` | `expected_output_only` | led: needs_hardware; dht11: needs_hardware |
+| Scheduling Tasks | `examples/`, `topics/11_scheduling_tasks/study_package/` | `examples/example_tasklet.c`, `examples/sched.c` | `examples/Makefile` | `directly_runnable` | all mapped examples runnable on this host |
+| Interrupt Handlers | `examples/`, `topics/12_interrupt_handlers/study_package/` | `examples/bh_threaded.c`, `examples/bottomhalf.c`, `examples/intrpt.c` | `examples/Makefile` | `expected_output_only` | intrpt: needs_hardware; bottomhalf: needs_hardware; bh_threaded: needs_hardware |
+| Virtual Input Device Driver | `examples/`, `topics/13_virtual_input_device_driver/study_package/` | `examples/vinput.c`, `examples/vinput.h`, `examples/vkbd.c` | `examples/Makefile` | `runnable_with_conditions` | vkbd: runnable_with_build_adaptation |
+| Standardizing the interfaces: The Device Model | `examples/`, `topics/14_device_model/study_package/` | `examples/devicemodel.c` | `examples/Makefile` | `runnable_with_conditions` | devicemodel: partially_runnable |
+| Device Tree | `examples/`, `topics/15_device_tree/study_package/` | `examples/devicetree.c`, `examples/dt-overlay.dts` | `examples/Makefile` | `mixed` | devicetree: partially_runnable; dt-overlay: needs_board_support |
+| Optimizations | `examples/`, `topics/16_optimizations/study_package/` | `examples/static_key.c` | `examples/Makefile` | `directly_runnable` | all mapped examples runnable on this host |

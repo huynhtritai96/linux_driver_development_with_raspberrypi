@@ -17,7 +17,8 @@ static struct class *my_class;
 
 static struct mutex dev_mutex;
 
-static int my_open(struct inode *pInode, struct file *pFile) {
+static int my_open(struct inode *pInode, struct file *pFile)
+{
     pr_info("%s: my_open called, Major: %d Minor: %d\n", my_device, imajor(pInode), iminor(pInode));
 
     char *buffer = kzalloc(DEV_BUFFER_SIZE, GFP_KERNEL);
@@ -28,7 +29,8 @@ static int my_open(struct inode *pInode, struct file *pFile) {
     pr_info("%s: Allocated %d bytes for private data\n", my_device, DEV_BUFFER_SIZE);
     return 0;
 }
-static int my_release(struct inode *pInode, struct file *pFile) {
+static int my_release(struct inode *pInode, struct file *pFile)
+{
     char *buffer = (char *)pFile->private_data;
     if (buffer)
         kfree(buffer);
@@ -38,7 +40,8 @@ static int my_release(struct inode *pInode, struct file *pFile) {
 }
 
 /* read: copy data from kernel buffer -> user-space buffer*/
-static ssize_tmy_read(struct file *pFile, char __user *pUser_buff, size_t count, loff_t *pOffset) {
+static ssize_tmy_read(struct file *pFile, char __user *pUser_buff, size_t count, loff_t *pOffset)
+{
     size_t bytes_to_copy, not_copied, copied;
 
     char *dev_buffer = (char *) pFile->private_data;
@@ -67,7 +70,8 @@ static ssize_tmy_read(struct file *pFile, char __user *pUser_buff, size_t count,
 }
 
 /* write: copy data from user-space buffer -> kernel buffer */
-static ssize_t my_write(struct file *pFile, const char __user *pUser_buff, size_t count, loff_t *pOffset) {
+static ssize_t my_write(struct file *pFile, const char __user *pUser_buff, size_t count, loff_t *pOffset)
+{
     size_t bytes_to_copy, not_copied, copied;
 
     char *dev_buffer = (char *)pFile->private_data;
@@ -84,7 +88,8 @@ static ssize_t my_write(struct file *pFile, const char __user *pUser_buff, size_
     not_copied = copy_from_user(dev_buffer, pUser_buff, bytes_to_copy);
     copied = bytes_to_copy - not_copied;
 
-    if (not_copied) {
+    if (not_copied)
+    {
         pr_warn("%s: copy_from_user: only copied %zu/%zu\n", my_device, copied, bytes_to_copy);
     }
 
@@ -102,14 +107,16 @@ static struct file_operations fops = {
     .write = my_write,
 };
 
-static int __init my_init(void) {
+static int __init my_init(void)
+{
     int status;
     
     /* initialize mutex */
     mutex_init(&dev_mutex);
 
     status = alloc_chrdev_region(&dev_nr, 0, MINORMASK + 1, my_device);
-    if (status) {
+    if (status)
+    {
         pr_err("%s: character device registation failed\n", my_device);
         return status;
     }
@@ -118,19 +125,22 @@ static int __init my_init(void) {
     my_cdev.owner = THIS_MODULE;
 
     status = cdev_add(&my_cdev, dev_nr, MINORMASK + 1);
-    if (status) {
+    if (status)
+    {
         pr_err("%s: error adding cdev\n", my_device);
         goto free_device_nr;
     }
 
     my_class = class_create("my_class");
-    if (!my_class) {
+    if (!my_class)
+    {
         pr_err("%s: Could not create class my_class\n",my_device);
         status = ENOMEM;
         goto delete_cdev;
     }
 
-    if (!device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0)) {
+    if (!device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0))
+    {
         pr_err("%s: Could not create device my_cdev0\n", my_device);
         status = ENOMEM;
         goto delete_class;
@@ -154,7 +164,8 @@ free_device_nr:
 
 }
 
-static void __exit my_exit(void) {
+static void __exit my_exit(void)
+{
     device_destroy(my_class, dev_nr);
     class_destroy(my_class);
     cdev_del(&my_cdev);

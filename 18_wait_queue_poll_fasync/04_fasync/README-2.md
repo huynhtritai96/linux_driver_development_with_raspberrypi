@@ -6,17 +6,14 @@ GOAL OF THIS LESSON
 ----------------------------------------------------------------------------------------------------
 This lesson is about changing the communication model between user space and the driver.
 In the previous lessons, user space had to WAIT for the device in one of two ways:
-
     1. blocking read()
     2. poll()/select()
 
 In both cases, user space is still waiting for the driver to become ready.
 This lesson introduces a different model:
-
     fasync + SIGIO
 
-Now the process does NOT wait inside read()
-and does NOT sleep inside poll()/select()
+Now the process does NOT wait inside read() and does NOT sleep inside poll()/select()
 Instead:
     the process registers interest in the device
         ↓
@@ -29,8 +26,7 @@ Instead:
     user space calls read() to fetch the data
 
 So the real engineering question is:
-    "How can a Linux driver asynchronously notify user space that new data is available,
-     without forcing the process to block in read() or sleep in poll()?"
+    "How can a Linux driver asynchronously notify user space that new data is available, without forcing the process to block in read() or sleep in poll()?"
 
 ====================================================================================================
 PART 1 — THE THREE WAITING MODELS
@@ -38,11 +34,9 @@ PART 1 — THE THREE WAITING MODELS
 MODEL 1 — BLOCKING READ
 ----------------------------------------------------------------------------------------------------
 User space calls:
-
     read(fd, ...)
 
-If data is not available:
-    the process sleeps inside the driver
+If data is not available: the process sleeps inside the driver
 
 Flow:
     process
@@ -59,15 +53,13 @@ Flow:
         ↓
     read() returns data
 
-Meaning:
-    the process is blocked INSIDE the driver
+Meaning: the process is blocked INSIDE the driver
 
 ----------------------------------------------------------------------------------------------------
 MODEL 2 — POLL / SELECT
 ----------------------------------------------------------------------------------------------------
 User space does not block directly in read()
-Instead, it asks the kernel:
-    "Wake me when this file descriptor becomes ready"
+Instead, it asks the kernel: "Wake me when this file descriptor becomes ready"
 
 Flow:
     process
@@ -82,8 +74,7 @@ Flow:
         ↓
     process calls read()
 
-Meaning:
-    the process is blocked INSIDE the kernel's polling framework
+Meaning: the process is blocked INSIDE the kernel's polling framework
 
 ----------------------------------------------------------------------------------------------------
 MODEL 3 — FASYNC / SIGIO
@@ -109,33 +100,23 @@ Meaning:
     the device actively notifies the process
 
 Senior summary:
-    blocking read
-        = "I sleep inside the driver"
-
-    poll/select
-        = "I sleep inside the kernel poll framework"
-
-    fasync
-        = "I do not wait; the driver interrupts me with a signal"
+    blocking read = "I sleep inside the driver"
+    poll/select = "I sleep inside the kernel poll framework"
+    fasync = "I do not wait; the driver interrupts me with a signal"
 
 ====================================================================================================
 PART 2 — WHAT FASYNC ADDS TO THE DRIVER
 ====================================================================================================
-The driver introduces one new kernel object:
-    static struct fasync_struct *async_queue;
+The driver introduces one new kernel object: static struct fasync_struct *async_queue;
 
-Meaning:
-    this is the driver's async-notification registration list
+Meaning: this is the driver's async-notification registration list
 
 You can think of it as:
-    async_queue
-        = "the list of processes/files that want SIGIO notifications"
+    async_queue = "the list of processes/files that want SIGIO notifications"
 
-Whenever a user-space process enables async notification on a file descriptor:
-    that file gets added to async_queue
+Whenever a user-space process enables async notification on a file descriptor: that file gets added to async_queue
 
-Whenever it disables async notification or closes the file:
-    that file must be removed from async_queue
+Whenever it disables async notification or closes the file: that file must be removed from async_queue
 
 This is the core state that supports async signaling.
 
@@ -143,27 +124,17 @@ This is the core state that supports async signaling.
 PART 3 — THE .fasync FILE OPERATION
 ====================================================================================================
 
-The driver adds:
-    .fasync = my_fasync
+The driver adds:  .fasync = my_fasync
 
-This callback is invoked by the kernel whenever user space enables or disables
-signal-driven I/O for a file descriptor.
+This callback is invoked by the kernel whenever user space enables or disables signal-driven I/O for a file descriptor.
 
-Prototype:
-    static int my_fasync(int fd, struct file *file, int on)
+Prototype: static int my_fasync(int fd, struct file *file, int on)
 
 Meaning of parameters:
-    fd
-        user-space file descriptor number
+    fd : user-space file descriptor number
+    file : kernel struct file for this open instance on whether async notification should be enabled or disabled
 
-    file
-        kernel struct file for this open instance
-
-    on
-        whether async notification should be enabled or disabled
-
-This callback normally just calls:
-    fasync_helper(fd, file, on, &async_queue);
+This callback normally just calls: fasync_helper(fd, file, on, &async_queue);
 
 That helper does the actual add/remove work.
 
@@ -177,26 +148,17 @@ PART 4 — WHAT THE "on" PARAMETER REALLY MEANS
 ====================================================================================================
 The `on` value controls registration state.
 Conceptually:
-
-    on = 1
-        add this file to async_queue
-
-    on = 0
-        remove this file from async_queue
-
-    on = -1
-        force removal during cleanup/release path
+    on = 1 : add this file to async_queue
+    on = 0 : remove this file from async_queue
+    on = -1 : force removal during cleanup/release path
 
 Very important:
 ----------------------------------------------------------------------------------------------------
 `on` is NOT "data available"
 `on` is NOT "button pressed"
-`on` only means:
+`on` only means: "Should this file continue receiving async notifications?"
 
-    "Should this file continue receiving async notifications?"
-
-So this callback is about REGISTRATION state,
-not device event state.
+So this callback is about REGISTRATION state, not device event state.
 
 ====================================================================================================
 PART 5 — HOW USER SPACE ENABLES FASYNC
@@ -207,26 +169,22 @@ STEP 1 — Install a signal handler
 ----------------------------------------------------------------------------------------------------
     signal(SIGIO, sigio_handler);
 
-Meaning:
-    when SIGIO is delivered, this function will run
+Meaning: when SIGIO is delivered, this function will run
 
 STEP 2 — Tell the kernel which process owns the async notifications
 ----------------------------------------------------------------------------------------------------
     fcntl(fd, F_SETOWN, getpid());
 
-Meaning:
-    "for this file descriptor, deliver SIGIO to this process"
+Meaning: "for this file descriptor, deliver SIGIO to this process"
 
 STEP 3 — Enable signal-driven I/O
 ----------------------------------------------------------------------------------------------------
     flags = fcntl(fd, F_GETFL);
     fcntl(fd, F_SETFL, flags | O_ASYNC);
 
-Meaning:
-    "turn on asynchronous I/O notifications for this file"
+Meaning: "turn on asynchronous I/O notifications for this file"
 
 Once this happens:
-
     kernel notices O_ASYNC changed
         ↓
     kernel calls the driver's .fasync callback
@@ -253,9 +211,7 @@ File is inserted into async_queue
 
 Result:
 ----------------------------------------------------------------------------------------------------
-The driver now remembers that this open file wants SIGIO whenever the device has an event.
-This is the async equivalent of saying:
-
+The driver now remembers that this open file wants SIGIO whenever the device has an event. This is the async equivalent of saying:
     "Please notify me later when something happens."
 
 ====================================================================================================
@@ -269,12 +225,10 @@ Physical event:
     ISR runs
 
 Inside ISR:
-
     data_available = 1;
     kill_fasync(&async_queue, SIGIO, POLL_IN);
 
 This does two separate things:
-
     1. marks that device data/event is now available
     2. sends SIGIO to all registered listeners
 
@@ -283,30 +237,19 @@ This is the core runtime event path.
 ====================================================================================================
 PART 8 — WHAT kill_fasync() REALLY DOES
 ====================================================================================================
-Function:
-    kill_fasync(&async_queue, SIGIO, POLL_IN);
-
-Meaning:
-    send a signal to every process/file registered in async_queue
-
+Function: kill_fasync(&async_queue, SIGIO, POLL_IN);
+Meaning: send a signal to every process/file registered in async_queue
 Parameters:
-    &async_queue
-        the async registration list
-
-    SIGIO
-        the signal used for asynchronous I/O notification
-
-    POLL_IN
-        event type meaning "data is available for reading"
+    &async_queue : the async registration list
+    SIGIO : the signal used for asynchronous I/O notification
+    POLL_IN : event type meaning "data is available for reading"
 
 Important:
 ----------------------------------------------------------------------------------------------------
 `kill_fasync()` does NOT copy data to user space.
 It only sends a notification.
 
-It effectively says:
-
-    "Your device has input-ready data now."
+It effectively says: "Your device has input-ready data now."
 
 Senior mental model:
 ----------------------------------------------------------------------------------------------------
@@ -334,20 +277,15 @@ Meaning:
     user space still has to call read() to fetch the actual data
 
 This distinction is critical:
-    SIGIO
-        = notification
+    SIGIO = notification
+    read() = data retrieval
 
-    read()
-        = data retrieval
-
-Signal-driven I/O does not eliminate read().
-It eliminates waiting.
+Signal-driven I/O does not eliminate read(). It eliminates waiting.
 
 ====================================================================================================
 PART 10 — THE READ PATH IN THIS DEMO
 ====================================================================================================
 The driver currently implements:
-
     if (!data_available)
         return -EAGAIN;
 
@@ -357,34 +295,24 @@ The driver currently implements:
 
 Meaning:
 ----------------------------------------------------------------------------------------------------
-If no event/data is pending:
-    read returns immediately with -EAGAIN
+If no event/data is pending: read returns immediately with -EAGAIN
 
 If an event is pending:
     read copies the message once
     then clears the availability flag
 
 This makes the device behave like a one-event latch:
-
-    interrupt occurs
-        → data_available = 1
-
-    first successful read
-        → data_available = 0
+    interrupt occurs → data_available = 1
+    first successful read → data_available = 0
 
 So each button press produces one readable event.
 
 ====================================================================================================
 PART 11 — WHY THIS IS ASYNCHRONOUS
 ====================================================================================================
-In blocking I/O:
-    the process waits for the device
-
-In poll/select:
-    the process waits for readiness
-
-In fasync:
-    the process does not wait at all
+In blocking I/O: the process waits for the device
+In poll/select: the process waits for readiness
+In fasync: the process does not wait at all
 
 Instead:
     the process continues its own work
@@ -400,7 +328,6 @@ Instead:
     process continues its work
 
 This is the architecture shift:
-
     from "process pulls device"
     to   "device notifies process"
 
@@ -408,15 +335,13 @@ This is the architecture shift:
 PART 12 — WHY release() MUST REMOVE THE FILE FROM async_queue
 ====================================================================================================
 Inside release():
-
     my_fasync(-1, file, 0);
 
 This is mandatory cleanup.
 
 Why:
 ----------------------------------------------------------------------------------------------------
-If the file is closed but remains in async_queue,
-the next interrupt may cause the kernel to send SIGIO using stale state.
+If the file is closed but remains in async_queue, the next interrupt may cause the kernel to send SIGIO using stale state.
 
 That can lead to:
     - dangling registration
@@ -430,9 +355,7 @@ At release time, the actual user-space fd number is no longer important.
 We are not enabling or toggling a flag.
 We are force-removing the kernel file from the async list.
 
-So the kernel identifies the object mainly by:
-    struct file *file
-
+So the kernel identifies the object mainly by: struct file *file
 not by the fd number.
 
 Senior rule:
@@ -504,25 +427,18 @@ safe cleanup complete
 PART 14 — SIGNAL DOES NOT CONTAIN THE DEVICE DATA
 ====================================================================================================
 This is a very common misunderstanding.
-
-Incorrect idea:
-    "SIGIO contains the message"
+Incorrect idea: "SIGIO contains the message"
 
 Correct idea:
-    SIGIO only means:
-        "an event occurred"
+    SIGIO only means: "an event occurred"
 
-The actual message/data still comes from:
-
-    read()
+The actual message/data still comes from: read()
 
 So the correct mental model is:
-
     SIGIO = wake-up notification
     read() = payload fetch
 
 Or even more simply:
-
     signal = doorbell
     read() = open the door and get the package
 
@@ -532,23 +448,19 @@ PART 15 — kill_fasync() vs wake_up_interruptible()
 These two mechanisms notify different kinds of waiters.
 
 1. wake_up_interruptible(...)
-----------------------------------------------------------------------------------------------------
 Used for processes sleeping in:
     - wait_event_interruptible()
     - poll/select infrastructure
 
 2. kill_fasync(...)
-----------------------------------------------------------------------------------------------------
 Used for processes that registered:
     - O_ASYNC
     - SIGIO-based notification
 
 So:
-    wake_up_interruptible()
-        wakes sleeping wait-queue users
+    wake_up_interruptible() : wakes sleeping wait-queue users
 
-    kill_fasync()
-        sends signals to async listeners
+    kill_fasync() : sends signals to async listeners
 
 They solve related but different notification models.
 A real driver can use both.
@@ -556,25 +468,19 @@ A real driver can use both.
 ====================================================================================================
 PART 16 — LIMITATIONS OF THE CURRENT DEMO DESIGN
 ====================================================================================================
-The demo uses:
-    static int data_available;
+The demo uses: static int data_available;
 
 This is intentionally simple, but not robust.
 
 Problem 1 — event loss
-----------------------------------------------------------------------------------------------------
-If two button presses happen quickly before user space reads once:
-    data_available stays 1
+If two button presses happen quickly before user space reads once: data_available stays 1
 
 The second event is lost.
 
 Problem 2 — shared state across multiple readers
-----------------------------------------------------------------------------------------------------
-If multiple processes register for async notifications:
-    kill_fasync() notifies all of them
+If multiple processes register for async notifications: kill_fasync() notifies all of them
 
-But the first successful reader clears:
-    data_available = 0
+But the first successful reader clears: data_available = 0
 
 The others may receive SIGIO and then read() gets -EAGAIN.
 
@@ -648,12 +554,8 @@ Or use:
 
 3. Boolean event state does not scale
 ----------------------------------------------------------------------------------------------------
-A better model is:
-    static atomic_t event_count;
-
-And per-open state tracks:
-    last_event_seen
-
+A better model is: static atomic_t event_count;
+And per-open state tracks: last_event_seen
 That scales much better for multiple readers.
 
 4. class_create() error handling can be improved
@@ -685,9 +587,7 @@ You should include:
 ====================================================================================================
 PART 19 — FINAL SENIOR TAKEAWAY
 ====================================================================================================
-This lesson is not just "add one more callback".
-It changes the whole interaction model from:
-    process waits for device
+This lesson is not just "add one more callback". It changes the whole interaction model from: process waits for device
 
 to:
     device notifies process
@@ -720,11 +620,8 @@ In one line:
 ```
 
 ## Senior comments on your current implementation
-
 These are the main points I would keep in mind:
-
 The overall direction is correct. You implemented the essential `fasync` path properly:
-
 * `.fasync` callback exists
 * `fasync_helper()` manages the queue
 * `kill_fasync()` is called from ISR

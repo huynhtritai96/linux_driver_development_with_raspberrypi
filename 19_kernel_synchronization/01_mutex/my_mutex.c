@@ -5,7 +5,8 @@
 #include <linux/sched/types.h>
 #include <linux/delay.h>
 
-#include <linux/mutex.h>
+#include <linux/mutex.h> // For mutexes
+#include <linux/slab.h>  // For kmalloc and kfree
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("MPCoding - LDD");
@@ -16,23 +17,21 @@ MODULE_DESCRIPTION("Kernel Synchronization: Mutex");
  */
 static const char *module_name = "my_mutex";
 
-static struct task_struct *thread_high;
-static struct task_struct *thread_low;
-static char shared_buffer[64];
-
-static struct mutex my_mutex;
-
+static struct task_struct *thread_high; // Thread for high priority task
+static struct task_struct *thread_low;  // Thread for low priority task
+static char shared_buffer[64];          // Simulated shared memory buffer
+static struct mutex my_mutex;           // Mutex to protect access to shared_buffer
 
 typedef struct task_data {
-    int value;
-    char name[10];
-    char text[20];
-}task_data;
+    int value;      // Simulate some work by sleeping for value * 100 ms
+    char name[10];  // Name of the task for logging
+    char text[20];  // Text to write to shared buffer
+} task_data;
 
 struct task_data high_t_pdata = {
-    .value = 10,
-    .name = "HIGH",
-    .text = "HIGH_HIGH_HIGH"
+    .value = 10,                // Simulate more work for high priority task
+    .name = "HIGH",             // Name for logging
+    .text = "HIGH_HIGH_HIGH"    // Text to write to shared buffer
 };
 
 struct task_data low_t_pdata = {
@@ -44,8 +43,7 @@ struct task_data low_t_pdata = {
 static int thread_func(void *data) {
     task_data *t_data = (task_data *)data;
     
-    while (!kthread_should_stop()) {
-
+    while (!kthread_should_stop()) { // Check if thread should stop
         mutex_lock(&my_mutex);
 
         pr_info("%s: Running %s Priority Task, Coping Data:%s \n", module_name, t_data->name, t_data->text);
@@ -63,11 +61,11 @@ static int thread_func(void *data) {
 }
 
 static int __init my_init(void) {
-    
     pr_info("%s: Initializing threads in SCHED_NORMAL\n", module_name);
 
     mutex_init(&my_mutex); // initialize mutex
 
+    // Create High priority thread
     thread_high = kthread_run(thread_func, &high_t_pdata, "high_norm_kthread");
     if (IS_ERR(thread_high)) {
         pr_err("%s: Failed to create thread_high\n", module_name);
@@ -75,6 +73,7 @@ static int __init my_init(void) {
     }
     set_user_nice(thread_high, -20);  // High priority
 
+    // Create Low priority thread
     thread_low = kthread_run(thread_func, &low_t_pdata, "low_norm_kthread");
     if (IS_ERR(thread_low)) {
         pr_err("%s: Failed to create thread_low\n", module_name);
@@ -87,14 +86,13 @@ static int __init my_init(void) {
 }
 
 static void __exit my_exit(void) {
-    if (thread_high)
+    if (thread_high) // 
         kthread_stop(thread_high);
     
     if (thread_low)
         kthread_stop(thread_low);
 
     mutex_destroy(&my_mutex);
-
 
     pr_info("%s: Threads stopped\n", module_name);
 }

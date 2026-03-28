@@ -96,20 +96,11 @@ The I²C client driver represents a specific slave device connected to the I²C 
 # 6️⃣ Location of I2C Code in the Kernel
 All I²C-related code in the Linux kernel is located under the `drivers/i2c` directory.
 
-`i2c-core.h`
-→ Core I²C framework
-
-`i2c-dev.c`
-→ Generic user-space I²C access via /dev/i2c-*
-
-`drivers/i2c/busses/`
-→ I²C adapter drivers
-
-`drivers/i2c/chips/`
-→ Legacy or specific device drivers
-
-`drivers/i2c/algos/`
-→ I²C transfer algorithms
+`i2c-core.h` → Core I²C framework
+`i2c-dev.c` → Generic user-space I²C access via /dev/i2c-*
+`drivers/i2c/busses/` → I²C adapter drivers
+`drivers/i2c/chips/` → Legacy or specific device drivers
+`drivers/i2c/algos/` → I²C transfer algorithms
 
 # 7️⃣ Two Ways to Use I2C in Linux
 ## Method 1️⃣ Using `i2c-dev` (User Space Control)

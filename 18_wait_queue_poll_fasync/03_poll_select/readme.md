@@ -6,27 +6,21 @@
 
 The `poll` and `select` mechanisms are user-space system calls that allow a single process to **monitor multiple file descriptors at the same time**.
 
-Instead of waiting on just one file descriptor,       
-a process can give the kernel a list of file descriptors and ask to be notified when **any one of them becomes ready for I/O**.
+Instead of waiting on just one file descriptor, a process can give the kernel a list of file descriptors and ask to be notified when **any one of them becomes ready for I/O**.
 
-This allows the process to **sleep efficiently until an event occurs**,       
-without busy-waiting and without creating a separate thread for each file descriptor.
+This allows the process to **sleep efficiently until an event occurs**, without busy-waiting and without creating a separate thread for each file descriptor.
 
 This is the standard design used in **event-driven applications**.
 
-Instead of blocking on `read()`: which waits on only one file descriptor or continuously retrying operations that return `-EAGAIN`,       
-the application simply passes a set of file descriptors to the kernel and sleeps until at least one of them becomes ready.
+Instead of blocking on `read()`: which waits on only one file descriptor or continuously retrying operations that return `-EAGAIN`, the application simply passes a set of file descriptors to the kernel and sleeps until at least one of them becomes ready.
 
 From the driver side, both `poll` and `select` are implemented using the same mechanism.
-They rely on the `.poll` file operation,   
-which is typically implemented using a wait queue to notify the kernel when the device becomes ready.
-
+They rely on the `.poll` file operation, which is typically implemented using a wait queue to notify the kernel when the device becomes ready.
 
 
 ```
 User space                        Kernel space
 ──────────                        ────────────
-
 poll(fds, nfds, timeout)
         │
         ▼

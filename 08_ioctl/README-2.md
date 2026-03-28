@@ -1,33 +1,26 @@
-
-
 ```
 ====================================================================================================
 CHAR DEVICE + PRIVATE DATA + IOCTL — SENIOR MENTAL MODEL
 ====================================================================================================
-
 KEY QUESTION
 ----------------------------------------------------------------------------------------------------
 How does one `/dev/my_cdev0` device node support:
-
     - many independent opens
     - one private buffer per open
     - normal read/write data flow
     - special control commands through ioctl
 
 This driver answers that by combining:
-
     device-level registration
-    +
+                +
     file-level private state
-    +
+                +
     ioctl-based control operations
 
 ====================================================================================================
 LAYER 1 — DEVICE LIFETIME vs OPEN-FILE LIFETIME
 ====================================================================================================
-
 There are two different lifetimes in this driver:
-
 A) DEVICE LIFETIME
 ----------------------------------------------------------------------------------------------------
 Created at module load:
@@ -83,37 +76,33 @@ User process
 /dev/my_cdev0
     |
     v
-VFS
+   VFS
     |
-    +--> inode   = which device node is this?
+    ├──> inode   = which device node is this?
     |
-    +--> file    = this specific open instance
+    ├──> file    = this specific open instance
            |
-           +--> f_mode
-           +--> f_flags
-           +--> f_pos
-           +--> private_data   <================ important
+           ├──> f_mode
+           ├──> f_flags
+           ├──> f_pos
+           ├──> private_data   <================ important
     |
     v
-cdev
+   cdev
     |
     v
 file_operations
     |
-    +--> .open           = my_open
-    +--> .release        = my_release
-    +--> .read           = my_read
-    +--> .write          = my_write
-    +--> .unlocked_ioctl = my_ioctl
+    ├──> .open           = my_open
+    ├──> .release        = my_release
+    ├──> .read           = my_read
+    ├──> .write          = my_write
+    └──> .unlocked_ioctl = my_ioctl
 
 COMMENT:
 This is the most important VFS idea in this lesson:
-
-    inode
-        = device identity
-
-    file
-        = one active open session
+    inode = device identity
+    file = one active open session
 
 So private per-open state belongs naturally in:
     struct file
@@ -125,19 +114,16 @@ LAYER 3 — WHAT private_data REALLY MEANS
 ====================================================================================================
 
 In this driver:
-
     pFile->private_data = buffer
 
 where:
     buffer = kzalloc(DEV_BUFFER_SIZE, GFP_KERNEL)
 
 So for this lesson:
-
     private_data
         = pointer to one 64-byte kernel buffer
 
 But conceptually, private_data can point to anything:
-
     - a char buffer
     - a per-open context struct
     - a hardware session object
@@ -157,17 +143,16 @@ It is:
 ====================================================================================================
 LAYER 4 — DEVICE REGISTRATION FLOW
 ====================================================================================================
-
 MODULE LOAD
 ----------------------------------------------------------------------------------------------------
 my_init()
     |
-    +--> mutex_init(&dev_mutex)
-    +--> alloc_chrdev_region(&dev_nr, 0, MINORMASK+1, my_device)
-    +--> cdev_init(&my_cdev, &fops)
-    +--> cdev_add(&my_cdev, dev_nr, MINORMASK+1)
-    +--> class_create("my_class")
-    +--> device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0)
+    ├──> mutex_init(&dev_mutex)
+    ├──> alloc_chrdev_region(&dev_nr, 0, MINORMASK+1, my_device)
+    ├──> cdev_init(&my_cdev, &fops)
+    ├──> cdev_add(&my_cdev, dev_nr, MINORMASK+1)
+    ├──> class_create("my_class")
+    └──> device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0)
 
 Result:
     /proc/devices             contains major + my_cdev
@@ -186,7 +171,6 @@ That is correct design for scalable multi-open behavior.
 ====================================================================================================
 LAYER 5 — OPEN PATH
 ====================================================================================================
-
 User:
     fd = open("/dev/my_cdev0", O_RDWR);
 
@@ -210,7 +194,6 @@ Result:
 
 Diagram:
 ----------------------------------------------------------------------------------------------------
-
 open fd #3
     struct file F1
         ├── f_pos
@@ -260,7 +243,7 @@ Flow inside my_write():
 
 Data flow:
 ----------------------------------------------------------------------------------------------------
-USER BUFFER  ---------------- copy_from_user ---------------->  PRIVATE KERNEL BUFFER
+USER BUFFER  ---------------- copy_from_user -------------──>  PRIVATE KERNEL BUFFER
 
 Meaning:
     write stores into THIS file instance's buffer only
@@ -307,7 +290,7 @@ Flow inside my_read():
 
 Data flow:
 ----------------------------------------------------------------------------------------------------
-PRIVATE KERNEL BUFFER  ---------------- copy_to_user ---------------->  USER BUFFER
+PRIVATE KERNEL BUFFER  ---------------- copy_to_user -------------──>  USER BUFFER
 
 Meaning:
     read returns content from THIS open file's private buffer
@@ -376,7 +359,6 @@ Terminal B:
     open() -> file FB -> private_data -> bufferB
 
 Now:
-
     write(FA, "hello")
     read(FA)  -> "hello"
 
@@ -385,12 +367,11 @@ Now:
 
 Diagram:
 ----------------------------------------------------------------------------------------------------
-
 /dev/my_cdev0
     |
-    +--> open A ---> struct file FA ---> private_data ---> bufferA
+    ├──> open A ──> struct file FA ──> private_data ──> bufferA
     |
-    +--> open B ---> struct file FB ---> private_data ---> bufferB
+    ├──> open B ──> struct file FB ──> private_data ──> bufferB
 
 COMMENT:
 This is the deep lesson:
@@ -413,7 +394,6 @@ ioctl path is for:
     special commands / control operations
 
 In your driver:
-
     MYCDEV_CLEAR
     MYCDEV_SAY_HELLO
     MYCDEV_USER_READ
@@ -421,15 +401,11 @@ In your driver:
 
 Mental model:
 ----------------------------------------------------------------------------------------------------
-read/write
-    = data plane
-
-ioctl
-    = control plane
+read/write = data plane
+ioctl = control plane
 
 COMMENT:
-This is why ioctl exists in many drivers:
-some operations do not fit naturally into plain byte-stream semantics.
+This is why ioctl exists in many drivers: some operations do not fit naturally into plain byte-stream semantics.
 
 ====================================================================================================
 LAYER 11 — IOCTL COMMAND FORMAT
@@ -445,19 +421,13 @@ Definitions:
 
 Meaning of macros:
 ----------------------------------------------------------------------------------------------------
-_IO
-    command with no data payload
-
-_IOR
-    user reads, kernel writes data to user
-
-_IOW
-    user writes, kernel reads data from user
+_IO     command with no data payload
+_IOR    user reads, kernel writes data to user
+_IOW    user writes, kernel reads data from user
 
 Senior interpretation:
 ----------------------------------------------------------------------------------------------------
-these macros encode command identity and direction,
-so user space and kernel agree on command meaning
+these macros encode command identity and direction, so user space and kernel agree on command meaning
 
 COMMENT:
 The command number is not just "an int".
@@ -476,12 +446,11 @@ LAYER 12 — IOCTL HANDLER FLOW
 Kernel path:
     ioctl(fd, cmd, arg)
         ↓
-    VFS
+       VFS
         ↓
     my_ioctl(file, cmd, arg)
 
 Switch handles one command at a time.
-
 This is command-dispatch logic.
 
 COMMENT:
@@ -508,8 +477,7 @@ Important:
     this is clearing only this file instance's session buffer
 
 COMMENT:
-This is a perfect example of why private_data matters:
-the ioctl acts on the state attached to this open, not the whole device globally.
+This is a perfect example of why private_data matters: the ioctl acts on the state attached to this open, not the whole device globally.
 
 ====================================================================================================
 IOCTL 2 — MYCDEV_SAY_HELLO
@@ -524,7 +492,6 @@ Kernel action:
 
 Meaning:
     simple control command with no data payload
-
 Use:
     verify command dispatch path works
 
@@ -549,7 +516,7 @@ Meaning:
 
 Data flow:
 ----------------------------------------------------------------------------------------------------
-KERNEL local int  ---------------- copy_to_user ---------------->  USER variable
+KERNEL local int  ---------------- copy_to_user -------------──>  USER variable
 
 Why `_IOR`:
 ----------------------------------------------------------------------------------------------------
@@ -584,7 +551,7 @@ Meaning:
 
 Data flow:
 ----------------------------------------------------------------------------------------------------
-USER variable  ---------------- copy_from_user ---------------->  KERNEL local int
+USER variable  ---------------- copy_from_user -------------──>  KERNEL local int
 
 Why `_IOW`:
 ----------------------------------------------------------------------------------------------------
@@ -614,7 +581,6 @@ USER TEST PROGRAM — COMPLETE FLOW
 ====================================================================================================
 
 User test app does:
-
 1. open device
 2. write string
 3. MYCDEV_SAY_HELLO
@@ -788,7 +754,7 @@ This driver is best understood as two parallel mechanisms on top of one device n
 
 DATA PATH
 ----------------------------------------------------------------------------------------------------
-    open
+      open
         ↓
     allocate per-open private buffer
         ↓

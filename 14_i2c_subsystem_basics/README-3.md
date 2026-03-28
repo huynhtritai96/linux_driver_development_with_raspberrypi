@@ -52,11 +52,9 @@ Important properties:
 • slaves respond to addresses
 • open-drain signalling
 
-Every device listens to SDA/SCL,
-but **only responds when its address appears**.
+Every device listens to SDA/SCL, but **only responds when its address appears**.
 
 Senior mental model:
-
     I2C = shared address-based message bus
 
 Not:
@@ -71,22 +69,18 @@ On SoCs (Raspberry Pi, ARM boards, etc), an I2C bus is not created magically.
 It is controlled by a **hardware I2C controller block** inside the chip.
 
 Example:
-
     Broadcom I2C controller
     STM32 I2C controller
     Intel I2C controller
 
 That controller:
-
     drives SCL
     reads/writes SDA
     generates start/stop conditions
     handles ACK/NACK
 
 Linux must have a **driver for that controller**.
-
 Without that controller driver:
-
     there is NO I2C bus in Linux.
 
 Senior debugging rule:
@@ -99,26 +93,22 @@ LAYER 2 — LINUX REPRESENTS A BUS AS i2c_adapter
 ====================================================================================================
 
 Kernel object:
-
     struct i2c_adapter
 
 Represents:
-
     one I2C controller instance
     exposed as one Linux I2C bus
 
 Diagram:
-
     Physical Controller Hardware
                 │
                 ▼
          i2c_adapter object
                 │
                 ▼
-           I2C Core
+            I2C Core
 
 Example mapping:
-
     adapter #1
         ↔
     /dev/i2c-1
@@ -126,7 +116,6 @@ Example mapping:
     /sys/class/i2c-dev/i2c-1
 
 Senior mental model:
-
     adapter = Linux object representing "bus N"
 
 Not a device.
@@ -139,23 +128,18 @@ LAYER 3 — HOW THE BUS ACTUALLY PERFORMS TRANSFERS
 ====================================================================================================
 
 Each adapter contains:
-
     struct i2c_algorithm
 
 This structure defines **how transfers are executed**.
-
 Example operations inside algorithm:
-
     master_xfer()
     functionality()
 
 Meaning:
-
     the adapter does not itself know how to talk I2C
     it delegates transfer logic to the algorithm implementation.
 
 Senior interpretation:
-
     adapter = bus identity
     algorithm = bus implementation
 
@@ -168,11 +152,9 @@ LAYER 4 — DEVICES ON THE BUS (i2c_client)
 ====================================================================================================
 
 A physical chip on the bus becomes:
-
     struct i2c_client
 
 This represents:
-
     one device
     on one bus
     at one address
@@ -182,33 +164,26 @@ Identity:
     (adapter, address)
 
 Example:
-
     adapter 1
     address 0x77
 
 Kernel name:
-
     1-0077
 
 Meaning:
-
     bus 1
     address 0x77
 
 Sysfs location:
-
     /sys/bus/i2c/devices/1-0077
 
 Senior mental model:
-
     i2c_client = concrete device instance
 
 Example:
-
     BMP180 sensor at 0x77
 
 Even if two identical sensors exist:
-
     1-0077
     2-0077
 
@@ -219,24 +194,19 @@ LAYER 5 — DEVICE DRIVER (i2c_driver)
 ====================================================================================================
 
 The driver describes how to operate that device.
-
 Kernel object:
-
     struct i2c_driver
 
 Contains:
-
     name
     id tables
     probe()
     remove()
 
 Example:
-
     bmp180_i2c_driver
 
 Driver responsibilities:
-
     configure device
     read registers
     expose functionality to kernel subsystems
@@ -368,32 +338,26 @@ USER SPACE VIEW
 ====================================================================================================
 
 User space sees:
-
     /dev/i2c-1
     /dev/i2c-0
 
 These correspond to adapters.
 
 Important:
-
     /dev/i2c-1 = bus access point
 
 NOT:
-
     the sensor itself.
 
 User tools:
-
     i2cdetect
     i2cget
     i2cset
 
 These tools communicate through:
-
     i2c-dev driver
 
 Flow:
-
     userspace
         │
         ▼
@@ -416,13 +380,10 @@ KERNEL DRIVER VIEW
 ====================================================================================================
 
 Kernel drivers operate differently.
-
 They interact with:
-
     i2c_client
 
 Flow:
-
     driver
         │
         ▼
@@ -444,11 +405,9 @@ DYNAMIC CLIENT CREATION (sysfs)
 ====================================================================================================
 
 Manual creation:
-
     echo eeprom 0x50 > /sys/class/i2c-dev/i2c-1/device/new_device
 
 Meaning:
-
     create i2c_client(bus=1, addr=0x50)
 
 Kernel flow:
@@ -477,29 +436,24 @@ DEBUGGING HIERARCHY (VERY IMPORTANT)
 When I2C fails, debug in this order:
 
 1️⃣ Check adapter
-
     i2cdetect -l
 
 If missing:
     controller driver or DT problem.
 
 2️⃣ Check bus communication
-
     i2cdetect -y 1
 
 If device not detected:
     wiring / pullups / power / address issue.
 
 3️⃣ Check kernel client
-
     ls /sys/bus/i2c/devices/
 
 4️⃣ Check driver binding
-
     dmesg | grep probe
 
 Senior rule:
-
     always debug bottom-up.
 
 ====================================================================================================
@@ -507,7 +461,6 @@ FINAL ARCHITECTURE SUMMARY
 ====================================================================================================
 
 Complete architecture:
-
     Physical I2C Bus
            │
            ▼

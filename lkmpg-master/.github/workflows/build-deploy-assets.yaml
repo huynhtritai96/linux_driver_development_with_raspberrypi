@@ -1,0 +1,36 @@
+name: build-deploy-assets
+
+on:
+  push:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: twtug/lkmpg
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          make all
+          make html
+          tar zcvf lkmpg-html.tar.gz ./html
+      - name: Delete old release
+        uses: cb80/delrel@latest
+        with:
+          tag: latest
+      - name: Tag
+        run: |
+          git tag latest
+          git push -f --tags
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            lkmpg.pdf
+            lkmpg-html.tar.gz
+          tag_name: "latest"
+          prerelease: true
