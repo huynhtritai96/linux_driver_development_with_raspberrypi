@@ -523,17 +523,10 @@ it is an anchor object that simplifies list algorithms.
 TYPE ROLES IN THIS MODULE
 ========================================================================================================
 
-struct my_data *tmp
-    current my_data object being allocated or processed
-
-struct my_data *next
-    temporary saved next object for safe deletion traversal
-
-struct list_head *ptr
-    low-level generic cursor used by list_for_each
-
-static LIST_HEAD(my_list)
-    sentinel list anchor, always exists for module lifetime
+struct my_data *tmp : current my_data object being allocated or processed
+struct my_data *next : temporary saved next object for safe deletion traversal
+struct list_head *ptr : low-level generic cursor used by list_for_each
+static LIST_HEAD(my_list) : sentinel list anchor, always exists for module lifetime
 
 ========================================================================================================
 WHAT THE LIST REALLY OWNS VS WHAT THE MODULE OWNS
@@ -562,7 +555,6 @@ FINAL SHAPE AFTER SUCCESSFUL INIT
 ========================================================================================================
 
 Memory contains roughly:
-
     my_list (static sentinel head)
 
     nodeA: struct my_data
@@ -621,14 +613,12 @@ KEY SENIOR TAKEAWAY
 ========================================================================================================
 
 The Linux kernel linked-list model is:
-
     your object
         contains
     embedded struct list_head
         which lets generic kernel list code link objects together
 
 So the true conceptual flow is:
-
     allocate real object
         ↓
     initialize payload

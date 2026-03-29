@@ -8,11 +8,11 @@ MODULE_AUTHOR("MPCoding - LDD");
 MODULE_DESCRIPTION("Our first character device");
 
 static const char *my_device = "my_cdev"; // device name
-static dev_t dev_nr; // device number (major and minor number)
-static struct cdev my_cdev; // character device structure
-static struct class *my_class; // class structure for creating device number under /sys/class and device node under /dev
+static dev_t dev_nr;                    // device number (major and minor number)
+static struct cdev my_cdev;             // character device structure
+static struct class *my_class;          // class structure for creating device number under /sys/class and device node under /dev
 static struct device *my_device_object; // device object structure for creating device node under /dev
-static struct file_operations fops = { //  file characteristic for device file/node file
+static struct file_operations fops = {  //  file characteristic for device file/node file
 };
 
 static int __init my_init(void)

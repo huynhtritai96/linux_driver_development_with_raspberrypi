@@ -36,12 +36,14 @@ static int read_sysfs_int(const char *device_dir, const char *filename, long lon
     }
 
     f = fopen(path, "r");
-    if (!f) {
+    if (!f)
+    {
         fprintf(stderr, "failed to open %s: %s\n", path, strerror(errno));
         return -1;
     }
 
-    if (!fgets(buf, sizeof(buf), f)) {
+    if (!fgets(buf, sizeof(buf), f))
+    {
         fprintf(stderr, "failed to read %s: %s\n", path, strerror(errno));
         goto out;
     }
@@ -50,7 +52,8 @@ static int read_sysfs_int(const char *device_dir, const char *filename, long lon
     errno = 0;
     char *endp = NULL;
     long long val = strtoll(buf, &endp, 10);
-    if ((errno != 0) || (endp == buf)) {
+    if ((errno != 0) || (endp == buf))
+    {
         fprintf(stderr, "failed to parse integer from %s\n", path);
         goto out;
     }
@@ -67,35 +70,44 @@ int main(int argc, char **argv)
 {
     char device_dir[PATH_MAXLEN];
 
-    if (argc == 2) {
+    if (argc == 2)
+    {
         /* full path provided */
         strncpy(device_dir, argv[1], sizeof(device_dir));
         device_dir[sizeof(device_dir)-1] = '\0';
-    } else if (argc == 3) {
+    } 
+    else if (argc == 3) 
+    {
         /* bus and hex address provided */
         int bus = atoi(argv[1]);
         unsigned int addr;
-        if (sscanf(argv[2], "0x%x", &addr) != 1 && sscanf(argv[2], "%x", &addr) != 1) {
+        if (sscanf(argv[2], "0x%x", &addr) != 1 && sscanf(argv[2], "%x", &addr) != 1)
+        {
             fprintf(stderr, "invalid address: %s\n", argv[2]);
             return 2;
         }
         /* device directory name is like "1-0077" (bus-addr with 3-digit hex, zero padded) */
-        if (snprintf(device_dir, sizeof(device_dir), "/sys/bus/i2c/devices/%d-%03x", bus, addr) >= (int)sizeof(device_dir)) {
+        if (snprintf(device_dir, sizeof(device_dir), "/sys/bus/i2c/devices/%d-%03x", bus, addr) >= (int)sizeof(device_dir))
+        {
             fprintf(stderr, "device path too long\n");
             return 2;
         }
-    } else {
+    } 
+    else
+    {
         fprintf(stderr, "Usage:\n  %s /sys/bus/i2c/devices/1-0077\n  %s <bus> <hex-address>   e.g. %s 1 0x77\n", argv[0], argv[0], argv[0]);
         return 2;
     }
 
     long long temp10, pressure;
-    if (read_sysfs_int(device_dir, "temp_input", &temp10) != 0) {
+    if (read_sysfs_int(device_dir, "temp_input", &temp10) != 0)
+    {
         fprintf(stderr, "error reading temp_input from %s\n", device_dir);
         return 3;
     }
 
-    if (read_sysfs_int(device_dir, "pressure_input", &pressure) != 0) {
+    if (read_sysfs_int(device_dir, "pressure_input", &pressure) != 0)
+    {
         fprintf(stderr, "error reading pressure_input from %s\n", device_dir);
         return 4;
     }

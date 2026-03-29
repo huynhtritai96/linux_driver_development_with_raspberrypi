@@ -3,16 +3,13 @@
 ====================================================================================================
 PRIVATE DATA IN A CHARACTER DEVICE — SENIOR MENTAL MODEL
 ====================================================================================================
-
 KEY QUESTION
 ----------------------------------------------------------------------------------------------------
 How can one device node, `/dev/my_cdev0`, support multiple simultaneous opens while giving each open
 its own independent data buffer?
 
 Short answer:
-    because Linux creates one `struct file` per successful open(),
-    and the driver can attach per-open state through:
-
+    because Linux creates one `struct file` per successful open(), and the driver can attach per-open state through:
         file->private_data
 
 This is the most important idea in this lesson.
@@ -20,9 +17,7 @@ This is the most important idea in this lesson.
 ====================================================================================================
 LAYER 1 — TWO DIFFERENT LIFETIMES
 ====================================================================================================
-
 There are two different object lifetimes here:
-
 A) DEVICE LIFETIME
 ----------------------------------------------------------------------------------------------------
 Created when the module loads:
@@ -51,14 +46,11 @@ Destroyed when that process later does:
     close(fd)
 
 This lifetime creates:
-    one `struct file`
-and in this driver, one private 64-byte kernel buffer.
+    one `struct file` and in this driver, one private 64-byte kernel buffer.
 
 COMMENT:
 This is the first big conceptual distinction:
-    device node lifetime
-        !=
-    open instance lifetime
+    device node lifetime != open instance lifetime
 
 The char device exists for the whole module lifetime.
 The private buffer exists only for one open session.
@@ -86,7 +78,7 @@ User process
            +--> private_data   <========================== most important field here
     |
     v
-cdev
+  cdev
     |
     v
 file_operations
@@ -101,8 +93,7 @@ The deep idea is:
     inode = device identity
     file = one active session using that device
 
-So `private_data` belongs naturally to `struct file`,
-because it represents state for one open instance.
+So `private_data` belongs naturally to `struct file`, because it represents state for one open instance.
 
 ====================================================================================================
 LAYER 3 — WHAT private_data REALLY IS
@@ -128,11 +119,8 @@ But conceptually, `private_data` could point to anything:
 Senior mental model:
     `private_data` is the driver's attachment point for per-open state
 
-It is NOT:
-    a global module variable
-
-It IS:
-    state belonging to this one open file instance
+It is NOT: a global module variable
+It IS: state belonging to this one open file instance
 
 ====================================================================================================
 LAYER 4 — MODULE LOAD PATH
@@ -152,14 +140,11 @@ Result:
     /sys/class/my_class      exists
     /dev/my_cdev0            exists
 
-Important:
-    no data buffer is allocated here
+Important: no data buffer is allocated here
 
-COMMENT:
-This is the big difference from the previous global-buffer design.
+COMMENT: This is the big difference from the previous global-buffer design.
 
-Old design:
-    module load also allocated storage
+Old design: module load also allocated storage
 
 New design:
     module load only registers the device
@@ -191,8 +176,7 @@ Inside my_open():
 
     pFile->private_data = buffer;
 
-Result:
-    this open instance now owns one zeroed 64-byte kernel buffer
+Result: this open instance now owns one zeroed 64-byte kernel buffer
 
 Diagram:
 ----------------------------------------------------------------------------------------------------
@@ -253,12 +237,8 @@ Meaning:
 
 COMMENT:
 This is the architectural upgrade in one sentence:
-
-    old version:
-        device-wide shared memory
-
-    new version:
-        per-open session-local memory
+    old version: device-wide shared memory
+    new version: per-open session-local memory
 
 ====================================================================================================
 LAYER 7 — READ PATH
@@ -294,11 +274,8 @@ Data movement:
 ----------------------------------------------------------------------------------------------------
 PRIVATE KERNEL BUFFER  ---------------- copy_to_user ---------------->  USER BUFFER
 
-Meaning:
-    read returns data from THIS file instance's private buffer only
-
-COMMENT:
-The code is treating the buffer as string-like data.
+Meaning: read returns data from THIS file instance's private buffer only
+COMMENT: The code is treating the buffer as string-like data.
 
 That is why it uses:
     strlen(dev_buffer)
@@ -322,8 +299,7 @@ Inside my_release():
     if (buffer)
         kfree(buffer);
 
-Result:
-    this open instance's private buffer is freed
+Result: this open instance's private buffer is freed
 
 Diagram:
 ----------------------------------------------------------------------------------------------------
@@ -339,12 +315,8 @@ after close:
 
 COMMENT:
 `open()` and `release()` form a resource pair:
-
-    my_open()
-        allocates per-open resources
-
-    my_release()
-        frees per-open resources
+    my_open() : allocates per-open resources
+    my_release() : frees per-open resources
 
 That pairing is one of the strongest patterns in file-based driver design.
 
@@ -354,9 +326,7 @@ LAYER 9 — WHY THE FIRST VERSION FAILED TO READ AFTER WRITE
 
 Earlier version still updated file offset.
 So sequence was:
-    write 11 bytes
-        -> offset becomes 11
-
+    write 11 bytes -> offset becomes 11
     read immediately after
         -> read starts at offset 11
         -> effectively end of content
@@ -376,7 +346,6 @@ So behavior becomes:
 COMMENT:
 This is not the most file-like design,
 but it isolates the main lesson:
-
     private_data gives each open its own state
 
 The tutorial intentionally simplified offset semantics so you can focus on ownership semantics.
@@ -409,9 +378,9 @@ Diagram:
 
 /dev/my_cdev0
     |
-    +--> open A ---> struct file FA ---> private_data ---> bufferA
+    └──> open A ──► struct file FA ──► private_data ──► bufferA
     |
-    +--> open B ---> struct file FB ---> private_data ---> bufferB
+    └──> open B ──► struct file FB ──► private_data ──► bufferB
 
 Meaning:
     one device node
@@ -480,13 +449,9 @@ Detailed flow:
 ----------------------------------------------------------------------------------------------------
 
 open(argv[1], O_RDWR) : creates one struct file with one private buffer
-
 write(fd, argv[2], strlen(argv[2])) : copies string into that file's private kernel buffer
-
 getchar() : pause so you can inspect dmesg / run another instance
-
 read(fd, buffer, DEV_BUFFER_SIZE) : copies content from that file's private kernel buffer back to user space
-
 close(fd) : frees private buffer
 
 COMMENT:
@@ -503,29 +468,20 @@ GLOBAL BUFFER MODEL vs PRIVATE BUFFER MODEL
 
 OLD MODEL — GLOBAL BUFFER
 ----------------------------------------------------------------------------------------------------
-module load
-    alloc one global dev_buffer
-
-all opens:
-    share the same memory
-
-effect:
-    process A and process B overwrite the same storage
+module load: alloc one global dev_buffer
+all opens: share the same memory
+effect: process A and process B overwrite the same storage
 
 NEW MODEL — PRIVATE BUFFER
 ----------------------------------------------------------------------------------------------------
-module load
-    no data buffer yet
-
-each open:
-    alloc one buffer
+module load: no data buffer yet
+each open: alloc one buffer
 
 effect:
     process A gets its own state
     process B gets its own state
 
-COMMENT:
-This is the deeper design upgrade:
+COMMENT: This is the deeper design upgrade:
 
     from device-wide state
         to session-wide state

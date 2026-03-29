@@ -354,7 +354,7 @@ open("/dev/my_cdev0")                   open("/dev/my_cdev0")
       │                                       │
       ▼                                       ▼
 struct file F1                           struct file F2
-    └── private_data ─────► buffer1          └── private_data ─────► buffer2
+      └── private_data ─────► buffer1          └── private_data ─────► buffer2
 
 write(F1, "Welcome")
 read(F1)  -> "Welcome"
@@ -390,8 +390,7 @@ But note carefully:
     buffer is PER-OPEN
 
 That means:
-    terminal A and terminal B do not share the same buffer,
-    but they still cannot read/write in parallel because one global mutex blocks both paths.
+    terminal A and terminal B do not share the same buffer, but they still cannot read/write in parallel because one global mutex blocks both paths.
 
 Better future design for per-open state:
     store a struct in private_data:
@@ -443,14 +442,10 @@ Open output:
     one private buffer allocated
     file->private_data now points to it
 
-Write output:
-    data copied from user space into this file instance's private buffer
+Write output: data copied from user space into this file instance's private buffer
+Read output: data copied from this file instance's private buffer back to user space
 
-Read output:
-    data copied from this file instance's private buffer back to user space
-
-Close output:
-    private buffer freed
+Close output: private buffer freed
 
 System-visible output:
     same /dev/my_cdev0 node
@@ -466,7 +461,6 @@ private_data is not "extra storage inside the driver";
 it is the standard VFS hook that lets a driver attach per-open context to struct file.
 
 So the real model is:
-
     one device node
         ↓
     many opens

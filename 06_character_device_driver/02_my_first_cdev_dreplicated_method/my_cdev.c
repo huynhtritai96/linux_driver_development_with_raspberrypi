@@ -18,7 +18,6 @@ static int __init my_init(void)
     int status;
 
     status = register_chrdev(MY_MAJOR, my_device, &fops);
-
     if (status)
     {
         pr_err("%s: character device registration failed\n", my_device);

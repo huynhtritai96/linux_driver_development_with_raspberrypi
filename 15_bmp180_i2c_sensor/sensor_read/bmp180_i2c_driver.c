@@ -131,7 +131,8 @@ static int bmp_read_raw_pres(struct i2c_client *client, uint8_t oss, int32_t *UP
      * oss=2 -> 13.5 ms
      * oss=3 -> 25.5 ms
      */
-    switch (oss) {
+    switch (oss)
+    {
         case 0: msleep(5); break;
         case 1: msleep(8); break;
         case 2: msleep(14); break;
@@ -288,14 +289,16 @@ static int bmp180_probe(struct i2c_client *client)
 
     /* Read calibration */
     ret = bmp_read_calib(client, &bc->calib);
-    if (ret) {
+    if (ret)
+    {
         dev_err(&client->dev, "failed to read calibration: %d\n", ret);
         return ret;
     }
 
     /* Create sysfs attributes on device */
     ret = sysfs_create_group(&client->dev.kobj, &bmp_group);
-    if (ret) {
+    if (ret)
+    {
         dev_err(&client->dev, "failed to create sysfs group: %d\n", ret);
         return ret;
     }
@@ -350,10 +353,12 @@ static struct i2c_driver bmp180_driver = {
     .id_table = bmp180_ids,
 };
 
-static int __init bmp180_init(void) {
+static int __init bmp180_init(void)
+{
 	int ret;
 	ret = i2c_add_driver(&bmp180_driver);
-	if (ret) {
+	if (ret)
+    {
 		pr_err("bmp180_i2c_driver: faild to add driver\n");
 		return ret;
 	}
@@ -362,7 +367,8 @@ static int __init bmp180_init(void) {
 
 	/* Get I2C adapter (12c-1) */
 	bmp180_adapter = i2c_get_adapter(1);
-	if (ret) {
+	if (ret)
+    {
 		pr_err("bmp180_i2c_driver: failed to add driver\n");
 		return ret;
 	}
@@ -370,7 +376,8 @@ static int __init bmp180_init(void) {
 	/* Create the I2C device */
 	bmp180_client = i2c_new_client_device(bmp180_adapter, &bmp180_i2c_device_info);
 	i2c_put_adapter(bmp180_adapter);
-	if (IS_ERR(bmp180_client)) {
+	if (IS_ERR(bmp180_client))
+    {
 		pr_err("bmp180_i2c_driver: faild to create I2C device\n");
 		i2c_del_driver(&bmp180_driver);
 		return PTR_ERR(bmp180_client);
@@ -381,7 +388,8 @@ static int __init bmp180_init(void) {
 	return 0;
 }
 
-static void __exit bmp180_exit(void) {
+static void __exit bmp180_exit(void)
+{
 	if (bmp180_client)
 		i2c_unregister_device(bmp180_client);
 	

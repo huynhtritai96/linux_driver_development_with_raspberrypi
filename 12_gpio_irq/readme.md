@@ -143,7 +143,6 @@ Meaning of each field:
 
 After successful request:
     Linux IRQ subsystem now owns this mapping:
-
         IRQ 58
           └── handler = button_isr
           └── name    = btn_irq_handler
@@ -202,7 +201,6 @@ button_isr()
 return IRQ_HANDLED
 
 Diagram:
-
     GPIO 20 falling edge
          ↓
         IRQ 58
@@ -357,7 +355,6 @@ TIMER SCHEDULING EXPRESSION
     jiffies + msecs_to_jiffies(DEBOUNCE_DELAY)
 
 Meaning:
-
 jiffies : current kernel tick count
 msecs_to_jiffies(20) : convert 20 milliseconds into kernel ticks
 
@@ -375,9 +372,7 @@ MODULE EXIT
     del_timer_sync(&debounce_timer);
 
 Meaning:
-
 free_irq : unregister this handler from Linux IRQ subsystem after this, button IRQ no longer invokes this module's ISR
-
 del_timer_sync : stop timer safely and wait if callback is currently running
 
 Why order matters conceptually: on unload, no asynchronous activity should still point into module code
@@ -408,7 +403,6 @@ Timer callback toggles output by:
 Same architecture as legacy version, but object-handle based.
 
 Mental mapping:
-
     legacy style:
         raw int gpio number
             ↓
@@ -429,14 +423,9 @@ PART 12 — TOP-HALF vs BOTTOM-HALF (SEPARATE EXAMPLE)
 
 SECOND MODULE INTRODUCES WORKQUEUE BOTTOM-HALF
 ───────────────────────────────────────────────
-Added:
-    static struct work_struct button_work;
-
-Initialized by:
-    INIT_WORK(&button_work, button_work_handler);
-
-ISR becomes:
-    schedule_work(&button_work);
+Added: static struct work_struct button_work;
+Initialized by: INIT_WORK(&button_work, button_work_handler);
+ISR becomes: schedule_work(&button_work);
 
 Bottom-half handler:
     button_work_handler()
@@ -446,11 +435,8 @@ Bottom-half handler:
 
 This is a different lesson from debounce.
 
-DEBOUNCE TIMER lesson answers:
-    "How do I filter noisy repeated mechanical edges?"
-
-BOTTOM-HALF lesson answers:
-    "How do I move slow work out of interrupt context?"
+DEBOUNCE TIMER lesson answers: "How do I filter noisy repeated mechanical edges?"
+BOTTOM-HALF lesson answers:"How do I move slow work out of interrupt context?"
 
 These are related but not the same problem.
 
@@ -480,7 +466,6 @@ Why this split exists:
     slow processing belongs in deferred context
 
 So:
-
 top-half
     = urgent reaction
     = minimal work
@@ -521,13 +506,11 @@ SECOND MODULE EXIT
     free_irq(irq_number, NULL);
     cancel_work_sync(&button_work);
 
-Meaning of cancel_work_sync():
-    if work is pending or running, cancel/wait safely before module unload
+Meaning of cancel_work_sync(): if work is pending or running, cancel/wait safely before module unload
 
 This is the workqueue equivalent of safe async teardown.
 
-Again, the senior rule is the same:
-    no deferred execution may survive module removal
+Again, the senior rule is the same: no deferred execution may survive module removal
 
 ========================================================================================================
 PART 16 — COMPLETE ARCHITECTURE MAP
@@ -552,11 +535,8 @@ IRQ dispatch invokes ISR
 
 DEFERRED PROCESSING LEVEL
 ─────────────────────────
-Option A:
-    timer debounce callback validates stable button state later
-
-Option B:
-    workqueue bottom-half performs slow work later
+Option A: timer debounce callback validates stable button state later
+Option B: workqueue bottom-half performs slow work later
 
 DRIVER ACTION LEVEL
 ───────────────────
@@ -601,15 +581,10 @@ PART 18 — ONE-LINE SENIOR DISTINCTIONS
 ========================================================================================================
 
 gpio_to_irq / gpiod_to_irq = map GPIO event source to Linux IRQ identity
-
 request_irq = register top-half handler with IRQ subsystem
-
 ISR / top-half = immediate, minimal, fast interrupt reaction
-
 debounce timer = filter noisy repeated edges from mechanical button bounce
-
 workqueue bottom-half = move slow processing out of interrupt context
-
 free_irq / del_timer_sync / cancel_work_sync = shut down asynchronous callbacks safely before unload
 
 ========================================================================================================
@@ -617,7 +592,6 @@ FINAL SENIOR TAKEAWAY
 ========================================================================================================
 
 This lesson is best understood as three stacked concepts:
-
     1. GPIO INPUT AS EVENT SOURCE
        button GPIO is mapped into a Linux IRQ and handled asynchronously
 

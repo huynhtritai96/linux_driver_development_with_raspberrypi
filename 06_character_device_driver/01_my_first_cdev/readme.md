@@ -396,19 +396,19 @@ Advantages:
 insmod my_cdev.ko
        │
        ▼
-    module_init()
+   module_init()
        │
        ▼
 alloc_chrdev_region
        │
        ▼
-    cdev_init
+   cdev_init
        │
        ▼
-    cdev_add
+   cdev_add
        │
        ▼
-    class_create
+   class_create
        │
        ▼
     device_create
@@ -417,10 +417,10 @@ alloc_chrdev_region
     sysfs event
        │
        ▼
-    udev
+     udev
        │
        ▼
-    /dev/my_cdev0 created
+   /dev/my_cdev0 created
 ```
 
 ---
@@ -465,10 +465,10 @@ cdev (driver binding)
 Linux device model
        │
        ▼
-    sysfs
+     sysfs
        │
        ▼
-    udev
+     udev
        │
        ▼
     /dev node

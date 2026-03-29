@@ -91,16 +91,12 @@ The lesson divides Linux I2C into bus side and device side.
 
 BUS SIDE
 ────────
-    struct i2c_adapter
-        represents the I2C controller instance / bus master exposed by the system
-
-    struct i2c_algorithm
-        describes how transfers are actually executed by that adapter
+    struct i2c_adapter: represents the I2C controller instance / bus master exposed by the system
+    struct i2c_algorithm: describes how transfers are actually executed by that adapter
 
 DEVICE SIDE
 ───────────
     struct i2c_client : represents one slave device instance on one bus at one address
-
     struct i2c_driver : represents driver logic for a class/type of slave device
 
 This is the single most important architecture diagram:
@@ -135,11 +131,8 @@ PART 4 — WHAT EACH STRUCT REALLY MEANS
 
 1) i2c_adapter
 ──────────────
-Represents:
-    one I2C bus controller instance from Linux's point of view
-
-Not just "hardware exists", but:
-    "the kernel has registered this bus master and assigned it an adapter number"
+Represents: one I2C bus controller instance from Linux's point of view
+Not just "hardware exists", but: "the kernel has registered this bus master and assigned it an adapter number"
 
 Typical user-visible result:
     /dev/i2c-1
@@ -152,8 +145,7 @@ Mental model:
 
 2) i2c_algorithm
 ────────────────
-Represents:
-    transfer methods supported by the adapter
+Represents: transfer methods supported by the adapter
 
 It defines low-level transfer behavior, such as:
     how a transaction is performed
@@ -167,11 +159,9 @@ Mental model:
 
 3) i2c_client
 ─────────────
-Represents:
-    one actual slave device instance
+Represents: one actual slave device instance
 
 Identity of a client is basically:
-
     (which adapter/bus, which slave address)
 
 Example:
@@ -206,7 +196,6 @@ PART 5 — THE I2C CORE AS THE MATCHMAKER
 ========================================================================================================
 
 The I2C core sits between bus drivers and client drivers.
-
 It handles:
     - registration/removal of adapters
     - registration/removal of drivers
@@ -242,13 +231,11 @@ PART 6 — THREE-LAYER KERNEL VIEW
 ========================================================================================================
 
 The lesson correctly splits kernel I2C architecture into three big parts:
-
     1. I2C core
     2. I2C bus driver
     3. I2C client driver
 
 Detailed mental map:
-
     +-----------------------------------------------------------------------------------+
     | I2C CORE                                                                          |
     |-----------------------------------------------------------------------------------|
@@ -275,7 +262,6 @@ PART 7 — WHERE THE CODE LIVES IN THE KERNEL TREE
 ========================================================================================================
 
 The lesson points to drivers/i2c.
-
 Senior mental structure:
     drivers/i2c/
         core framework files
@@ -354,7 +340,6 @@ PART 9 — USER SPACE VIEW OF THE SAME SUBSYSTEM
 ========================================================================================================
 
 After enabling I2C in Raspberry Pi config, adapters appear as:
-
     /dev/i2c-1
     /dev/i2c-0
     ...
@@ -362,7 +347,6 @@ After enabling I2C in Raspberry Pi config, adapters appear as:
 Each /dev/i2c-* corresponds to one i2c_adapter registered in kernel.
 
 So the mapping is:
-
     kernel i2c_adapter #1
         ↔
     /dev/i2c-1
@@ -391,17 +375,11 @@ That distinction is critical.
 PART 10 — WHAT i2cdetect -l REALLY SHOWS
 ========================================================================================================
 
-Command:
-    i2cdetect -l
+Command: i2cdetect -l
+Shows: all adapters registered with the kernel
 
-Shows:
-    all adapters registered with the kernel
-
-So it answers:
-    "Which I2C buses currently exist in Linux?"
-
-Not:
-    "Which devices are connected?"
+So it answers: "Which I2C buses currently exist in Linux?"
+Not: "Which devices are connected?"
 
 Example meaning:
     bus 1 exists because some controller driver successfully registered adapter #1
@@ -413,38 +391,28 @@ Senior mental model:
 PART 11 — WHAT i2cdetect -y 1 REALLY DOES
 ========================================================================================================
 
-Command:
-    i2cdetect -y 1
-
+Command: i2cdetect -y 1
 This scans bus 1 for addresses that respond.
+It answers: "Which slave addresses on adapter 1 acknowledge probing?"
 
-It answers:
-    "Which slave addresses on adapter 1 acknowledge probing?"
+If it shows: 77
 
-If it shows:
-    77
-
-that means:
-    some physical device at address 0x77 responded on bus 1
+that means: some physical device at address 0x77 responded on bus 1
 
 Important caution:
     this is still user-space probing through i2c-dev
     it is not the same as a kernel client driver being bound
 
-So detection means:
-    "the electrical device seems to be there"
+So detection means: "the electrical device seems to be there"
 
-It does not automatically mean:
-    "Linux kernel already has the correct client driver attached"
+It does not automatically mean: "Linux kernel already has the correct client driver attached"
 
 ========================================================================================================
 PART 12 — DEVICE TREE VIEW
 ========================================================================================================
 
 Modern embedded Linux typically describes hardware using Device Tree.
-
 For I2C, the device tree has two different conceptual layers:
-
     1. controller nodes
     2. child device nodes on those controllers
 
@@ -458,27 +426,21 @@ An I2C controller DT node describes:
     - bus speed, pins, clocks, etc.
 
 Example meaning:
-
     i2c@...
         compatible = ...
         reg = ...
         clock-frequency = ...
         status = "okay";
 
-If status = "okay":
-    kernel is allowed to probe/register this adapter
-
-If status = "disabled":
-    this potential controller exists in silicon, but Linux should ignore it
+If status = "okay": kernel is allowed to probe/register this adapter
+If status = "disabled": this potential controller exists in silicon, but Linux should ignore it
 
 That explains why many I2C nodes may exist in DT, but only some appear as /dev/i2c-*.
 
 CLIENT-DEVICE NODE MEANING
 ──────────────────────────
 Inside an enabled controller node, child nodes can represent slave devices on that bus.
-
 Conceptually:
-
     i2c controller node
         └── bmp180@77
                 reg = <0x77>
@@ -493,7 +455,6 @@ PART 13 — BOOT-TIME CREATION FLOW FROM DEVICE TREE
 ========================================================================================================
 
 This is the real boot flow:
-
     kernel parses Device Tree
         ↓
     finds I2C controller node with status = "okay"
@@ -519,14 +480,12 @@ PART 14 — WHY /dev/i2c-1 EXISTS
 ========================================================================================================
 
 It exists because:
-
     1. an I2C controller node is enabled in Device Tree
     2. the matching controller/bus driver probed successfully
     3. that bus driver registered an i2c_adapter
     4. i2c-dev exposes adapters as /dev/i2c-*
 
 So:
-
     enabled DT node
         ↓
     bus driver probe
@@ -543,24 +502,15 @@ PART 15 — SYSFS VIEW OF THE SAME OBJECTS
 ========================================================================================================
 
 The lesson uses:
-
     /sys/class/i2c-dev/
     /sys/class/i2c-dev/i2c-1/
     /sys/class/i2c-dev/i2c-1/device/
 
 These are different windows into the same kernel object model.
-
 Mental map:
-
-    /sys/class/i2c-dev/
-        shows adapters exposed through i2c-dev class
-
-    /sys/class/i2c-dev/i2c-1/
-        one specific adapter class entry
-
-    /sys/class/i2c-dev/i2c-1/device/
-        underlying kernel device for that adapter
-        plus control files like new_device/delete_device
+    /sys/class/i2c-dev/ : shows adapters exposed through i2c-dev class
+    /sys/class/i2c-dev/i2c-1/ :one specific adapter class entry
+    /sys/class/i2c-dev/i2c-1/device/ : underlying kernel device for that adapter plus control files like new_device/delete_device
 
 So sysfs gives you the kernel-device-model perspective,
 while /dev gives you the file-interface perspective.
@@ -569,16 +519,13 @@ while /dev gives you the file-interface perspective.
 PART 16 — DYNAMIC CLIENT CREATION THROUGH SYSFS
 ========================================================================================================
 
-Command:
-    echo eeprom 0x50 > /sys/class/i2c-dev/i2c-1/device/new_device
+Command: echo eeprom 0x50 > /sys/class/i2c-dev/i2c-1/device/new_device
 
 This is extremely important conceptually.
 
-What it means:
-    "Create an I2C client instance on adapter 1 at address 0x50 and name/type it as eeprom"
+What it means: "Create an I2C client instance on adapter 1 at address 0x50 and name/type it as eeprom"
 
 Kernel flow after this command:
-
     write to new_device
         ↓
     kernel creates an i2c_client on bus 1 address 0x50
@@ -587,19 +534,13 @@ Kernel flow after this command:
         ↓
     I2C core searches registered i2c_driver objects for a match
         ↓
-    if a matching driver exists:
-           probe(client) is called
+    if a matching driver exists: probe(client) is called
 
 So this sysfs interface is a manual way to instantiate a client device at runtime.
 
-Important detail:
-    "eeprom" must match something the driver knows, typically via i2c_device_id table
-
-So the real meaning is not just:
-    "talk to address 0x50"
-
-It is:
-    "materialize a Linux client object and try to bind a driver to it"
+Important detail: "eeprom" must match something the driver knows, typically via i2c_device_id table
+So the real meaning is not just: "talk to address 0x50"
+It is: "materialize a Linux client object and try to bind a driver to it"
 
 ========================================================================================================
 PART 17 — WHAT 1-0050 MEANS IN /sys/bus/i2c/devices
@@ -615,7 +556,6 @@ This name means:
 This is the concrete i2c_client instance identity.
 
 So sysfs naming convention encodes:
-
     <adapter number>-<slave address>
 
 That is the kernel object representing the physical EEPROM-like device instance.
@@ -624,20 +564,15 @@ That is the kernel object representing the physical EEPROM-like device instance.
 PART 18 — DYNAMIC CLIENT DELETION
 ========================================================================================================
 
-Command:
-    echo 0x50 > /sys/class/i2c-dev/i2c-1/device/delete_device
-
-Meaning:
-    remove the manually created client at address 0x50 from adapter 1
+Command: echo 0x50 > /sys/class/i2c-dev/i2c-1/device/delete_device
+Meaning: remove the manually created client at address 0x50 from adapter 1
 
 Kernel flow:
-
     delete request
         ↓
     client object is removed
         ↓
-    if a driver was bound:
-           remove() is called
+    if a driver was bound: remove() is called
         ↓
     sysfs entry disappears
 
@@ -652,18 +587,17 @@ PART 19 — USER SPACE vs KERNEL SPACE PATHS
 ========================================================================================================
 
 There are two different paths into the same subsystem.
-
 PATH A — USER SPACE DIRECT BUS ACCESS
 ─────────────────────────────────────
     user app / i2c-tools
         ↓
-    /dev/i2c-1
+     /dev/i2c-1
         ↓
-    i2c-dev
+      i2c-dev
         ↓
-    I2C core
+      I2C core
         ↓
-    adapter
+      adapter
         ↓
     physical bus transaction
 
@@ -691,16 +625,13 @@ PART 20 — ROLE OF i2c_transfer() AND RELATED APIS
 ========================================================================================================
 
 The lesson mentions common APIs such as i2c_transfer().
-
 Senior mental model:
-
     i2c_transfer()
         is a core bus-transaction API
         used by kernel-side drivers to request actual bus transfers
 
 That means a client driver usually does not drive GPIOs or clocks directly.
 Instead it says, effectively:
-
     "Core, please perform this I2C transaction on this adapter/client"
 
 So again:
@@ -714,7 +645,6 @@ PART 21 — COMPLETE END-TO-END FLOW FOR A REAL SENSOR
 Take BMP180 at address 0x77 on bus 1.
 
 The full system story is:
-
     physical BMP180 connected to Raspberry Pi I2C pins
         ↓
     Raspberry Pi DT enables I2C controller node
@@ -731,7 +661,7 @@ The full system story is:
         ↓
     address 0x77 responds
         ↓
-    either:
+      either:
          a) user-space tools access it via i2c-dev
        or
          b) kernel creates i2c_client for 0x77 and binds bmp180 i2c_driver
@@ -749,7 +679,6 @@ PART 22 — WHAT MATTERS MOST AS A CLIENT-DRIVER AUTHOR
 ========================================================================================================
 
 As a client-driver developer, the most important ideas are:
-
     1. You are not writing the controller/bus driver
        You assume adapter already exists.
 
@@ -798,11 +727,8 @@ The Linux I2C subsystem is best understood as a bus framework with one core matc
       probe()
 
 And the same subsystem is exposed in two parallel views:
-    user-space bus view:
-        /dev/i2c-* via i2c-dev
-
-    kernel device-driver view:
-        i2c_client / i2c_driver via I2C core
+    user-space bus view: /dev/i2c-* via i2c-dev
+    kernel device-driver view: i2c_client / i2c_driver via I2C core
 
 So the true mental model is:
     I2C bus exists as an adapter,

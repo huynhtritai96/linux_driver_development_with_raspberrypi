@@ -66,8 +66,10 @@ Block devices:
 179 mmc
 254 device-mapper
 259 blkext
+
 htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ sudo insmod my_cdev.ko
 htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ cat /proc/devices
+
 Character devices:
   1 mem
   4 /dev/vc/0
@@ -134,8 +136,10 @@ Block devices:
 179 mmc
 254 device-mapper
 259 blkext
+
 htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ sudo rmmod my_cdev
 htritai@Rasp26:~/ldd/linux_driver_development_with_raspberrypi/06_character_device_driver/01_my_first_cdev_dreplicated_method $ cat /proc/devices
+
 Character devices:
   1 mem
   4 /dev/vc/0

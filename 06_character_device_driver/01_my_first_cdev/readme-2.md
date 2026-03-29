@@ -17,15 +17,12 @@ Below is the **senior mental model diagram** for this character-device flow, wit
 │  "Reserve identity and bind operations"                             │
 │                                                                     │
 │   alloc_chrdev_region()                                             │
-│        │                                                            │
 │        └── allocates major + minor range                            │
 │                                                                     │
 │   cdev_init()                                                       │
-│        │                                                            │
 │        └── binds file_operations to cdev                            │
 │                                                                     │
 │   cdev_add()                                                        │
-│        │                                                            │
 │        └── registers cdev into kernel char-device map               │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
@@ -35,11 +32,9 @@ Below is the **senior mental model diagram** for this character-device flow, wit
 │  "Publish device into sysfs/device model"                           │
 │                                                                     │
 │   class_create("my_class")                                          │
-│        │                                                            │
 │        └── creates /sys/class/my_class                              │
 │                                                                     │
 │   device_create(..., "my_cdev%d", 0)                                │
-│        │                                                            │
 │        └── creates /sys/class/my_class/my_cdev0                     │
 │            and emits uevent                                         │
 └─────────────────────────────────────────────────────────────────────┘
@@ -50,7 +45,6 @@ Below is the **senior mental model diagram** for this character-device flow, wit
 │  "udev reacts and creates a usable device node"                     │
 │                                                                     │
 │   udev receives add event                                           │
-│        │                                                            │
 │        └── creates /dev/my_cdev0                                    │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
@@ -573,22 +567,12 @@ Visible through program behavior:
 ---
 # 11. Best senior visualization
 Think of it as **3 stacked outputs**.
-```text
-Layer 1: Kernel dispatch output
-    -> "Kernel knows who owns this major/minor"
 
-Layer 2: System model output
-    -> "System knows this device exists in sysfs"
-
-Layer 3: User access output
-    -> "User space gets /dev node to call into driver"
-```
-
+Layer 1: Kernel dispatch output -> "Kernel knows who owns this major/minor"
+Layer 2: System model output -> "System knows this device exists in sysfs"
+Layer 3: User access output -> "User space gets /dev node to call into driver"
 And then finally:
-```text
-Layer 4: Functional output
-    -> "Driver actually performs read/write/ioctl behavior"
-```
+Layer 4: Functional output -> "Driver actually performs read/write/ioctl behavior"
 
 Your tutorial currently completes Layers 1–3, but not Layer 4.
 
@@ -596,37 +580,29 @@ Your tutorial currently completes Layers 1–3, but not Layer 4.
 # 12. Final condensed diagram
 ```text
 [Driver objects]
-   |
    |  define identity + behavior containers
    v
 [alloc_chrdev_region]
-   |
    |  output: major/minor range
    v
 [cdev_init + cdev_add]
-   |
    |  output: kernel dispatch active
    |  visible: /proc/devices
    v
 [class_create]
-   |
    |  output: /sys/class/my_class
    v
 [device_create]
-   |
    |  output: /sys/class/my_class/my_cdev0
    |  emits: uevent
    v
 [udev]
-   |
    |  output: /dev/my_cdev0
    v
 [user process]
-   |
    |  open/read/write/ioctl
    v
 [file_operations]
-   |
    |  output: actual driver behavior
    v
 [device service or hardware access]

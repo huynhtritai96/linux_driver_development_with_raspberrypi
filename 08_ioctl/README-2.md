@@ -57,7 +57,6 @@ This lifetime creates:
 
 COMMENT:
 This is the first big mental model:
-
     device node lifetime
         !=
     file-open lifetime
@@ -252,7 +251,6 @@ COMMENT:
 This is the core architectural change from the older global-buffer design.
 
 Now:
-
     open A writes into buffer A
     open B writes into buffer B
 
@@ -292,11 +290,9 @@ Data flow:
 ----------------------------------------------------------------------------------------------------
 PRIVATE KERNEL BUFFER  ---------------- copy_to_user -------------──>  USER BUFFER
 
-Meaning:
-    read returns content from THIS open file's private buffer
+Meaning: read returns content from THIS open file's private buffer
 
-COMMENT:
-This driver is treating the private buffer as a simple string-like storage area.
+COMMENT: This driver is treating the private buffer as a simple string-like storage area.
 
 That is why read length uses:
     strlen(dev_buffer)
@@ -321,8 +317,7 @@ my_release():
     if (buffer)
         kfree(buffer)
 
-Result:
-    this open instance's private memory disappears
+Result: this open instance's private memory disappears
 
 Diagram:
 ----------------------------------------------------------------------------------------------------
@@ -335,14 +330,9 @@ after close:
     F1 destroyed by VFS
     buffer freed by driver
 
-COMMENT:
-Open and release form a clean pair:
-
-    my_open()
-        allocates per-open resources
-
-    my_release()
-        frees per-open resources
+COMMENT: Open and release form a clean pair:
+    my_open() : allocates per-open resources
+    my_release() : frees per-open resources
 
 This symmetry is exactly what you want in file-based drivers.
 
@@ -352,11 +342,8 @@ LAYER 9 — MULTI-OPEN MODEL (MOST IMPORTANT IDEA)
 
 Two terminals both open `/dev/my_cdev0`
 
-Terminal A:
-    open() -> file FA -> private_data -> bufferA
-
-Terminal B:
-    open() -> file FB -> private_data -> bufferB
+Terminal A: open() -> file FA -> private_data -> bufferA
+Terminal B: open() -> file FB -> private_data -> bufferB
 
 Now:
     write(FA, "hello")
@@ -373,9 +360,7 @@ Diagram:
     |
     ├──> open B ──> struct file FB ──> private_data ──> bufferB
 
-COMMENT:
-This is the deep lesson:
-
+COMMENT: This is the deep lesson:
     one device node
         can have
     many simultaneous struct file instances
@@ -404,8 +389,7 @@ Mental model:
 read/write = data plane
 ioctl = control plane
 
-COMMENT:
-This is why ioctl exists in many drivers: some operations do not fit naturally into plain byte-stream semantics.
+COMMENT: This is why ioctl exists in many drivers: some operations do not fit naturally into plain byte-stream semantics.
 
 ====================================================================================================
 LAYER 11 — IOCTL COMMAND FORMAT
@@ -453,8 +437,7 @@ Kernel path:
 Switch handles one command at a time.
 This is command-dispatch logic.
 
-COMMENT:
-`my_ioctl()` is basically a mini command interpreter for this file instance.
+COMMENT: `my_ioctl()` is basically a mini command interpreter for this file instance.
 
 ====================================================================================================
 IOCTL 1 — MYCDEV_CLEAR
@@ -469,8 +452,7 @@ Kernel action:
     if (!dev_buffer) return -EINVAL
     memset(dev_buffer, 0, DEV_BUFFER_SIZE)
 
-Meaning:
-    clear THIS open file's private buffer
+Meaning: clear THIS open file's private buffer
 
 Important:
     this is not clearing a global buffer
@@ -490,10 +472,8 @@ Kernel action:
 ----------------------------------------------------------------------------------------------------
     pr_info("Hello from kernel via ioctl")
 
-Meaning:
-    simple control command with no data payload
-Use:
-    verify command dispatch path works
+Meaning: simple control command with no data payload
+Use: verify command dispatch path works
 
 COMMENT:
 This is mainly a teaching/debug command.
@@ -511,8 +491,7 @@ Kernel action:
     value = 0xc0ffee
     copy_to_user((int __user *)arg, &value, sizeof(int))
 
-Meaning:
-    kernel sends one integer to user space
+Meaning: kernel sends one integer to user space
 
 Data flow:
 ----------------------------------------------------------------------------------------------------
@@ -528,26 +507,21 @@ This is not "read()" file operation.
 It is ioctl-based control data transfer.
 
 That distinction matters:
-    read()
-        is stream-like file data path
-
-    ioctl(_IOR)
-        is typed control-command data exchange
+    read() : is stream-like file data path
+    ioctl(_IOR) : is typed control-command data exchange
 
 ====================================================================================================
 IOCTL 4 — MYCDEV_USER_WRITE
 ====================================================================================================
 
-Command:
-    ioctl(fd, MYCDEV_USER_WRITE, &value)
+Command: ioctl(fd, MYCDEV_USER_WRITE, &value)
 
 Kernel action:
 ----------------------------------------------------------------------------------------------------
     copy_from_user(&value, (int __user *)arg, sizeof(int))
     pr_info("value copied from user")
 
-Meaning:
-    user sends one integer to kernel through ioctl
+Meaning: user sends one integer to kernel through ioctl
 
 Data flow:
 ----------------------------------------------------------------------------------------------------
@@ -555,8 +529,7 @@ USER variable  ---------------- copy_from_user -------------──>  KERNEL loca
 
 Why `_IOW`:
 ----------------------------------------------------------------------------------------------------
-because from user-space perspective,
-this command writes data into the driver
+because from user-space perspective, this command writes data into the driver
 
 COMMENT:
 Again, this is control-path communication, not stream-path communication.
@@ -570,11 +543,8 @@ Default case:
     pr_err("unknown ioctl command")
     return -EINVAL
 
-Meaning:
-    driver rejects unsupported control requests
-
-Senior rule:
-    every ioctl dispatcher should fail clearly for unknown commands
+Meaning: driver rejects unsupported control requests
+Senior rule: every ioctl dispatcher should fail clearly for unknown commands
 
 ====================================================================================================
 USER TEST PROGRAM — COMPLETE FLOW
@@ -598,46 +568,49 @@ open(argv[1], O_RDWR)
     ↓
 creates one struct file with one private buffer
 
+
 write(fd, argv[2], strlen(argv[2]))
     ↓
 stores user string into that file's private buffer
+
 
 ioctl(fd, MYCDEV_SAY_HELLO)
     ↓
 kernel logs hello
 
+
 ioctl(fd, MYCDEV_USER_READ, &value)
     ↓
 kernel copies 0xc0ffee into user variable
+
 
 ioctl(fd, MYCDEV_USER_WRITE, &value=0xb00b00)
     ↓
 kernel receives and logs user-provided value
 
+
 read(fd, buffer, 64)
     ↓
 returns current private buffer contents
+
 
 ioctl(fd, MYCDEV_CLEAR)
     ↓
 clears private buffer
 
+
 read(fd, buffer, 64)
     ↓
 returns empty/zeroed content
+
 
 close(fd)
     ↓
 frees private buffer
 
-COMMENT:
-This test is nice because it exercises both planes:
-
-    data plane:
-        open / write / read / close
-
-    control plane:
-        ioctl
+COMMENT: This test is nice because it exercises both planes:
+    data plane: open / write / read / close
+    control plane: ioctl
 
 ====================================================================================================
 GLOBAL BUFFER MODEL vs PRIVATE BUFFER MODEL
@@ -645,22 +618,17 @@ GLOBAL BUFFER MODEL vs PRIVATE BUFFER MODEL
 
 OLD MODEL — GLOBAL BUFFER
 ----------------------------------------------------------------------------------------------------
-module load
-    alloc one global dev_buffer
+module load : alloc one global dev_buffer
 
-all opens:
-    share same memory
+all opens: share same memory
 
-effect:
-    process A and process B can overwrite each other's state
+effect: process A and process B can overwrite each other's state
 
 NEW MODEL — PRIVATE BUFFER
 ----------------------------------------------------------------------------------------------------
-module load
-    no data buffer yet
+module load : no data buffer yet
 
-each open:
-    alloc its own buffer
+each open : alloc its own buffer
 
 effect:
     process A has state A
@@ -668,7 +636,6 @@ effect:
 
 COMMENT:
 This is the architectural upgrade:
-
     from device-global shared memory
         to per-session state
 
@@ -683,7 +650,6 @@ Current driver has:
     static struct mutex dev_mutex;
 
 This mutex is GLOBAL.
-
 So:
     all read/write calls across all open instances are serialized
 

@@ -98,8 +98,7 @@ Why kmalloc is usually preferred first:
     It is the normal, fast, simple allocator for ordinary kernel memory.
 
 Why GFP_KERNEL:
-    This means:
-        "normal kernel allocation in process context, sleeping allowed"
+    This means: "normal kernel allocation in process context, sleeping allowed"
 
 So the allocator may block/sleep to satisfy the request.
 This is the standard choice unless you are in atomic/interrupt context.
@@ -256,11 +255,8 @@ CODE
 MENTAL MODEL
 ────────────
 The slab allocator is for repeated allocation of many objects of the same size/type.
-Instead of saying:
-    "give me arbitrary bytes"
-
-you say:
-    "create a cache optimized for objects shaped like struct my_object"
+Instead of saying: "give me arbitrary bytes"
+you say: "create a cache optimized for objects shaped like struct my_object"
 
 Then the kernel can manage object reuse efficiently.
 
@@ -498,20 +494,16 @@ During unload:
 HOW A SENIOR DEVELOPER CHOOSES BETWEEN THEM
 ========================================================================================================
 
-QUESTION 1:
-    "Do I just need a normal small kernel buffer?"
+QUESTION 1: "Do I just need a normal small kernel buffer?"
         -> kmalloc
 
-QUESTION 2:
-    "Do I want the same, but safely zero-initialized?"
+QUESTION 2: "Do I want the same, but safely zero-initialized?"
         -> kzalloc
 
-QUESTION 3:
-    "Do I need a larger region and do not care about physical contiguity?"
+QUESTION 3: "Do I need a larger region and do not care about physical contiguity?"
         -> vmalloc
 
-QUESTION 4:
-    "Will I allocate/free lots of identical structs repeatedly?"
+QUESTION 4: "Will I allocate/free lots of identical structs repeatedly?"
         -> kmem_cache_create + kmem_cache_alloc
 
 ========================================================================================================
@@ -520,17 +512,11 @@ IMPORTANT DESIGN DISTINCTION
 
 These allocators solve DIFFERENT PROBLEMS:
 
-kmalloc/kzalloc:
-    solve "give me bytes"
-
-vmalloc:
-    solves "give me a larger CPU-visible virtually contiguous region"
-
-slab cache:
-    solves "give me many efficient objects of one shape"
+kmalloc/kzalloc: solve "give me bytes"
+vmalloc: solves "give me a larger CPU-visible virtually contiguous region"
+slab cache: solves "give me many efficient objects of one shape"
 
 So the module is really teaching allocation by categories:
-
     raw bytes
     raw zeroed bytes
     large mapped bytes
@@ -549,7 +535,6 @@ This code is best understood as a memory-allocation decision tree:
         └── repeated same-sized typed objects?     -> slab cache
 
 And the lifetime rule remains:
-
     acquire forward
     free in reverse
 

@@ -113,8 +113,7 @@ So matching gives you:
         ->
     associated driver-private profile
 
-COMMENT:
-Think of this as a tiny dispatch table:
+COMMENT: Think of this as a tiny dispatch table:
     if matched name is bmp180-a
         use metadata A
 
@@ -130,8 +129,7 @@ It is also a lightweight variant-selection mechanism.
 
     MODULE_DEVICE_TABLE(i2c, my_ids);
 
-Meaning:
-    export supported device identities for module/kernel matching metadata
+Meaning: export supported device identities for module/kernel matching metadata
 
 COMMENT:
 - This is not runtime behavior.
@@ -163,9 +161,7 @@ Meaning:
     sensor responds
     probe path is real
 
-COMMENT:
-This first probe proves four things at once:
-
+COMMENT: This first probe proves four things at once:
 1. device/driver matching works
 2. correct id-table entry was selected
 3. driver_data mapping works

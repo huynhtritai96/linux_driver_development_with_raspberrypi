@@ -89,8 +89,7 @@ Important:
     some are internal board/system signals
 
 So the first senior lesson is:
-    GPIO numbering at hardware level is controller-relative,
-    not just "physical header numbering".
+    GPIO numbering at hardware level is controller-relative, not just "physical header numbering".
 
 ========================================================================================================
 LEGACY GLOBAL GPIO NUMBER MODEL USED IN THIS MODULE
@@ -116,7 +115,6 @@ It says:
         BCM GPIO 20 -> Linux global GPIO 532
 
 Diagram:
-
     gpiochip0 base offset = 512
         line 20 -> global gpio 532
         line 21 -> global gpio 533
@@ -128,10 +126,8 @@ it is asking for:
     controller gpiochip0, line 21, through the legacy flattened numbering scheme
 
 Important distinction:
-    hardware line number:
-        21
-    legacy Linux global GPIO number:
-        533
+    hardware line number:               21
+    legacy Linux global GPIO number:    533
 
 This offset-based scheme is exactly why the code defines GPIO_OFFSET.
 
@@ -212,7 +208,6 @@ CODE
 MENTAL MODEL
 ────────────
 This is the driver saying to the kernel:
-
     "I want exclusive ownership/use of this GPIO line."
 
 What kernel is protecting:
@@ -226,12 +221,8 @@ is not the hardware name;
 it is the consumer label, useful for debugging/ownership tracking
 
 Diagram:
-
-    before request:
-        GPIO 533 -> free / unclaimed
-
-    after successful request:
-        GPIO 533 -> claimed by this module ("led_gpio")
+    before request:             GPIO 533 -> free / unclaimed
+    after successful request:   GPIO 533 -> claimed by this module ("led_gpio")
 
 Why request is needed in legacy flow:
     because just knowing the GPIO number is not enough;
@@ -268,15 +259,10 @@ Why good practice:
     set a known safe initial state immediately when direction becomes output
 
 Diagram:
+    before: GPIO line mode unknown / prior configuration
+    after: GPIO 21 -> OUTPUT, value 0
 
-    before:
-        GPIO line mode unknown / prior configuration
-
-    after:
-        GPIO 21 -> OUTPUT, value 0
-
-Output:
-    LED line is under output control of driver, initially OFF/LOW
+Output: LED line is under output control of driver, initially OFF/LOW
 
 ========================================================================================================
 STEP 3 — request button GPIO
@@ -397,7 +383,6 @@ rmmod request_free
       ▼
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ my_exit()                                                                                            │
-│                                                                                                      │
 │ 1. gpio_set_value(led_gpio, 0)                                                                       │
 │ 2. gpio_free(led_gpio)                                                                               │
 │ 3. gpio_free(button_gpio)                                                                            │
@@ -458,7 +443,6 @@ insmod descriptor_version.ko
       ▼
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ my_init()                                                                                            │
-│                                                                                                      │
 │ 1. led    = gpio_to_desc(led_gpio)                                                                   │
 │ 2. button = gpio_to_desc(button_gpio)                                                                │
 │ 3. gpiod_direction_output(led, 0)                                                                    │
@@ -480,11 +464,8 @@ MENTAL MODEL
 ────────────
 A gpio_desc is the kernel's internal object/handle representing a GPIO line.
 
-Instead of:
-    "GPIO number 533"
-
-you now hold:
-    "descriptor object for that line"
+Instead of: "GPIO number 533"
+you now hold: "descriptor object for that line"
 
 This is better because the kernel API can operate on a typed handle rather than a raw integer.
 
@@ -531,8 +512,7 @@ Examples:
     gpiod_direction_output(led, 0) -> configure descriptor's line as output, initial low
     gpiod_direction_input(button)  -> configure descriptor's line as input
 
-Meaning:
-    the operation is now bound to the GPIO object handle rather than raw integer id
+Meaning: the operation is now bound to the GPIO object handle rather than raw integer id
 
 ========================================================================================================
 gpiod_set_value / gpiod_get_value
@@ -701,7 +681,6 @@ FINAL SENIOR TAKEAWAY
 ========================================================================================================
 
 This GPIO lesson is best understood as a hardware-resource ownership flow:
-
     identify the GPIO line
         ↓
     acquire a kernel handle to it

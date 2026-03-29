@@ -5,7 +5,6 @@ CHAR DEVICE WITH FILE OPERATIONS — SENIOR MENTAL MODEL (ONE COMPLETE TEXT DIAG
 
 USER SPACE                                                KERNEL SPACE
 ──────────                                                ────────────
-
 echo "hello" > /dev/my_cdev0
 cat /dev/my_cdev0
 open("/dev/my_cdev0", O_RDWR)
@@ -70,7 +69,6 @@ close(fd)
 │ alloc_chrdev_region(&dev_nr, 0, MINORMASK+1, "my_cdev")                                              │
 │                                                                                                      │
 │ Kernel keeps a registry entry conceptually like:                                                     │
-│                                                                                                      │
 │    char device namespace                                                                             │
 │       └── major = dynamically allocated                                                              │
 │             ├── minor range = 0..255                                                                 │
@@ -105,7 +103,6 @@ close(fd)
 │ cdev_add(&my_cdev, dev_nr, MINORMASK+1)                                                              │
 │                                                                                                      │
 │ Conceptual mapping inside kernel:                                                                    │
-│                                                                                                      │
 │    (major, minor)                                                                                    │
 │         │                                                                                            │
 │         ▼                                                                                            │
@@ -142,7 +139,6 @@ close(fd)
 │ device_create(my_class, NULL, dev_nr, NULL, "my_cdev%d", 0)                                          │
 │                                                                                                      │
 │ Creates sysfs objects conceptually like:                                                             │
-│                                                                                                      │
 │    /sys/class/my_class                                                                               │
 │    /sys/class/my_class/my_cdev0                                                                      │
 │                                                                                                      │
@@ -359,7 +355,6 @@ KEY SENIOR TAKEAWAY
 
 This driver is no longer just "a registered char device".
 It is now a real file-like kernel service with:
-
     identity          -> dev_t / major / minor / name
     dispatch          -> cdev + file_operations
     publication       -> class + device + udev
@@ -369,7 +364,6 @@ It is now a real file-like kernel service with:
     user/kernel copy  -> copy_to_user / copy_from_user
 
 So the complete mental model is:
-
     /dev node
         -> VFS inode/file
         -> major/minor lookup

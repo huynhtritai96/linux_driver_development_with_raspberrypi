@@ -393,14 +393,9 @@ Exit cleanup:
     del_timer_sync()
     cancel_work_sync()
 
-Purpose:
-    ensure no asynchronous callbacks remain.
-
-Why important:
-    if callback runs after module unload kernel may jump to invalid memory.
-
-Senior rule:
-    every async mechanism must be stopped before unload.
+Purpose: ensure no asynchronous callbacks remain.
+Why important: if callback runs after module unload kernel may jump to invalid memory.
+Senior rule: every async mechanism must be stopped before unload.
 
 Examples:
     IRQ

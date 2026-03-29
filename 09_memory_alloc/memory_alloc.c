@@ -75,10 +75,13 @@ static int __init my_init(void)
 
 label_kmem_cache_free:
     kmem_cache_destroy(my_cache);
+
 label_vmalloc_ptr_free:
     vfree(vmalloc_ptr);
+
 label_kzalloc_ptr_free:
     kfree(kzalloc_ptr);
+
 label_kmalloc_ptr_free:
     kfree(kmalloc_ptr);
 

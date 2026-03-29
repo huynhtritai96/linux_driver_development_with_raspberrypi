@@ -6,12 +6,10 @@ LINUX I2C SUBSYSTEM — COMPLETE SENIOR MENTAL MODEL
 KEY QUESTION THIS LESSON ANSWERS
 ----------------------------------------------------------------------------------------------------
 When a physical I2C sensor is wired to a Linux board:
-
     how does that hardware become a kernel object
     and how does a driver finally get its probe() called?
 
 To answer this, we must understand:
-
     Physical Bus
     → Controller Hardware
     → Linux Adapter Object
@@ -46,7 +44,6 @@ SCL  ────┼────────────────────
       master     slave A       slave B       slave C
 
 Important properties:
-
 • multi-device shared bus
 • master generates clock
 • slaves respond to addresses
@@ -54,18 +51,15 @@ Important properties:
 
 Every device listens to SDA/SCL, but **only responds when its address appears**.
 
-Senior mental model:
-    I2C = shared address-based message bus
+Senior mental model: I2C = shared address-based message bus
 
-Not:
-    point-to-point connection.
+Not: point-to-point connection.
 
 ====================================================================================================
 LAYER 1 — CONTROLLER HARDWARE
 ====================================================================================================
 
 On SoCs (Raspberry Pi, ARM boards, etc), an I2C bus is not created magically.
-
 It is controlled by a **hardware I2C controller block** inside the chip.
 
 Example:
@@ -160,7 +154,6 @@ This represents:
     at one address
 
 Identity:
-
     (adapter, address)
 
 Example:
@@ -174,14 +167,11 @@ Meaning:
     bus 1
     address 0x77
 
-Sysfs location:
-    /sys/bus/i2c/devices/1-0077
+Sysfs location: /sys/bus/i2c/devices/1-0077
 
-Senior mental model:
-    i2c_client = concrete device instance
+Senior mental model: i2c_client = concrete device instance
 
-Example:
-    BMP180 sensor at 0x77
+Example: BMP180 sensor at 0x77
 
 Even if two identical sensors exist:
     1-0077
@@ -194,8 +184,7 @@ LAYER 5 — DEVICE DRIVER (i2c_driver)
 ====================================================================================================
 
 The driver describes how to operate that device.
-Kernel object:
-    struct i2c_driver
+Kernel object: struct i2c_driver
 
 Contains:
     name
@@ -212,7 +201,6 @@ Driver responsibilities:
     expose functionality to kernel subsystems
 
 Important concept:
-
     driver does NOT create the device
 
 It only reacts when a matching device appears.
@@ -222,7 +210,6 @@ LAYER 6 — THE I2C CORE (THE MATCHMAKER)
 ====================================================================================================
 
 The I2C core manages:
-
     adapter registration
     driver registration
     client creation
@@ -250,11 +237,9 @@ Architecture diagram:
            probe()
 
 Senior mental model:
-
     I2C core is the operating system for the bus.
 
 It knows:
-
     which buses exist
     which devices exist
     which drivers exist
@@ -300,36 +285,30 @@ DEVICE TREE MODEL
 ====================================================================================================
 
 Device Tree has two conceptual layers:
-
 1) CONTROLLER NODE
 
 Example:
-
     i2c@7e804000 {
         status = "okay";
         clock-frequency = <100000>;
     };
 
 Meaning:
-
     this hardware controller exists
     kernel should enable it.
 
 If status = "disabled":
-
     adapter will never appear.
 
 2) DEVICE NODE
 
 Example:
-
     bmp180@77 {
         compatible = "bosch,bmp180";
         reg = <0x77>;
     };
 
 Meaning:
-
     device exists at address 0x77
     kernel should instantiate client.
 
@@ -343,11 +322,9 @@ User space sees:
 
 These correspond to adapters.
 
-Important:
-    /dev/i2c-1 = bus access point
+Important: /dev/i2c-1 = bus access point
 
-NOT:
-    the sensor itself.
+NOT: the sensor itself.
 
 User tools:
     i2cdetect
@@ -380,8 +357,7 @@ KERNEL DRIVER VIEW
 ====================================================================================================
 
 Kernel drivers operate differently.
-They interact with:
-    i2c_client
+They interact with: i2c_client
 
 Flow:
     driver
@@ -411,7 +387,6 @@ Meaning:
     create i2c_client(bus=1, addr=0x50)
 
 Kernel flow:
-
     create client
         │
         ▼
@@ -424,7 +399,6 @@ Kernel flow:
     call probe()
 
 Deletion:
-
     echo 0x50 > /sys/class/i2c-dev/i2c-1/device/delete_device
 
 Used heavily during bring-up.
@@ -435,23 +409,14 @@ DEBUGGING HIERARCHY (VERY IMPORTANT)
 
 When I2C fails, debug in this order:
 
-1️⃣ Check adapter
-    i2cdetect -l
+1️⃣ Check adapter: i2cdetect -l
+If missing: controller driver or DT problem.
 
-If missing:
-    controller driver or DT problem.
+2️⃣ Check bus communication:  i2cdetect -y 1
+If device not detected: wiring / pullups / power / address issue.
 
-2️⃣ Check bus communication
-    i2cdetect -y 1
-
-If device not detected:
-    wiring / pullups / power / address issue.
-
-3️⃣ Check kernel client
-    ls /sys/bus/i2c/devices/
-
-4️⃣ Check driver binding
-    dmesg | grep probe
+3️⃣ Check kernel client : ls /sys/bus/i2c/devices/
+4️⃣ Check driver binding : dmesg | grep probe
 
 Senior rule:
     always debug bottom-up.
@@ -467,7 +432,7 @@ Complete architecture:
     I2C Controller Hardware
            │
            ▼
-    i2c_adapter
+        i2c_adapter
            │
            ▼
          I2C Core
@@ -494,7 +459,6 @@ USER SPACE
       adapter
 
 KERNEL SPACE
-
     i2c_driver
         │
         ▼

@@ -9,11 +9,8 @@ KEY QUESTION
 How does the Linux kernel build a generic linked-list system without forcing every subsystem to use
 one universal "node object" wrapper?
 
-Short answer:
-    the kernel does NOT store your data inside a generic node
-
-Instead:
-    your real object embeds a small linkage structure
+Short answer: the kernel does NOT store your data inside a generic node
+Instead: your real object embeds a small linkage structure
 
 This is the core pattern.
 
@@ -340,7 +337,6 @@ So the logical order becomes:
 
 COMMENT:
 This is the second huge kernel-list insight:
-
     list API works on the embedded member not on the containing object directly
 
 That is why recovery via `list_entry()` exists later.
@@ -374,8 +370,7 @@ And each node belongs to a bigger object:
     node1.list is inside struct my_data { id=1, name="Hello World", ... }
     node2.list is inside struct my_data { id=2, name="Madhawa Polkotuwa", ... }
 
-COMMENT:
-The list walks through `list_head` links, but the real useful content lives in the surrounding objects.
+COMMENT: The list walks through `list_head` links, but the real useful content lives in the surrounding objects.
 
 ====================================================================================================
 TRAVERSAL — LOW-LEVEL VIEW
@@ -466,8 +461,7 @@ Meaning:
 ----------------------------------------------------------------------------------------------------
 list preserved insertion order because `list_add_tail()` was used
 
-COMMENT:
-If you had used `list_add()` instead, the list would grow at the head and visible order would differ.
+COMMENT: If you had used `list_add()` instead, the list would grow at the head and visible order would differ.
 
 So insertion API affects observable iteration order.
 
@@ -577,11 +571,8 @@ actually releases the storage
 
 COMMENT:
 This distinction is critical:
-    list_del()
-        = topology change
-
-    kfree()
-        = memory lifetime end
+    list_del() = topology change
+    kfree() = memory lifetime end
 
 You usually need both when nodes were dynamically allocated.
 
@@ -702,9 +693,7 @@ struct list_head *ptr
 static LIST_HEAD(my_list)
     permanent sentinel anchor for the entire list
 
-COMMENT:
-If you understand the different role of `ptr` vs `tmp`,
-you understand most of the list API:
+COMMENT: If you understand the different role of `ptr` vs `tmp`, you understand most of the list API:
 
     ptr = generic linkage cursor
     tmp = your real payload object
@@ -778,14 +767,12 @@ FINAL SENIOR TAKEAWAY
 ====================================================================================================
 
 The Linux kernel linked-list model is:
-
     your real object
         contains
     embedded struct list_head
         which allows generic list code to link those objects together
 
 So the full engineering flow is:
-
     allocate real object
         ↓
     initialize payload
