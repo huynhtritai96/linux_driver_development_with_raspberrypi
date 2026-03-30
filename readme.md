@@ -103,7 +103,7 @@
 
 ### 19. Kernel Synchronization Techniques
 * [Mutex](/19_kernel_synchronization/01_mutex/)
-* Spinlock
+* [Spinlock](/19_kernel_synchronization/02_spinlock/)
 * Completion
 * When to use which
 
