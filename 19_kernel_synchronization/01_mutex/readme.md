@@ -1,5 +1,9 @@
 # Mutex
 
+## Video :-
+
+[![Youtube Video](https://img.youtube.com/vi/LYRlDIB_Tlw/0.jpg)](https://www.youtube.com/watch?v=LYRlDIB_Tlw)
+
 The previous examples showed how a process waits for data from a device using 
 * [blocking I/O](/18_wait_queue_poll_fasync/01_busy_wait/)
 * [wait queue](/18_wait_queue_poll_fasync/02_wait_queue/)

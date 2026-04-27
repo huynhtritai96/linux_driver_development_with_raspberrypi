@@ -93,9 +93,9 @@
 
 ### 19. Kernel Synchronization Techniques
 * [Mutex](/19_kernel_synchronization/01_mutex/)
-* Spinlock
-* Completion
-* When to use which
+* [Spinlock](/19_kernel_synchronization/02_spinlock/)
+* [Completion](/19_kernel_synchronization/03_completion/)
+* [When to use which](/19_kernel_synchronization/When_to_use_which/)
 
 ### 20. Workqueues & Bottom Halves
 * Deferred execution
