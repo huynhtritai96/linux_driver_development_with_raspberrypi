@@ -5,7 +5,7 @@
 
 #ifdef USE_DESCRIPTOR_API 
 #include <linux/gpio/consumer.h>
-#else
+#else //
 #include <linux/gpio.h> // legacy
 #endif
 

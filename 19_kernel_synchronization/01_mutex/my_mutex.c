@@ -40,7 +40,8 @@ struct task_data low_t_pdata = {
     .text = "LOW_LOW_LOW"
 };
 
-static int thread_func(void *data) {
+static int thread_func(void *data)
+{
     task_data *t_data = (task_data *)data;
     
     while (!kthread_should_stop()) // Check if thread should stop
@@ -61,14 +62,16 @@ static int thread_func(void *data) {
     return 0;
 }
 
-static int __init my_init(void) {
+static int __init my_init(void) 
+{
     pr_info("%s: Initializing threads in SCHED_NORMAL\n", module_name);
 
     mutex_init(&my_mutex); // initialize mutex
 
     // Create High priority thread
     thread_high = kthread_run(thread_func, &high_t_pdata, "high_norm_kthread");
-    if (IS_ERR(thread_high)) {
+    if (IS_ERR(thread_high))
+    {
         pr_err("%s: Failed to create thread_high\n", module_name);
         return PTR_ERR(thread_high);
     }
@@ -76,7 +79,8 @@ static int __init my_init(void) {
 
     // Create Low priority thread
     thread_low = kthread_run(thread_func, &low_t_pdata, "low_norm_kthread");
-    if (IS_ERR(thread_low)) {
+    if (IS_ERR(thread_low))
+    {
         pr_err("%s: Failed to create thread_low\n", module_name);
         kthread_stop(thread_high);
         return PTR_ERR(thread_low);
@@ -86,7 +90,8 @@ static int __init my_init(void) {
     return 0;
 }
 
-static void __exit my_exit(void) {
+static void __exit my_exit(void)
+{
     if (thread_high) // 
         kthread_stop(thread_high);
     

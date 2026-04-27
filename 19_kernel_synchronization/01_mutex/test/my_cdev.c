@@ -43,7 +43,6 @@ static	ssize_t my_read(struct file *pFile, char __user *pUser_buff, size_t count
     pr_info("%s: read called: request=%zu, offset=%lld, \n", my_device, count, *pOffset);
 
     bytes_to_copy = (count + *pOffset > strlen(dev_buffer)) ? (strlen(dev_buffer) - *pOffset) : count;
-
     pr_info("%s: Read will copy=%zu bytes\n", my_device, bytes_to_copy);
 
     not_copied = copy_to_user(pUser_buff, dev_buffer + *pOffset, bytes_to_copy);
