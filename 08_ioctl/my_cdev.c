@@ -38,6 +38,8 @@ static int my_open(struct inode *pInode, struct file *pFile)
 
     return 0;
 }
+
+
 static int my_release(struct inode *pInode, struct file *pFile)
 {
     char *buffer = (char *)pFile->private_data;
@@ -48,8 +50,9 @@ static int my_release(struct inode *pInode, struct file *pFile)
     return 0;
 }
 
+
 /* read: copy data from kernel buffer -> user-space buffer*/
-static ssize_tmy_read(struct file *pFile, char __user *pUser_buff, size_t count, loff_t *pOffset)
+static ssize_t my_read(struct file *pFile, char __user *pUser_buff, size_t count, loff_t *pOffset)
 {
     size_t bytes_to_copy, not_copied, copied;
 
@@ -79,8 +82,9 @@ static ssize_tmy_read(struct file *pFile, char __user *pUser_buff, size_t count,
     return (ssize_t)copied;
 }
 
+
 /* write: copy data from user-space buffer -> kernel buffer */
-static ssize_tmy_write(struct file *pFile, const char __user *pUser_buff, size_t count, loff_t *pOffset)
+static ssize_t my_write(struct file *pFile, const char __user *pUser_buff, size_t count, loff_t *pOffset)
 {
     size_t bytes_to_copy, not_copied, copied;
 
@@ -109,12 +113,14 @@ static ssize_tmy_write(struct file *pFile, const char __user *pUser_buff, size_t
     return (size_t)copied;
 }
 
+
+// ioctl: handle custom commands from user-space
 static long my_ioctl(struct file *pFile, unsigned int cmd, unsigned long arg)
 {
     int value;
     switch (cmd)
     {
-        case MYCDEV_CLEAR:
+        case MYCDEV_CLEAR:      // Clear the device's internal buffer
             char *dev_buffer = (char *)pFile->private_data;
             if (!dev_buffer)
                 return -EINVAL;
@@ -122,13 +128,14 @@ static long my_ioctl(struct file *pFile, unsigned int cmd, unsigned long arg)
             pr_info("%s: private data field cleared\n", my_device);
             return 0;
 
-        case MYCDEV_SAY_HELLO:
+        case MYCDEV_SAY_HELLO:  // Say hello - Kernel prints a message in the kernel log
             pr_info("%s: Hello from kernel via ioctl\n", my_device);
             return 0;
 
         case MYCDEV_USER_READ: // User read - Kernel write
             value = 0xc0ffee;
-            if (copy_to_user((int __user *)arg, &value, sizeof(int)))
+            // int __user * : pointer to an integer in user-space, we want to copy the value of 'value' from kernel-space to this user-space pointer
+            if (copy_to_user((int __user *)arg, &value, sizeof(int))) // copy_to_user: copy data from kernel-space to user-space, return 0 on success, non-zero on failure
             {
                 pr_err("%s, failed to copy value to user\n", my_device);
                 return -EFAULT;
@@ -151,21 +158,23 @@ static long my_ioctl(struct file *pFile, unsigned int cmd, unsigned long arg)
     }
 }
 
+
 /* file operations structure */
 static struct file_operations fops = {
     .open = my_open,
     .release = my_release,
     .read = my_read,
     .write = my_write,
-    .unlocked_ioctl = my_ioctl,
+    .unlocked_ioctl = my_ioctl, // Use unlocked_ioctl for modern kernels, avoid using ioctl which is deprecated, 
+                                // .compat_ioctl = my_ioctl   // compat_ioctl can be implemented if you need to support 32-bit applications on a 64-bit kernel
 };
+
 
 static int __init my_init(void)
 {
     int status;
     
-    /* initialize mutex */
-    mutex_init(&dev_mutex);
+    mutex_init(&dev_mutex); /* initialize mutex */
 
     status = alloc_chrdev_region(&dev_nr, 0, MINORMASK + 1, my_device);
     if (status)
@@ -199,9 +208,12 @@ static int __init my_init(void)
         goto delete_class;
     }
 
-    pr_info("%s: Caracter device registerd, Major number: %d Minor number: %d\n",my_device, MAJOR(dev_nr), MINOR(dev_nr));
-    pr_info("%s: Created device number under /sys/class/my_class\n", my_device);
-    pr_info("%s: Created new device node /dev/my_cdev\n", my_device);
+    pr_info("%s: Caracter device registerd, Major number: %d Minor number: %d\n"
+            "%s: Created device number under /sys/class/my_class\n"
+            "%s: Created new device node /dev/my_cdev\n",
+            my_device, MAJOR(dev_nr), MINOR(dev_nr),
+            my_device,
+            my_device);
     return 0;
 
 delete_class:
@@ -214,8 +226,8 @@ free_device_nr:
     unregister_chrdev_region(dev_nr, MINORMASK + 1); 
 
     return status;
-
 }
+
 
 static void __exit my_exit(void)
 {

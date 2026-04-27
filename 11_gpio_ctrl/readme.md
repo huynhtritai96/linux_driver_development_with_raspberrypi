@@ -47,11 +47,8 @@ Example observed from userspace:
         gpiochip0  -> pinctrl-bcm2711
         gpiochip1  -> raspberrypi-exp-gpio
 
-So Linux does NOT think first in terms of:
-    "header pin 40"
-
-It thinks in terms of:
-    "GPIO controller + line inside that controller"
+So Linux does NOT think first in terms of: "header pin 40"
+It thinks in terms of: "GPIO controller + line inside that controller"
 
 DRIVER VIEW
 ───────────
@@ -151,8 +148,7 @@ Main functions:
     gpio_set_value()
     gpio_get_value()
 
-Mental model:
-    "I know the global gpio number; let me claim and manipulate it manually."
+Mental model: "I know the global gpio number; let me claim and manipulate it manually."
 
 API 2 — DESCRIPTOR-BASED GPIO API
 ─────────────────────────────────
@@ -207,8 +203,7 @@ CODE
 
 MENTAL MODEL
 ────────────
-This is the driver saying to the kernel:
-    "I want exclusive ownership/use of this GPIO line."
+This is the driver saying to the kernel: "I want exclusive ownership/use of this GPIO line."
 
 What kernel is protecting:
     - prevents accidental double-use
@@ -242,7 +237,6 @@ CODE
 MENTAL MODEL
 ────────────
 This programs the GPIO controller so this line behaves as an OUTPUT.
-
 The second parameter is the initial output value.
 
 So:
@@ -318,12 +312,8 @@ CODE
 MENTAL MODEL
 ────────────
 This drives the output line HIGH.
-
-Since the line was already configured as output,
-the module can now actively control the LED.
-
+Since the line was already configured as output, the module can now actively control the LED.
 Diagram:
-
     driver
       │
       └── gpio_set_value(533, 1)
@@ -351,9 +341,7 @@ CODE
 MENTAL MODEL
 ────────────
 This samples the current logical value seen on the input GPIO line.
-
 Diagram:
-
     physical button state
          │
          ▼
@@ -534,21 +522,17 @@ WHY THIS VERSION DOES NOT CALL gpio_free()
 
 In this particular demo, the code uses:
     gpio_to_desc()
-
 and then operates through descriptors, but it does not use an explicit legacy gpio_request/gpio_free pair.
 
-The tutorial explanation says:
-    "we didn't request them explicitly, so we don't free them explicitly"
+The tutorial explanation says: "we didn't request them explicitly, so we don't free them explicitly"
 
-Senior interpretation:
-    this is a simplified learning example contrasting the two API styles, not a full production-grade resource-managed consumer pattern yet.
+Senior interpretation: this is a simplified learning example contrasting the two API styles, not a full production-grade resource-managed consumer pattern yet.
 
 In real modern drivers, the preferred pattern is usually:
     obtain descriptors through proper consumer APIs
     often device-managed (devm_*) if you have a struct device context
 
-So the deep lesson is:
-    this example is primarily showing the operational difference in API shape, not the final best-practice full platform-driver pattern yet.
+So the deep lesson is: this example is primarily showing the operational difference in API shape, not the final best-practice full platform-driver pattern yet.
 
 ========================================================================================================
 COMPLETE SIGNAL FLOW FOR THIS LESSON
@@ -642,8 +626,7 @@ LEGACY INTEGER GPIO API
     gpio_get_value(gpio_num)
     gpio_free(gpio_num)
 
-Mental model:
-    "I manually manage a numbered GPIO resource."
+Mental model: "I manually manage a numbered GPIO resource."
 
 Pros:
     - simple for learning
@@ -663,8 +646,7 @@ DESCRIPTOR API
     gpiod_set_value(desc, val)
     gpiod_get_value(desc)
 
-Mental model:
-    "Kernel gives me a GPIO object handle; I operate through that handle."
+Mental model: "Kernel gives me a GPIO object handle; I operate through that handle."
 
 Pros:
     - newer and recommended model
@@ -679,7 +661,6 @@ Cons in this tutorial stage:
 ========================================================================================================
 FINAL SENIOR TAKEAWAY
 ========================================================================================================
-
 This GPIO lesson is best understood as a hardware-resource ownership flow:
     identify the GPIO line
         ↓

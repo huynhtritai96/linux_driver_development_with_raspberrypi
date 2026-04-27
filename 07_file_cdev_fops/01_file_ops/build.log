@@ -1,0 +1,10 @@
+$ make
+make -C /lib/modules/6.12.47+rpt-rpi-v8/build M=/home/htritai/ldd/linux_driver_development_with_raspberrypi/07_file_cdev_fops/01_file_ops modules
+make[1]: Entering directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/07_file_cdev_fops/01_file_ops/my_cdev.o
+  MODPOST /home/htritai/ldd/linux_driver_development_with_raspberrypi/07_file_cdev_fops/01_file_ops/Module.symvers
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/07_file_cdev_fops/01_file_ops/my_cdev.mod.o
+  CC [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/07_file_cdev_fops/01_file_ops/.module-common.o
+  LD [M]  /home/htritai/ldd/linux_driver_development_with_raspberrypi/07_file_cdev_fops/01_file_ops/my_cdev.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.12.47+rpt-rpi-v8'
+gcc -o test1 test1.c

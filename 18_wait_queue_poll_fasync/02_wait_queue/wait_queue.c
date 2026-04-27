@@ -13,8 +13,8 @@ MODULE_AUTHOR("MPCoding - LDD");
 MODULE_DESCRIPTION("Blocking vs Non-Blocking I/O with Wait queue — character device with GPIO interrupt");
 
 /* GPIO Button */
-#define BUTTON_GPIO 20
-#define IO_OFFSET 512
+#define BUTTON_GPIO     20
+#define IO_OFFSET       512
 static int button_gpio = (BUTTON_GPIO + IO_OFFSET);
 
 static struct gpio_desc *button; /* GPIO descriptor */

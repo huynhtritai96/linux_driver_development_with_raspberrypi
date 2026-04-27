@@ -18,7 +18,7 @@ static struct file_operations fops = {  //  file characteristic for device file/
 static int __init my_init(void)
 {
     int status;
-    status = alloc_chrdev_region(&dev_nr, 0, MINORMASK + 1, my_device);
+    status = alloc_chrdev_region(&dev_nr, 0, MINORMASK + 1, my_device); // 
     if (status)
     {
         pr_err("%s: character device registation failed\n", my_device);

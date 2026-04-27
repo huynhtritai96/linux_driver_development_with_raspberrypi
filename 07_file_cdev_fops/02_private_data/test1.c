@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
     }
     printf("%s: file opend 0\n", argv[1]);
 
+
     ssize_t len = write(fd, argv[2], strlen(argv[2]));
     if (len < 0)
     {
@@ -35,6 +36,7 @@ int main(int argc, char *argv[])
     printf("Press enter to continue.");
     getchar();
 
+
     char buffer[DEV_BUFFER_SIZE];
     len = read(fd, buffer, DEV_BUFFER_SIZE);
     if (len < 0)
@@ -44,6 +46,7 @@ int main(int argc, char *argv[])
     }
     printf("read: %d bytes - %s \n", len, buffer);
 
+    
 close_fd:
     ret = close(fd);
     if (ret < 0)

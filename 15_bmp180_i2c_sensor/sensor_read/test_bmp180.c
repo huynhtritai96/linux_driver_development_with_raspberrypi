@@ -30,7 +30,8 @@ static int read_sysfs_int(const char *device_dir, const char *filename, long lon
     FILE *f;
     int ret = -1;
 
-    if (snprintf(path, sizeof(path), "%s/%s", device_dir, filename) >= (int)sizeof(path)) {
+    if (snprintf(path, sizeof(path), "%s/%s", device_dir, filename) >= (int)sizeof(path))
+    {
         fprintf(stderr, "path too long\n");
         return -1;
     }

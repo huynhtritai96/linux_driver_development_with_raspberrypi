@@ -8,17 +8,19 @@ MODULE_DESCRIPTION("GPIO set get Example");
 
 static const char *device_name = "gpio_ctrl";
 
-#define LED_GPIO 21
-#define BUTTON_GPIO 20
-#define GPIO_OFFSET 512
+#define LED_GPIO 		21
+#define BUTTON_GPIO 	20
+#define GPIO_OFFSET 	512
 
 static struct gpio_desc *led, *button;
-static int led_gpio = (LED_GPIO + GPIO_OFFSET);
-static int button_gpio = (BUTTON_GPIO + GPIO_OFFSET);
+static int led_gpio 	= (LED_GPIO    + GPIO_OFFSET);	// GPIO number for LED (physical pin 21)
+static int button_gpio 	= (BUTTON_GPIO + GPIO_OFFSET);	// GPIO number for BUTTON (physical pin 20)
 
 static int __init my_init(void)
 {
     int status;
+
+	// Get GPIO descriptors for LED and BUTTON
 	led = gpio_to_desc(led_gpio);
 	if (!led)
 	{
@@ -26,6 +28,7 @@ static int __init my_init(void)
 		return -1;
 	}
 
+	// Get GPIO descriptor for BUTTON
 	button = gpio_to_desc(button_gpio);
 	if (!button)
 	{
@@ -34,7 +37,7 @@ static int __init my_init(void)
 	}
 
 	// Set pin 21(LED) as GPIO output
-	status = gpiod_direction_output(led, 0);
+	status = gpiod_direction_output(led, 0);	// Set as output and initialize to LOW
 	if (status)
 	{
 		pr_err("%s: unable to set GPIO 21 as output\n", device_name);
@@ -42,7 +45,7 @@ static int __init my_init(void)
 	}
 	
 	// Set pin 20(BUTTON) as GPIO input
-	status = gpiod_direction_input(button);
+	status = gpiod_direction_input(button);		// Set as input
 	if (status)
 	{
 		pr_err("%s: unable to set GPIO 20 as input\n", device_name);

@@ -13,8 +13,8 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("MPCoding - LDD");
 MODULE_DESCRIPTION("Poll demo — character device with GPIO interrupt");
 
-#define BUTTON_GPIO 20
-#define IO_OFFSET 512
+#define BUTTON_GPIO     20
+#define IO_OFFSET       512
 static int button_gpio = (BUTTON_GPIO + IO_OFFSET);
 
 static const char       *my_device = "my_cdev";

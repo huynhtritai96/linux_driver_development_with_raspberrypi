@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
     /* Open the same device twice — two independent file descriptors */
     int fd1 = open(argv[1], O_RDONLY);
     int fd2 = open(argv[1], O_RDONLY);
-
     if (fd1 < 0 || fd2 < 0)
     {
         perror("open failed");

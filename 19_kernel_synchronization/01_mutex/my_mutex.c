@@ -43,7 +43,8 @@ struct task_data low_t_pdata = {
 static int thread_func(void *data) {
     task_data *t_data = (task_data *)data;
     
-    while (!kthread_should_stop()) { // Check if thread should stop
+    while (!kthread_should_stop()) // Check if thread should stop
+    {
         mutex_lock(&my_mutex);
 
         pr_info("%s: Running %s Priority Task, Coping Data:%s \n", module_name, t_data->name, t_data->text);

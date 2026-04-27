@@ -1,0 +1,1 @@
+savedcmd_/home/htritai/ldd/linux_driver_development_with_raspberrypi/08_ioctl/my_cdev.mod := printf '%s\n'   my_cdev.o | awk '!x[$$0]++ { print("/home/htritai/ldd/linux_driver_development_with_raspberrypi/08_ioctl/"$$0) }' > /home/htritai/ldd/linux_driver_development_with_raspberrypi/08_ioctl/my_cdev.mod

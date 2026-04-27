@@ -1,0 +1,1 @@
+savedcmd_/home/htritai/ldd/linux_driver_development_with_raspberrypi/08_ioctl/Module.symvers :=  scripts/mod/modpost -M -m -a      -o /home/htritai/ldd/linux_driver_development_with_raspberrypi/08_ioctl/Module.symvers -T /home/htritai/ldd/linux_driver_development_with_raspberrypi/08_ioctl/modules.order -i Module.symvers -e 

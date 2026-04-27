@@ -13,9 +13,9 @@ static struct cdev my_cdev;
 static struct class *my_class;
 
 /* Size of the device's internal buffer */
-#define DEV_BUFFER_SIZE 64
+#define DEV_BUFFER_SIZE 64          // Size of the device's internal buffer
 
-static struct mutex dev_mutex;
+static struct mutex dev_mutex;      // Mutex to protect access to the device buffer
 
 static int my_open(struct inode *pInode, struct file *pFile)
 {
@@ -29,6 +29,8 @@ static int my_open(struct inode *pInode, struct file *pFile)
     pr_info("%s: Allocated %d bytes for private data\n", my_device, DEV_BUFFER_SIZE);
     return 0;
 }
+
+
 static int my_release(struct inode *pInode, struct file *pFile)
 {
     char *buffer = (char *)pFile->private_data;
@@ -39,8 +41,9 @@ static int my_release(struct inode *pInode, struct file *pFile)
     return 0;
 }
 
+
 /* read: copy data from kernel buffer -> user-space buffer*/
-static ssize_tmy_read(struct file *pFile, char __user *pUser_buff, size_t count, loff_t *pOffset)
+static ssize_t my_read(struct file *pFile, char __user *pUser_buff, size_t count, loff_t *pOffset)
 {
     size_t bytes_to_copy, not_copied, copied;
 
@@ -68,6 +71,7 @@ static ssize_tmy_read(struct file *pFile, char __user *pUser_buff, size_t count,
     mutex_unlock(&dev_mutex);
     return (ssize_t)copied;
 }
+
 
 /* write: copy data from user-space buffer -> kernel buffer */
 static ssize_t my_write(struct file *pFile, const char __user *pUser_buff, size_t count, loff_t *pOffset)
@@ -99,6 +103,7 @@ static ssize_t my_write(struct file *pFile, const char __user *pUser_buff, size_
     return (size_t)copied;
 }
 
+
 /* file operations structure */
 static struct file_operations fops = {
     .open = my_open,
@@ -107,12 +112,12 @@ static struct file_operations fops = {
     .write = my_write,
 };
 
+
 static int __init my_init(void)
 {
     int status;
     
-    /* initialize mutex */
-    mutex_init(&dev_mutex);
+    mutex_init(&dev_mutex); /* initialize mutex */
 
     status = alloc_chrdev_region(&dev_nr, 0, MINORMASK + 1, my_device);
     if (status)
@@ -146,9 +151,13 @@ static int __init my_init(void)
         goto delete_class;
     }
 
-    pr_info("%s: Caracter device registerd, Major number: %d Minor number: %d\n",my_device, MAJOR(dev_nr), MINOR(dev_nr));
-    pr_info("%s: Created device number under /sys/class/my_class\n", my_device);
-    pr_info("%s: Created new device node /dev/my_cdev\n", my_device);
+    pr_info("%s: Character device registerd, Major number: %d Minor number: %d\n"
+            "%s: Created device number under /sys/class/my_class\n"
+            "%s: Created new device node /dev/my_cdev\n",
+            my_device, MAJOR(dev_nr), MINOR(dev_nr),
+            my_device,
+            my_device);
+
     return 0;
 
 delete_class:
@@ -161,8 +170,8 @@ free_device_nr:
     unregister_chrdev_region(dev_nr, MINORMASK + 1); 
 
     return status;
-
 }
+
 
 static void __exit my_exit(void)
 {

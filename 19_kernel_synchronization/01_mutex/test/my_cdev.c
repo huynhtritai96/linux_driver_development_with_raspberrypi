@@ -58,7 +58,6 @@ static	ssize_t my_read(struct file *pFile, char __user *pUser_buff, size_t count
 
     mutex_unlock(&dev_mutex);
     return (ssize_t)copied;
-
 }
 
 /* write: copy data from user-space buffer -> kernel buffer */

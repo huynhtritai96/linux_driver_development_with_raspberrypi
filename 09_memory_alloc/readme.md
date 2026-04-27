@@ -181,15 +181,17 @@ Modern Linux systems use up to 5-level page tables on 64-bit systems.
 Important Differences (User vs Kernel)
 | User Space                 | Kernel Space                      |
 | -------------------------- | --------------------------------- |
-| Per-process virtual memory | Global kernel virtual memory      |
-| Can page out freely        | Most allocations must stay in RAM |
-| Crashes affect one process | Bugs crash the entire system      |
+| Per-process virtual memory | Global kernel virtual memory ![alt text](images/_timestamp_image.png)     | <---
+| Can page out freely        | Most allocations must stay in RAM ![alt text](images/_timestamp_image-1.png) |
+| Crashes affect one process | Bugs crash the entire system  ![alt text](images/_timestamp_image-2.png)    |
 
 **Even inside the kernel, we don’t touch RAM directly — we still work through virtual memory.**
 
 ## Kernel Memory Zones (Why GFP Flags Exist)[]
 Physical memory is divided into zones.  
-These exist because some hardware has limitations.
+These exist because some hardware has access limitations. NOT all devices can access all of physical memory.
+
+![alt text](images/_timestamp_image-3.png)
 
 **Main Zones**
 | Zone    | Purpose                         |
@@ -197,9 +199,11 @@ These exist because some hardware has limitations.
 | DMA     | Old devices (24-bit addressing) |
 | DMA32   | 32-bit DMA-capable devices      |
 | NORMAL  | Most kernel allocations         |
-| HIGHMEM | User memory (32-bit systems)    |
+| HIGHMEM | User memory (32-bit systems)   ![alt text](images/_timestamp_image-4.png) |
 
-* When you allocate memory, you are asking the kernel to pick memory from the right zone.
+NOTE: Not all zones exist on all architectures. For example, 64-bit systems typically do not have HIGHMEM. because they can address all physical memory directly.
+
+==> When you allocate memory, you are asking the kernel to pick memory from the right zone. That’s where GFP flags come in, telling the kernel where to allocate memory based on hardware requirements and allocation context.
 
 
 ## `kmalloc()` – Physically Contiguous Memory
@@ -207,49 +211,49 @@ These exist because some hardware has limitations.
 void *buf = kmalloc(1024, GFP_KERNEL);
 ```
 * Physically contiguous 
-* Fast 
-* DMA Safe
-* Limited size 
-* Can fail under fragmentation
+* Fast <-----
+* DMA Safe <-----
+* Limited size  <-----
+* Can fail under fragmentation <-----
 
-### Why Contiguous Matters
-* Required for DMA
-* Required for some hardware registers
+### Why Contiguous Matters <-----
+* Required for DMA <-----
+* Required for some hardware registers <-----
 
 ![](img/kmaloc.png)
 
-**kmalloc is like asking for one solid block of RAM — no breaks allowed.**
+**kmalloc is like asking for one solid block of RAM — no breaks allowed.** <-----
 
 ## kzalloc() – kmalloc + Zeroing
 ```c
 struct my_dev *dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 ```
 ### What it does
-* Same as kmalloc
-* Memory is zero-initialized
+* Same as kmalloc <----- 
+* Memory is zero-initialized <-----
 
 ### Why drivers love it
 * Avoids uninitialized memory bugs
 * Safer for structures
 
-*Use `kzalloc()` for structs, `kmalloc()` for raw buffers.*
+*Use `kzalloc()` for structs, `kmalloc()` for raw buffers.* <-----
 
 <br>
 
-## `vmalloc()` – Virtually Contiguous Memory
+## `vmalloc()` – Virtually Contiguous Memory <-----
 
 ```c
 void *buf = vmalloc(4 * 1024 * 1024);
 ```
-* Large mamory allocation
-* Virtually contiguous
-* Physically fragmented
-* Slower than `kmalloc`
-* Not DMA-safe
+* Large memory allocation <-----
+* Virtually contiguous <-----
+* Physically fragmented <-----
+* Slower than `kmalloc` <-----
+* Not DMA-safe <-----
 
 ![](img/vmalloc.png)
 
-**vmalloc works because of paging. Virtual memory hides physical fragmentation.**
+**vmalloc works because of paging. Virtual memory hides physical fragmentation.** <-----
 
 ## kmalloc vs vmalloc (Driver Perspective)
 | Feature             | kmalloc | vmalloc |
@@ -261,57 +265,57 @@ void *buf = vmalloc(4 * 1024 * 1024);
 | Large buffers       | Limited | Good    |
 
 **Driver rule**     
-* If hardware touches it → kmalloc()
-* If CPU-only buffer → vmalloc()
+* If hardware touches it    → kmalloc()     <-----
+* If CPU-only buffer        → vmalloc()     <-----
 
 ## GFP Flags – Allocation Context Matters
 Common Flags
 | Flag       | Meaning                  |
 | ---------- | ------------------------ |
-| GFP_KERNEL | Can sleep, most common   |
-| GFP_ATOMIC | No sleeping (interrupts) |
-| GFP_NOWAIT | Fail immediately         |
-| GFP_DMA    | Allocate from DMA zone   |
+| GFP_KERNEL | Can sleep, most common   |   <-----
+| GFP_ATOMIC | No sleeping (interrupts) |   <----- interrupt context, atomic context, or when holding locks
+| GFP_NOWAIT | Fail immediately         |   <----- fail immediately if memory is not available
+| GFP_DMA    | Allocate from DMA zone   |   <----- for older devices with 24-bit addressing
 
 Critical driver rule
-
-* Never use GFP_KERNEL in interrupt context
-* Use GFP_ATOMIC instead
-
+* Never use GFP_KERNEL in interrupt context <-----
+* Use GFP_ATOMIC instead    <-----      
+inside gfp_types.h
 
 ## Slab Allocator – Fast Object Allocation
 **Why Pages Alone Are Not Enough**  
-The kernel already knows how to allocate pages (usually 4 KB).  
-That works great for large memory needs, but kernel data structures are often tiny:
+The kernel already knows how to allocate pages (usually 4 KB).  <-----
+That works great for large memory needs, but kernel data structures are often tiny: <-----
 | Kernel Object  | Typical Size      |
 | -------------- | ----------------- |
-| Credentials    | ~16 bytes         |
-| Mutex / Lock   | tens of bytes     |
-| Thread / Task  | hundreds of bytes |
-| Process struct | ~1 KB             |
+| Credentials    | ~16 bytes         |  <-----
+| Mutex / Lock   | tens of bytes     |  <-----
+| Thread / Task  | hundreds of bytes |  <-----
+| Process struct | ~1 KB             |  <-----
 
-🚫 Using a full 4 KB page for each small object would:
-* Waste huge amounts of memory
-* Be very slow
-* Cause internal fragmentation
+🚫 Using a full 4 KB page for each small object would: <-----
+* Waste huge amounts of memory <-----
+* Be very slow  <-----
+* Cause internal fragmentation  <-----
 
-**So the kernel needs a memory allocator `below` page level.**
+**==> So the kernel needs a memory allocator `below` page level. that why SLAB Allocator come in.** <-----
 ### The Core Idea of the Slab Allocator
-    A page should only contain objects of the same type.
+    A page should only contain objects of the same type. <-----
 
 This single idea solves many problems at once.
 ```
-Page 1 → only mutexes
-Page 2 → only inodes
-Page 3 → only task_struct
+Page 1 → only mutexes           <-----
+Page 2 → only inodes            <-----
+Page 3 → only task_struct       <-----
 ```
-✅ Same-size objects
-✅ No external fragmentation
-✅ Cache-friendly
-✅ Easy to manage
+✅ Same-size objects            <-----
+✅ No external fragmentation    <-----
+✅ Cache-friendly               <-----
+✅ Easy to manage               <-----
 
-
+**==> That is the reason why the Linux kernel uses a slab allocator for small objects: it is efficient, fast, and minimizes fragmentation. <-----**
 ## SLUB Allocator Overview (Kernel Heap)
+The SLAB allocator implemention used is called **SLUB** (the Unqueued Slab Allocator).
 From this point onward, all memory-allocation discussions refer specifically to the **SLUB** implementation of the Linux **slab** allocator.
 
 The kernel heap is fundamentally different from user-space heap implementations such as `glibc malloc`. Because the design goals and constraints are different, the **terminology is also different**.  
@@ -321,7 +325,7 @@ Instead, the **SLUB** allocator is built around the concepts of `caches, slabs, 
 
 ![](img/SLUB.png)
 
-
+ READ MORE BELOW TO UNDERSTAND THE SLUB ALLOCATOR DESIGN AND TERMINOLOGY. <-----
 ### 1. Caches — The Top-Level Concept
 A **cache** is the highest-level abstraction in the SLUB allocator.
 * Each cache manages objects of a single, fixed size
@@ -440,6 +444,7 @@ In Linux, almost all small kernel allocations ultimately come from SLUB-backed c
 
 **SLUB efficiently packs fixed-size kernel objects into pages, reduces fragmentation, and enables fast, scalable allocation on multicore systems.**
 
+![alt text](images/_timestamp_image-5.png)
 
 ### Reference links
 * https://youtu.be/qcBIvnQt0Bw
